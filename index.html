@@ -1928,7 +1928,8 @@
   .cal-editor .copy-field .mini-btn{ flex:0 0 auto; }
 
   .cal-ev .ev-cheer{ color:#C08A72; }
-  .cal-ev .ev-tell{ color:#7C9A78; }
+  .cal-ev .ev-tell{ color:#7C9A78; display:inline-flex; align-items:center; }
+  .cal-ev .ev-tell .bpaw{ margin-left:0; opacity:.8; }
 
   /* a plan that runs over several days joins up across the cells */
   .cal-cell .chip.join-l{ border-left:none; margin-left:-4px; padding-left:5px; }
@@ -8268,7 +8269,7 @@ PAWS.load();
           ${spanOf(e) ? '<span>·</span><span>' + esc(spanLabel(e)) + '</span>' : ''}
           ${spanOf(e) ? '<span>·</span><span>' + (e.cont === false ? '毎日' : '連続') + '</span>' : ''}
           ${e.celebrate ? '<span>·</span><span class="ev-cheer">お祝い</span>' : ''}
-          ${e.tell ? '<span>·</span><span class="ev-tell">' + esc(PAWS.dogName()) + 'が伝える</span>' : ''}
+          ${e.tell ? '<span>·</span><span class="ev-tell" title="' + esc(PAWS.dogName()) + 'が伝える"><span class="bpaw"></span></span>' : ''}
           ${e.taskId ? '<span>·</span><span class="ev-sent">Alarm 登録済み</span>' : ''}
         </span>
         ${e.note ? `<span class="ev-note">${esc(e.note)}</span>` : ''}
@@ -8469,12 +8470,12 @@ PAWS.load();
       <div class="ed-field">
         <label>${esc(PAWS.dogName())}に伝える</label>
         <button class="toggle ${t.tell ? 'on' : ''}" id="cvTell">${t.tell ? 'ON' : 'OFF'}</button>
-        <span class="unit">ときどき話します</span>
+        <span class="unit">予定を教えてくれます</span>
       </div>
       <div class="ed-field">
         <label>お祝い</label>
         <button class="toggle ${t.celebrate ? 'on' : ''}" id="cvCheer">${t.celebrate ? 'ON' : 'OFF'}</button>
-        <span class="unit">誕生日など</span>
+        <span class="unit">${esc(PAWS.dogName())}が記念日をお祝いしてくれます</span>
       </div>
       <div class="ed-field">
         <label>メモ</label>
@@ -9369,6 +9370,22 @@ PAWS.load();
   // walk · still · sit · lie · sleep
   let pose = 'walk', poseUntil = 0, nextPose = Date.now() + 15000 + Math.random() * 25000;
   let bubbleUntil = 0, nextBubble = 0, greeted = false, bubbleText = '';
+  /* 立ち上げたときの、あいさつ → 今日の予定 の読み上げ */
+  let sayQueue = [], introDone = false, nextSay = 0;
+  function buildIntro(){
+    introDone = true;
+    const q = [GREET()];
+    const plans = todaysPlans();
+    if(!plans.length){
+      q.push('今日の予定は ないみたい');
+    } else {
+      q.push('今日の予定');
+      plans.slice(0, 6).forEach(e => { const t = planLine(e); if(t) q.push(t); });
+      if(plans.length > 6) q.push('ほかに ' + (plans.length - 6) + ' 件 あるよ');
+    }
+    sayQueue = q;
+    nextSay = Date.now() + 1500;
+  }
   let nextBf = 0, nextSeason = 0, nextStar = 0;
   let pups = [];                 // { el, gap }
   let pupsUntil = 0, nextPups = Date.now() + 20000 + Math.random() * 40000;
@@ -9889,10 +9906,18 @@ PAWS.load();
     // what it has to say
     const bub = $id('hmBubble');
     if(bub){
+      if(!introDone) buildIntro();
       if(bubbleUntil && now > bubbleUntil){
         bub.classList.add('hide');
         bubbleUntil = 0;
+        nextSay = now + 900;                                  // 次のひと言まで、ひと呼吸
         nextBubble = now + 180000 + Math.random() * 180000;   // three to six minutes
+      } else if(!bubbleUntil && sayQueue.length && now > nextSay){
+        greeted = true;
+        bubbleText = sayQueue.shift();
+        bub.innerHTML = bubbleText + PAW_TAG;
+        bub.classList.remove('hide');
+        bubbleUntil = now + (sayQueue.length ? 4200 : 5400);
       } else if(!bubbleUntil && now > nextBubble && pose !== 'sleep'){
         greeted = true;
         // a plan to pass on, a word about the weather, or simply hello
