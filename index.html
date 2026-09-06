@@ -406,6 +406,8 @@
     z-index: 3;
   }
   .walker svg{ width:100%; height:100%; overflow: visible; }
+  /* 念のため：犬の絵が大きく出てしまわないように */
+  .walker, .pup{ max-width:40px; max-height:40px; }
   /* 庭の子たちは、さわると返事をする */
   .home-stage .walker{ pointer-events:auto; cursor:pointer; }
   .dog-body{ fill: #C9A87C; }
@@ -1930,16 +1932,32 @@
   .cal-ev .ev-cheer{ color:#C08A72; }
   .cal-ev .ev-tell{ color:#7C9A78; display:inline-flex; align-items:center; }
   /* 予定の右端の肉球：押すとその日ぶんを完了に */
-  .cal-ev .ev-done{ margin-left:auto; flex:0 0 auto; align-self:center;
-    display:inline-flex; align-items:center; gap:4px; padding:3px 7px;
-    border:1px solid #DCD3C6; border-radius:999px; color:#BCB2A6;
-    cursor:pointer; transition:color .15s, border-color .15s; }
-  .cal-ev .ev-done svg{ width:15px; height:13px; fill:none; stroke:currentColor;
-    stroke-width:2.4; }
-  .cal-ev .ev-done i{ font-style:normal; font-size:9.5px; letter-spacing:.06em;
-    font-family:'Space Mono',monospace; }
-  .cal-ev .ev-done:hover{ color:var(--c); border-color:var(--c); }
-  .cal-ev .ev-done.on{ color:var(--c); border-color:var(--c); }
+  .cal-ev .ev-done{ margin-left:auto; flex:0 0 auto; align-self:center; position:relative;
+    display:inline-flex; align-items:center; justify-content:center;
+    width:29px; height:25px; padding:0; border:0; background:none;
+    color:#E2DCD2; cursor:pointer; transition:color .15s; }
+  /* すこし右に傾けて、ぽんと押したスタンプのように */
+  .cal-ev .ev-done svg{ width:29px; height:25px; fill:none; stroke:currentColor;
+    stroke-width:1.25; transform:rotate(13deg); }
+  .cal-ev .ev-done:hover{ color:#CBC1B1; }
+  .cal-ev .ev-done.on{ color:var(--c); }
+  .cal-ev .ev-done.on svg{ fill:currentColor; stroke:none; }
+  /* 押した瞬間だけ、ぽんとスタンプを押した感じに */
+  .cal-ev .ev-done.on.stamp svg{ animation:pawStamp .42s cubic-bezier(.2,1.5,.35,1) both; }
+  .cal-ev .ev-done.on.stamp::after{ content:""; position:absolute; inset:-5px; border-radius:50%;
+    border:1.5px solid var(--c); opacity:0; pointer-events:none;
+    animation:pawRing .55s ease-out both; }
+  @keyframes pawStamp{
+    0%{   transform:scale(1.75) rotate(-4deg); opacity:0; }
+    32%{  transform:scale(.82)  rotate(17deg); opacity:1; }
+    58%{  transform:scale(1.12) rotate(10deg); }
+    80%{  transform:scale(.97)  rotate(14deg); }
+    100%{ transform:scale(1)    rotate(13deg); }
+  }
+  @keyframes pawRing{
+    0%{   transform:scale(.45); opacity:.55; }
+    100%{ transform:scale(1.35); opacity:0; }
+  }
   .cal-ev .ev-tell .bpaw{ margin-left:0; opacity:.8; }
 
   /* a plan that runs over several days joins up across the cells */
@@ -2102,6 +2120,18 @@
   .wx-sub .hi{ color:#C08A72; }
   .wx-sub .lo{ color:#7E9BB0; }
   .wx-place{ display:flex; gap:6px; align-items:center; margin-left:auto; }
+  /* 時間ごとの空。いまから2時間おきに、小さく */
+  .wx-hours{ display:flex; align-items:flex-start; gap:2px; overflow-x:auto;
+    border-top:1px solid var(--line); padding-top:5px; margin-top:1px;
+    scrollbar-width:none; }
+  .wx-hours::-webkit-scrollbar{ display:none; }
+  .wx-h{ flex:1 0 auto; min-width:34px; display:flex; flex-direction:column; align-items:center;
+    gap:0; }
+  .wx-h .wx-hh{ font-family:'Space Mono',monospace; font-size:9px; color:var(--text-faint);
+    line-height:1.4; }
+  .wx-h .wx-art{ flex:0 0 19px; width:19px; height:19px; }
+  .wx-h .wx-ht{ font-family:'Space Mono',monospace; font-size:9.5px; color:var(--text-muted);
+    line-height:1.4; }
   .wx-picker{ display:flex; gap:6px; align-items:center; flex-wrap:wrap;
     border-top:1px solid var(--line); padding-top:10px; }
   .wx-picker input{ flex:1; min-width:130px; font-family:'Zen Kaku Gothic New',sans-serif;
@@ -3729,7 +3759,7 @@ PAWS.load();
   /* ---------------- the dog ---------------- */
 
   const DOG_SVG = window.__DOG_SVG = PAWS.dogArt(`
-  <svg viewBox="0 0 34 34" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <svg viewBox="0 0 34 34" width="34" height="34" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <g class="pose"><g class="bob">
       <path class="tail dog-body" d="M7 15 C3 13, 2 9, 4.5 7.5 C5.5 9.5, 6.5 12, 8.5 13.5 Z" />
       <g class="leg-b"><rect class="dog-dark" x="8.5" y="19" width="3" height="7" rx="1.4"/></g>
@@ -5875,7 +5905,7 @@ PAWS.load();
     <g transform="translate(9,0.5) scale(0.42)">${PAW_PATHS}</g>`;
 
   const DOG_SVG = PAWS.dogArt(`
-  <svg viewBox="0 0 34 34" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <svg viewBox="0 0 34 34" width="34" height="34" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <g class="pose"><g class="bob">
       <path class="tail dog-body" d="M7 15 C3 13, 2 9, 4.5 7.5 C5.5 9.5, 6.5 12, 8.5 13.5 Z" />
       <g class="leg-b"><rect class="dog-dark" x="8.5" y="19" width="3" height="7" rx="1.4"/></g>
@@ -8269,9 +8299,17 @@ PAWS.load();
     </div>`;
   }
 
+  /* 押したばかりの肉球だけアニメーションさせるための目印 */
+  let stampKey = '';
+  function markStamp(id, dk){
+    const k = id + '|' + dk;
+    stampKey = k;
+    setTimeout(() => { if(stampKey === k) stampKey = ''; }, 900);
+  }
   function eventRow(e, dayKey){
     const dk = dayKey || cursor;
     const done = e.doneOn === dk;
+    const stamp = done && stampKey === (e.id + '|' + dk);
     return `<button class="cal-ev${done ? ' is-done' : ''}" data-edit="${esc(e.id)}"
       style="--c:${typeColor(e.type)}; --cb:${tint(typeColor(e.type), 0.13)}">
       <span class="ev-time">${esc(dayTimeText(e, dk))}</span>
@@ -8283,14 +8321,14 @@ PAWS.load();
           ${spanOf(e) ? '<span>·</span><span>' + esc(spanLabel(e)) + '</span>' : ''}
           ${spanOf(e) ? '<span>·</span><span>' + (e.cont === false ? '毎日' : '連続') + '</span>' : ''}
           ${e.celebrate ? '<span>·</span><span class="ev-cheer">お祝い</span>' : ''}
-          ${e.tell ? '<span>·</span><span class="ev-tell" title="' + esc(PAWS.dogName()) + 'が伝える"><span class="bpaw"></span></span>' : ''}
+          ${e.tell ? '<span>·</span><span class="ev-tell"><span class="bpaw"></span></span>' : ''}
           ${e.taskId ? '<span>·</span><span class="ev-sent">Alarm 登録済み</span>' : ''}
         </span>
         ${e.note ? `<span class="ev-note">${esc(e.note)}</span>` : ''}
       </span>
-      <span class="ev-done${done ? ' on' : ''}" role="button" tabindex="0"
+      <span class="ev-done${done ? ' on' : ''}${stamp ? ' stamp' : ''}" role="button" tabindex="0"
         data-done="${esc(e.id)}|${dk}" title="${done ? '完了を取り消す' : '完了にする'}">
-        <svg viewBox="0 0 40 34" aria-hidden="true"><ellipse cx="20" cy="25" rx="8.6" ry="7"/><ellipse cx="9.5" cy="14.5" rx="4" ry="5.2" transform="rotate(-18 9.5 14.5)"/><ellipse cx="16.5" cy="8" rx="3.7" ry="5"/><ellipse cx="24.5" cy="8" rx="3.7" ry="5"/><ellipse cx="31" cy="14.5" rx="4" ry="5.2" transform="rotate(18 31 14.5)"/></svg>${done ? '<i>Done</i>' : ''}</span>
+        <svg viewBox="0 0 40 34" aria-hidden="true"><ellipse cx="20" cy="25" rx="8.6" ry="7"/><ellipse cx="9.5" cy="14.5" rx="4" ry="5.2" transform="rotate(-18 9.5 14.5)"/><ellipse cx="16.5" cy="8" rx="3.7" ry="5"/><ellipse cx="24.5" cy="8" rx="3.7" ry="5"/><ellipse cx="31" cy="14.5" rx="4" ry="5.2" transform="rotate(18 31 14.5)"/></svg></span>
     </button>`;
   }
 
@@ -8664,7 +8702,7 @@ PAWS.load();
       const id = el.dataset.done.slice(0, i), dk = el.dataset.done.slice(i + 1);
       const e2 = events().find(x => x.id === id);
       if(!e2) return;
-      if(e2.doneOn === dk) delete e2.doneOn; else e2.doneOn = dk;
+      if(e2.doneOn === dk) delete e2.doneOn; else { e2.doneOn = dk; markStamp(id, dk); }
       e2.at = Date.now();
       save();
       render();
@@ -8839,6 +8877,16 @@ PAWS.load();
   /* ---------------- start ---------------- */
 
   // Home reads today's plans through these.
+  window.__planRow = function(e, dayKey){ return eventRow(e, dayKey); };
+  window.__planDone = function(id, dayKey){
+    const e = events().find(x => x.id === id);
+    if(!e) return false;
+    if(e.doneOn === dayKey) delete e.doneOn; else { e.doneOn = dayKey; markStamp(id, dayKey); }
+    e.at = Date.now();
+    save();
+    render();
+    return true;
+  };
   window.__planOn = function(dayKey){
     return eventsOn(dayKey).filter(e => e.doneOn !== dayKey);   /* 済んだ予定は言わない */
   };
@@ -8970,8 +9018,28 @@ PAWS.load();
   function fresh(){
     const w = data.wx;
     /* v が古い記録は、いまの空ではなく「その日ぜんぶ」の天気だったので取り直す */
-    return !!(w && w.v === 2 && w.at && (Date.now() - w.at) < 30 * 60 * 1000
+    return !!(w && w.v === 3 && w.at && (Date.now() - w.at) < 30 * 60 * 1000
       && w.day === keyOf(new Date()));
+  }
+
+  /* いまの時刻から2時間おきに、その先の空を少しだけ */
+  function hourStrip(j){
+    const h = j && j.hourly;
+    if(!h || !h.time) return [];
+    const now = Date.now();
+    const out = [];
+    for(let i = 0; i < h.time.length; i++){
+      const t = new Date(h.time[i]);
+      if(isNaN(t) || t.getTime() < now - 30 * 60 * 1000) continue;
+      if((out.length ? 1 : 0) && (t.getHours() % 2)) continue;
+      out.push({
+        h: t.getHours(),
+        t: (h.temperature_2m && h.temperature_2m[i] != null) ? Math.round(h.temperature_2m[i]) : null,
+        c: (h.weather_code && h.weather_code[i] != null) ? h.weather_code[i] : 0
+      });
+      if(out.length >= 7) break;
+    }
+    return out;
   }
 
   async function loadWeather(force){
@@ -8984,7 +9052,8 @@ PAWS.load();
       const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + p.lat + '&longitude=' + p.lon
         + '&current=temperature_2m,weather_code'
         + '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max'
-        + '&timezone=auto&forecast_days=1';
+        + '&hourly=temperature_2m,weather_code'
+        + '&timezone=auto&forecast_days=2';
       const r = await fetch(url);
       if(!r.ok) throw new Error('http ' + r.status);
       const j = await r.json();
@@ -8993,8 +9062,9 @@ PAWS.load();
       const nowCode = (j.current && j.current.weather_code != null) ? j.current.weather_code : null;
       const dayCode = (d.weather_code && d.weather_code[0] != null) ? d.weather_code[0] : null;
       data.wx = {
-        v: 2,
+        v: 3,
         at: Date.now(),
+        hours: hourStrip(j),
         day: keyOf(new Date()),
         temp: j.current ? Math.round(j.current.temperature_2m) : null,
         code: nowCode != null ? nowCode : (dayCode != null ? dayCode : 0),
@@ -9241,6 +9311,12 @@ PAWS.load();
             <button class="mini-btn" id="hmReload" ${busy ? 'disabled' : ''}>${busy ? '…' : '更新'}</button>
           </div>
           </div>
+          ${(w.hours && w.hours.length) ? `<div class="wx-hours">${w.hours.map(hh => {
+            const hs = sky(hh.c);
+            return `<span class="wx-h"><span class="wx-hh">${hh.h}</span>`
+              + `<span class="wx-art ${hs.key}">${skyArt(hs.key)}</span>`
+              + `<span class="wx-ht">${hh.t != null ? hh.t + '°' : '—'}</span></span>`;
+          }).join('')}</div>` : ''}
         ` : `
           <div class="wx-line">
             <div class="wx-art cloud">${skyArt('part')}</div>
@@ -9270,16 +9346,8 @@ PAWS.load();
           <span>Today's plans</span>
           <span class="tools"><button class="mini-btn" id="hmAll">Schedule →</button></span>
         </div>
-        ${plans.length ? `<div class="home-plans">
-          ${plans.map(e => {
-            const c = typeOf(e.type).color;
-            return `<button class="home-plan" data-plan="${esc(e.id)}"
-              style="--c:${c}; --cb:${tint(c, 0.13)}">
-              <span class="hp-time">${e.allDay ? '終日' : esc(e.start || '—')}${(!e.allDay && e.end) ? '–' + esc(e.end) : ''}</span>
-              <span class="hp-title">${esc(e.title)}</span>
-              ${e.note ? `<span class="hp-note">${esc(e.note)}</span>` : ''}
-            </button>`;
-          }).join('')}
+        ${plans.length ? `<div class="cal-day-list plain">
+          ${plans.map(e => window.__planRow ? window.__planRow(e, keyOf(new Date())) : '').join('')}
         </div>` : `<div class="empty-state">今日の予定はありません。<br>ゆっくりいきましょう。</div>`}
         ${alarmRows()}
       </div>
@@ -9303,6 +9371,19 @@ PAWS.load();
     $qa('[data-plan]').forEach(b => b.addEventListener('click', () => {
       if(window.__openPlan) window.__openPlan(b.dataset.plan);
       PAWS.setTab('cal');
+    }));
+    /* Schedule と同じ行なので、開くのも完了にするのも同じ操作で */
+    $qa('[data-edit]').forEach(b => b.addEventListener('click', ev => {
+      ev.stopPropagation();
+      if(window.__openPlan) window.__openPlan(b.dataset.edit);
+      PAWS.setTab('cal');
+    }));
+    $qa('[data-done]').forEach(el => el.addEventListener('click', ev => {
+      ev.stopPropagation();
+      ev.preventDefault();
+      const i = el.dataset.done.lastIndexOf('|');
+      if(window.__planDone) window.__planDone(el.dataset.done.slice(0, i), el.dataset.done.slice(i + 1));
+      render();
     }));
     const city = $id('hmCity');
     if(city) city.addEventListener('keydown', ev => { if(ev.key === 'Enter') findPlace(city.value); });
