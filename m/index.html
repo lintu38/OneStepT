@@ -1626,10 +1626,10 @@
   #paneFm #fmGo .go-steps svg{ width:28px; height:18px; }
   .dog-bubble{ position:absolute; left:50%; top:-18px; margin-left:32px;
     background:#fff; border:1px solid var(--line); border-radius:13px;
-    padding:6px 12px; font-family:'Comfortaa','Zen Kaku Gothic New',cursive;
-    font-size:12px; font-weight:500; color:#7C6247; white-space:nowrap;
+    padding:5px 11px; font-family:'Comfortaa','Zen Kaku Gothic New',cursive;
+    font-size:11px; font-weight:400; color:#7C6247; white-space:nowrap;
     text-align:center; line-height:1.5;
-    box-shadow:0 6px 16px -10px rgba(80,60,40,.6); pointer-events:none; z-index:6;
+    pointer-events:none; z-index:6;
     transition:opacity .45s ease, transform .45s cubic-bezier(.2,1.6,.4,1); }
   .dog-bubble.hide{ opacity:0; transform:scale(.8); }
   .dog-bubble .jp{ font-size:11.5px; color:var(--text-muted); }
@@ -1929,6 +1929,17 @@
 
   .cal-ev .ev-cheer{ color:#C08A72; }
   .cal-ev .ev-tell{ color:#7C9A78; display:inline-flex; align-items:center; }
+  /* 予定の右端の肉球：押すとその日ぶんを完了に */
+  .cal-ev .ev-done{ margin-left:auto; flex:0 0 auto; align-self:center;
+    display:inline-flex; align-items:center; gap:4px; padding:3px 7px;
+    border:1px solid #DCD3C6; border-radius:999px; color:#BCB2A6;
+    cursor:pointer; transition:color .15s, border-color .15s; }
+  .cal-ev .ev-done svg{ width:15px; height:13px; fill:none; stroke:currentColor;
+    stroke-width:2.4; }
+  .cal-ev .ev-done i{ font-style:normal; font-size:9.5px; letter-spacing:.06em;
+    font-family:'Space Mono',monospace; }
+  .cal-ev .ev-done:hover{ color:var(--c); border-color:var(--c); }
+  .cal-ev .ev-done.on{ color:var(--c); border-color:var(--c); }
   .cal-ev .ev-tell .bpaw{ margin-left:0; opacity:.8; }
 
   /* a plan that runs over several days joins up across the cells */
@@ -8035,6 +8046,7 @@ PAWS.load();
           monthDay: e.monthDay || 0,
           monthEnd: !!e.monthEnd,
           cont: e.cont === false ? false : true,
+          doneOn: e.doneOn || '',
           note: e.note || '',
           type: typeOf(e.type).label,
           color: typeOf(e.type).color,
@@ -8213,9 +8225,11 @@ PAWS.load();
   }
 
   function eventRow(e, dayKey){
-    return `<button class="cal-ev" data-edit="${esc(e.id)}"
+    const dk = dayKey || cursor;
+    const done = e.doneOn === dk;
+    return `<button class="cal-ev${done ? ' is-done' : ''}" data-edit="${esc(e.id)}"
       style="--c:${typeColor(e.type)}; --cb:${tint(typeColor(e.type), 0.13)}">
-      <span class="ev-time">${esc(dayTimeText(e, dayKey || cursor))}</span>
+      <span class="ev-time">${esc(dayTimeText(e, dk))}</span>
       <span class="ev-body">
         <span class="ev-title">${esc(e.title)}</span>
         <span class="ev-meta">
@@ -8229,6 +8243,9 @@ PAWS.load();
         </span>
         ${e.note ? `<span class="ev-note">${esc(e.note)}</span>` : ''}
       </span>
+      <span class="ev-done${done ? ' on' : ''}" role="button" tabindex="0"
+        data-done="${esc(e.id)}|${dk}" title="${done ? '完了を取り消す' : '完了にする'}">
+        <svg viewBox="0 0 40 34" aria-hidden="true"><ellipse cx="20" cy="25" rx="8.6" ry="7"/><ellipse cx="9.5" cy="14.5" rx="4" ry="5.2" transform="rotate(-18 9.5 14.5)"/><ellipse cx="16.5" cy="8" rx="3.7" ry="5"/><ellipse cx="24.5" cy="8" rx="3.7" ry="5"/><ellipse cx="31" cy="14.5" rx="4" ry="5.2" transform="rotate(18 31 14.5)"/></svg>${done ? '<i>Done</i>' : ''}</span>
     </button>`;
   }
 
@@ -8594,6 +8611,19 @@ PAWS.load();
       ev.stopPropagation();
       openEditor(b.dataset.edit);
     }));
+    /* 肉球を押すと、その日のぶんを完了にする */
+    $qa('[data-done]').forEach(el => el.addEventListener('click', ev => {
+      ev.stopPropagation();
+      ev.preventDefault();
+      const i = el.dataset.done.lastIndexOf('|');
+      const id = el.dataset.done.slice(0, i), dk = el.dataset.done.slice(i + 1);
+      const e2 = events().find(x => x.id === id);
+      if(!e2) return;
+      if(e2.doneOn === dk) delete e2.doneOn; else e2.doneOn = dk;
+      e2.at = Date.now();
+      save();
+      render();
+    }));
     // a box inside a day cell: open it without also selecting the day
     $qa('[data-chip]').forEach(el => el.addEventListener('click', ev => {
       ev.stopPropagation();
@@ -8764,7 +8794,9 @@ PAWS.load();
   /* ---------------- start ---------------- */
 
   // Home reads today's plans through these.
-  window.__planOn = function(dayKey){ return eventsOn(dayKey); };
+  window.__planOn = function(dayKey){
+    return eventsOn(dayKey).filter(e => e.doneOn !== dayKey);   /* 済んだ予定は言わない */
+  };
   window.__openPlan = function(id){
     const e = events().find(x => x.id === id);
     if(!e) return false;
