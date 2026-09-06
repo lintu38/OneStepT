@@ -8890,6 +8890,8 @@ PAWS.load();
   window.__planOn = function(dayKey){
     return eventsOn(dayKey).filter(e => e.doneOn !== dayKey);   /* 済んだ予定は言わない */
   };
+  /* HOME に並べるぶんは、完了した予定も肉球つきのまま残す */
+  window.__planAll = function(dayKey){ return eventsOn(dayKey); };
   window.__openPlan = function(id){
     const e = events().find(x => x.id === id);
     if(!e) return false;
@@ -9147,6 +9149,11 @@ PAWS.load();
     const list = (window.__planOn ? window.__planOn(k) : []) || [];
     return list;
   }
+  /* 表示用：完了したものも含めた今日の予定 */
+  function todaysPlansAll(){
+    const k = keyOf(new Date());
+    return (window.__planAll ? window.__planAll(k) : todaysPlans()) || [];
+  }
 
   // A short bright run of notes, for a birthday or anything else marked
   // as worth celebrating.
@@ -9276,7 +9283,7 @@ PAWS.load();
     const now = new Date();
     const w = data.wx;
     const s = w ? sky(w.code) : null;
-    const plans = todaysPlans();
+    const plans = todaysPlansAll();
 
     app.innerHTML = `
       <div class="home-stage ${skyNow().cls}" id="hmStage">
