@@ -1928,7 +1928,8 @@
   .cal-editor .copy-field .mini-btn{ flex:0 0 auto; }
 
   .cal-ev .ev-cheer{ color:#C08A72; }
-  .cal-ev .ev-tell{ color:#7C9A78; }
+  .cal-ev .ev-tell{ color:#7C9A78; display:inline-flex; align-items:center; }
+  .cal-ev .ev-tell .bpaw{ margin-left:0; opacity:.8; }
 
   /* a plan that runs over several days joins up across the cells */
   .cal-cell .chip.join-l{ border-left:none; margin-left:-4px; padding-left:5px; }
@@ -1950,6 +1951,21 @@
   /* the dog's own patch of ground: no frame, just room to walk */
   .home-stage{ position:relative; height:150px; margin:-4px 0 -2px; overflow:hidden;
     border-radius:14px; }
+  /* 庭のすみの、小窓を開くボタン */
+  .yard-btn{ position:absolute; right:8px; top:8px; z-index:7;
+    width:24px; height:24px; padding:0; border-radius:8px;
+    border:1px solid rgba(255,255,255,.55); background:rgba(255,255,255,.5);
+    color:#6E563D; display:inline-flex; align-items:center; justify-content:center;
+    cursor:pointer; opacity:0; transition:opacity .2s, background .2s; }
+  .home-stage:hover .yard-btn{ opacity:1; }
+  .dial-wrap:hover .yard-btn.dial-mini{ opacity:1; }
+  .yard-btn.dial-mini{ right:0; top:0; background:rgba(255,255,255,.55);
+    border-color:rgba(120,100,80,.14); }
+  .yard-btn:hover{ background:rgba(255,255,255,.8); }
+  .yard-btn svg{ width:13px; height:13px; fill:none; stroke:currentColor;
+    stroke-width:1.5; stroke-linejoin:round; }
+  @media (hover: none){ .yard-btn{ display:none; } }
+  html.yard .yard-btn{ display:none; }
   /* ---- 庭だけの小窓 ---- */
   html.yard, html.yard body{ height:100%; min-height:0; overflow:hidden; }
   html.yard body{ padding:0; display:block; background:var(--bg); }
@@ -4670,6 +4686,9 @@ PAWS.load();
             : ''}
         ${renderPups(st.dogClass)}
         ${renderBreakButterflies()}
+        ${CAN_MINI && (data.phase === 'working' || data.phase === 'break')
+          ? `<button class="yard-btn dial-mini" id="miniBtn2" title="小窓で開く" aria-label="小窓で開く"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><rect x="8.2" y="8" width="5" height="4" rx="1"/></svg></button>`
+          : ''}
       </div>
 
 
@@ -4751,8 +4770,7 @@ PAWS.load();
     `;
 
     bind('startBtn', onStartWork);
-    bind('miniBtn', openMini);
-    bind('yardBtn', openYard);
+    bind('miniBtn2', openMini);
     bind('soundToggle', () => { data.soundOn = data.soundOn === false; saveData(); PAWS.refreshAll(); if(data.soundOn){ ensureAudio(); playChime(); } });
     bind('goBtn', onGo);
     bind('breakBtn', onBreak);
@@ -5090,7 +5108,8 @@ PAWS.load();
     }catch(e){ return true; }
   })();
 
-  /* 庭だけの小窓：犬たちの様子をいつでも眺められる */
+  /* 庭だけの小窓：犬たちの様子をいつでも眺められる（HOME のボタンから） */
+  window.__openYard = function(){ openYard(); };
   function openYard(){
     if(!CAN_MINI){ alert('小窓はパソコン用の機能です。'); return; }
     const g = (function(){ try{ return JSON.parse(localStorage.getItem('paw_yard_win') || 'null') || {}; }
@@ -8205,7 +8224,7 @@ PAWS.load();
           ${spanOf(e) ? '<span>·</span><span>' + esc(spanLabel(e)) + '</span>' : ''}
           ${spanOf(e) ? '<span>·</span><span>' + (e.cont === false ? '毎日' : '連続') + '</span>' : ''}
           ${e.celebrate ? '<span>·</span><span class="ev-cheer">お祝い</span>' : ''}
-          ${e.tell ? '<span>·</span><span class="ev-tell">' + esc(PAWS.dogName()) + 'が伝える</span>' : ''}
+          ${e.tell ? '<span>·</span><span class="ev-tell" title="' + esc(PAWS.dogName()) + 'が伝える"><span class="bpaw"></span></span>' : ''}
           ${e.taskId ? '<span>·</span><span class="ev-sent">Alarm 登録済み</span>' : ''}
         </span>
         ${e.note ? `<span class="ev-note">${esc(e.note)}</span>` : ''}
@@ -8406,12 +8425,12 @@ PAWS.load();
       <div class="ed-field">
         <label>${esc(PAWS.dogName())}に伝える</label>
         <button class="toggle ${t.tell ? 'on' : ''}" id="cvTell">${t.tell ? 'ON' : 'OFF'}</button>
-        <span class="unit">ときどき話します</span>
+        <span class="unit">予定を教えてくれます</span>
       </div>
       <div class="ed-field">
         <label>お祝い</label>
         <button class="toggle ${t.celebrate ? 'on' : ''}" id="cvCheer">${t.celebrate ? 'ON' : 'OFF'}</button>
-        <span class="unit">誕生日など</span>
+        <span class="unit">${esc(PAWS.dogName())}が記念日をお祝いしてくれます</span>
       </div>
       <div class="ed-field">
         <label>メモ</label>
@@ -9124,6 +9143,7 @@ PAWS.load();
         <span class="walker" id="hmDog">${window.__DOG_SVG || ''}</span>
         <span class="zzz hide" id="hmZzz"><i>z</i><i>z</i><i>z</i></span>
         <div class="dog-bubble sess hide" id="hmBubble"></div>
+        <button class="yard-btn" id="hmYard" title="庭だけの小窓で開く" aria-label="庭だけの小窓で開く"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><rect x="8.2" y="8" width="5" height="4" rx="1"/></svg></button>
       </div>
 
       <div class="home-card wx ${w ? 'has' : ''}">
@@ -9192,6 +9212,7 @@ PAWS.load();
     on('hmPlace', () => { placeOpen = !placeOpen; msg = null; hits = []; render();
       const el = $id('hmCity'); if(el) el.focus(); });
     on('hmReload', () => loadWeather(true));
+    on('hmYard', () => { if(window.__openYard) window.__openYard(); });
     on('hmFind', () => { const el = $id('hmCity'); findPlace(el ? el.value : ''); });
     on('hmHere', useHere);
     $qa('[data-hit]').forEach(b => b.addEventListener('click', () => {
@@ -9304,6 +9325,22 @@ PAWS.load();
   // walk · still · sit · lie · sleep
   let pose = 'walk', poseUntil = 0, nextPose = Date.now() + 15000 + Math.random() * 25000;
   let bubbleUntil = 0, nextBubble = 0, greeted = false, bubbleText = '';
+  /* 立ち上げたときの、あいさつ → 今日の予定 の読み上げ */
+  let sayQueue = [], introDone = false, nextSay = 0;
+  function buildIntro(){
+    introDone = true;
+    const q = [GREET()];
+    const plans = todaysPlans();
+    if(!plans.length){
+      q.push('今日の予定は ないみたい');
+    } else {
+      q.push('今日の予定');
+      plans.slice(0, 6).forEach(e => { const t = planLine(e); if(t) q.push(t); });
+      if(plans.length > 6) q.push('ほかに ' + (plans.length - 6) + ' 件 あるよ');
+    }
+    sayQueue = q;
+    nextSay = Date.now() + 1500;
+  }
   let nextBf = 0, nextSeason = 0, nextStar = 0;
   let pups = [];                 // { el, gap }
   let pupsUntil = 0, nextPups = Date.now() + 20000 + Math.random() * 40000;
@@ -9824,10 +9861,18 @@ PAWS.load();
     // what it has to say
     const bub = $id('hmBubble');
     if(bub){
+      if(!introDone) buildIntro();
       if(bubbleUntil && now > bubbleUntil){
         bub.classList.add('hide');
         bubbleUntil = 0;
+        nextSay = now + 900;                                  // 次のひと言まで、ひと呼吸
         nextBubble = now + 180000 + Math.random() * 180000;   // three to six minutes
+      } else if(!bubbleUntil && sayQueue.length && now > nextSay){
+        greeted = true;
+        bubbleText = sayQueue.shift();
+        bub.innerHTML = bubbleText + PAW_TAG;
+        bub.classList.remove('hide');
+        bubbleUntil = now + (sayQueue.length ? 4200 : 5400);
       } else if(!bubbleUntil && now > nextBubble && pose !== 'sleep'){
         greeted = true;
         // a plan to pass on, a word about the weather, or simply hello
