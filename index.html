@@ -2208,6 +2208,10 @@
   .wx-rain i{ position:absolute; top:-16px; width:1.8px; height:14px; border-radius:1px;
     background:linear-gradient(#8FAEBF, rgba(143,174,191,0));
     animation-name:rainFall; animation-timing-function:linear; animation-iteration-count:infinite; }
+  /* 霧雨は、細く短く、うっすら */
+  .wx-rain.fine{ opacity:.7; }
+  .wx-rain.fine i{ width:1.4px; height:10px;
+    background:linear-gradient(#9DB7C6, rgba(157,183,198,0)); }
   @keyframes rainFall{
     0%{ transform:translateY(0); opacity:0; }
     10%{ opacity:.8; }
@@ -10068,6 +10072,9 @@ PAWS.load();
       <path class="fw-r ow-wing" d="M13.8 16.6 C16.8 7.8, 24 3.8, 28.6 5.8
         C23.8 10.4, 18.2 14.2, 13.8 18.8 Z"/>
     </g></svg>`;
+  /* お客さんが来たとき、犬が近づいてくんくんする */
+  const SNIFF_LINES = ['くんくん…', 'いい におい', 'あそぼ'];
+  let curiousUntil = 0, curiousAt = 0, sniffSaid = false;
   let owl = null;
   let nextOwl = Date.now() + 2 * 60000 + Math.random() * 9 * 60000;
   let nextHero = Date.now() + 3.5 * 3600000 + Math.random() * 7 * 3600000;
@@ -10120,11 +10127,15 @@ PAWS.load();
     }
   }
   /* ごくまれに、なにかが飛んでいく */
+  const UFO_LINES = ['UFO 見た？'];
   function ufoBy(st){
     const toRight = Math.random() < .5;
+    const dur = 15 + Math.random() * 8;
     makeFlier(st, 'hm-ufo', UFO_SVG, {
       toRight: toRight, w: 40, top: 4 + Math.random() * 16,
-      dy: -4 - Math.random() * 12, dur: 15 + Math.random() * 8 });
+      dy: -4 - Math.random() * 12, dur: dur });
+    setTimeout(() => dogSays(UFO_LINES[Math.floor(Math.random() * UFO_LINES.length)]),
+      dur * 1000 + 700);
   }
 
   /* 小屋の屋根のてっぺん */
@@ -10195,11 +10206,16 @@ PAWS.load();
   }
 
   /* ごくまれに、だれかがまっすぐ飛んでいく */
+  const HERO_LINES = ['なんか 飛んでった'];
   function heroBy(st){
     const toRight = Math.random() < .5;
+    const dur = 6.5 + Math.random() * 3.5;
     makeFlier(st, 'hm-hero', HERO_SVG, {
       toRight: toRight, w: 52, top: 10 + Math.random() * 20,
-      dy: -2 + Math.random() * 4, dur: 6.5 + Math.random() * 3.5 });
+      dy: -2 + Math.random() * 4, dur: dur });
+    /* 飛んでいったあとに、ひとこと */
+    setTimeout(() => dogSays(HERO_LINES[Math.floor(Math.random() * HERO_LINES.length)]),
+      dur * 1000 + 700);
   }
 
   function dogSays(t){
@@ -10554,6 +10570,11 @@ PAWS.load();
   }
 
   // The weather that is actually outside, drawn over the yard.
+  /* 霧雨（コード 51〜57）は、ふつうの雨より弱く降らせる */
+  function drizzling(){
+    const c = data.wx && data.wx.code;
+    return typeof c === 'number' && c >= 51 && c <= 57;
+  }
   function wxScene(){
     const w = data.wx;
     if(!w || typeof w.code !== 'number') return null;
@@ -10582,10 +10603,15 @@ PAWS.load();
 
     let fall = '';
     if(kind === 'rain' || kind === 'storm'){
-      fall = '<span class="wx-rain">' + Array.from({ length: 30 }, (_, i) =>
-        `<i style="left:${(2 + i * 3.3 + Math.random() * 2.6).toFixed(1)}%;
-            animation-duration:${(0.62 + Math.random() * 0.42).toFixed(2)}s;
-            animation-delay:${(Math.random() * 1.2).toFixed(2)}s"></i>`).join('') + '</span>';
+      const fine = drizzling();
+      const n = fine ? 18 : 30;
+      const gap = 96 / n;
+      fall = '<span class="wx-rain' + (fine ? ' fine' : '') + '">'
+        + Array.from({ length: n }, (_, i) =>
+        `<i style="left:${(2 + i * gap + Math.random() * (gap * 0.7)).toFixed(1)}%;
+            animation-duration:${(fine ? 0.95 + Math.random() * 0.6
+                                       : 0.62 + Math.random() * 0.42).toFixed(2)}s;
+            animation-delay:${(Math.random() * 1.4).toFixed(2)}s"></i>`).join('') + '</span>';
     } else if(kind === 'snow'){
       fall = '<span class="wx-snow">' + Array.from({ length: 12 }, (_, i) =>
         `<i style="left:${(5 + i * 8 + Math.random() * 5).toFixed(1)}%;
@@ -10712,8 +10738,37 @@ PAWS.load();
       nextPose = now + 20000;
     }
 
+    /* お客さんが庭にいると、ときどき気になって近づいていく */
+    if(!wet && visitor && now > curiousAt && now > curiousUntil
+       && (visitor.phase === 'stay' || visitor.phase === 'in' || visitor.phase === 'move')
+       && Math.random() < 0.02){
+      curiousUntil = now + 13000 + Math.random() * 12000;
+      curiousAt = now + 70000 + Math.random() * 110000;
+      sniffSaid = false;
+    }
+    const curious = !wet && visitor && now < curiousUntil;
+    if(curious){
+      const gap = 0.075;
+      const target = visitor.p + (dogX < visitor.p ? -gap : gap);
+      const d = target - dogX;
+      if(Math.abs(d) > 0.016){
+        dogDir = d < 0 ? -1 : 1;
+        dogX += Math.sign(d) * 0.017;
+        pose = 'walk';
+      } else {
+        dogDir = visitor.p > dogX ? 1 : -1;
+        pose = 'still';
+        if(!sniffSaid){
+          sniffSaid = true;
+          dogSays(SNIFF_LINES[Math.floor(Math.random() * SNIFF_LINES.length)]);
+        }
+      }
+      poseUntil = now + 1500;
+      nextPose = now + 1500;
+    }
+
     // walking most of the time, with a sit, a lie-down or a nap in between
-    if(!wet && pose !== 'walk'){
+    if(!wet && !curious && pose !== 'walk'){
       if(now > poseUntil){
         pose = 'walk';
         const h2 = new Date().getHours();
@@ -10722,7 +10777,7 @@ PAWS.load();
                         : quiet2 ? 5000 + Math.random() * 10000
                         : 9000 + Math.random() * 18000);
       }
-    } else if(!wet){
+    } else if(!wet && !curious){
       dogX += dogDir * 0.018;
       if(dogX <= 0){ dogX = 0; dogDir = 1; }
       if(dogX >= 1){ dogX = 1; dogDir = -1; }
