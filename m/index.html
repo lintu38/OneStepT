@@ -965,7 +965,7 @@
     font-size: 10.5px; color: var(--text-faint);
   }
 
-  .chart-body{ position: relative; height: 104px; }
+  .chart-body{ position: relative; height: 104px; margin-top: 15px; }
   .bars{ display:flex; align-items:flex-end; gap: 6px; height: 100%; }
   .goal-line{
     position:absolute; left:0; right:0;
@@ -987,10 +987,18 @@
   }
   .bar-slot{
     flex: 1; width: 100%;
-    display:flex; align-items:flex-end; justify-content:center;
+    display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
     min-height: 0;
   }
+  /* 棒の上に、その区間の合計 */
+  .bar-val{
+    flex: 0 0 auto;
+    font-family:'Space Mono', monospace;
+    font-size: 8.5px; line-height: 1.3; color: var(--text-faint);
+    white-space: nowrap; margin-bottom: 3px;
+  }
   .bar{
+    flex: 0 0 auto;
     width: 100%; max-width: 26px;
     border-radius: 5px 5px 3px 3px;
     transition: height 0.4s ease;
@@ -1499,8 +1507,10 @@
   .walker.sleep .leg-a, .walker.sleep .leg-b{
     transform-box:fill-box; transform-origin:50% 0; transform:scaleY(.34); }
   .walker.sleep .tail{ animation:none; }
-  .walker.sleep circle.dog-nose:last-of-type{
-    transform-box:fill-box; transform-origin:50% 50%; transform:scaleY(.22); }
+  /* ねむると、目はにこっとした U 字に */
+  .dog-shut{ display:none; fill:none; stroke:#5C4632; stroke-width:.85; stroke-linecap:round; }
+  .walker.sleep circle.dog-nose:last-of-type{ display:none; }
+  .walker.sleep .dog-shut{ display:block; }
 
   /* lying down, wherever it happens */
   .walker.lie .bob, .walker.lie .leg-a, .walker.lie .leg-b{ animation:none; }
@@ -2079,8 +2089,8 @@
   .home-stage .walker.lie .tail{ animation-duration:1.2s; }
   .home-stage .walker.sleep .tail{ animation:none; }
   /* eyes shut while asleep */
-  .home-stage .walker.sleep circle.dog-nose:last-of-type{
-    transform-box:fill-box; transform-origin:50% 50%; transform:scaleY(.22); }
+  .home-stage .walker.sleep circle.dog-nose:last-of-type{ display:none; }
+  .home-stage .walker.sleep .dog-shut{ display:block; }
 
   .zzz{ position:absolute; z-index:6; display:flex; align-items:flex-end; gap:2px;
     pointer-events:none; font-family:'Comfortaa','Zen Kaku Gothic New',cursive;
@@ -2195,13 +2205,13 @@
   @keyframes cloudDrift{ from{ transform:translateX(-30px); } to{ transform:translateX(460px); } }
 
   .wx-rain, .wx-snow{ position:absolute; inset:0; }
-  .wx-rain i{ position:absolute; top:-14px; width:1.6px; height:11px; border-radius:1px;
-    background:linear-gradient(#A6C0CE, rgba(166,192,206,0));
+  .wx-rain i{ position:absolute; top:-16px; width:1.8px; height:14px; border-radius:1px;
+    background:linear-gradient(#8FAEBF, rgba(143,174,191,0));
     animation-name:rainFall; animation-timing-function:linear; animation-iteration-count:infinite; }
   @keyframes rainFall{
     0%{ transform:translateY(0); opacity:0; }
-    12%{ opacity:.55; }
-    100%{ transform:translateY(155px); opacity:0; } }
+    10%{ opacity:.8; }
+    100%{ transform:translateY(160px); opacity:0; } }
   .wx-snow i{ position:absolute; top:-10px; width:4px; height:4px; border-radius:999px;
     background:#F2F6F8; opacity:.85;
     animation-name:snowFall; animation-timing-function:linear; animation-iteration-count:infinite; }
@@ -2221,6 +2231,193 @@
     0%,92%{ opacity:0; } 93%{ opacity:.5; } 94%{ opacity:.05; } 95%{ opacity:.35; } 97%,100%{ opacity:0; } }
 
   .orb.dim{ opacity:.45; }
+  /* くもり・雨の日の太陽は、ぐっと薄く */
+  .orb.sun.dim{ opacity:.22;
+    box-shadow:0 0 0 4px rgba(246,206,114,.10), 0 0 14px 5px rgba(244,199,96,.16); }
+  .orb.sun.dim::before{ opacity:.45; }
+
+  /* ---------- たまに起きる、うれしいこと ---------- */
+  .hm-fly{ position:absolute; z-index:2; pointer-events:none; will-change:transform; }
+  .hm-fly .fly-in{ display:block; animation:flySway 4.6s ease-in-out infinite; }
+  .hm-fly svg{ display:block; }
+  @keyframes flyAcross{
+    0%{ transform:translate(0,0); opacity:0; }
+    9%{ opacity:1; }
+    91%{ opacity:1; }
+    100%{ transform:translate(var(--dx), var(--dy)); opacity:0; }
+  }
+  @keyframes flySway{
+    0%,100%{ transform:translateY(0) rotate(-2.5deg); }
+    50%{ transform:translateY(-7px) rotate(2.5deg); }
+  }
+  .hm-rainbow{ position:absolute; left:50%; top:0; width:252px; height:137px;
+    transform:translateX(-50%); z-index:1; pointer-events:none; opacity:0;
+    animation:rbIn 6s ease forwards, rbOut 14s ease 200s forwards; }
+  .hm-rainbow svg{ width:100%; height:100%; display:block; }
+  /* 7本いっしょに、本物の虹のように数分かけて少しずつのびていく */
+  .hm-rainbow path{ stroke-dasharray:100; stroke-dashoffset:100;
+    animation:rbDraw 150s cubic-bezier(.25,.5,.4,1) forwards; }
+  @keyframes rbDraw{ to{ stroke-dashoffset:0; } }
+  @keyframes rbIn{ from{ opacity:0; } to{ opacity:.28; } }
+  @keyframes rbOut{ from{ opacity:.28; } to{ opacity:0; } }
+  /* 空をわたっていくもの：小鳥・カラスの群れ・UFO */
+  .hm-bird, .hm-ufo{ position:absolute; z-index:2; pointer-events:none; }
+  .hm-bird svg, .hm-ufo svg{ display:block; }
+  .hm-bird .bw-in{ display:block; animation:birdBob 1.5s ease-in-out infinite; }
+  .hm-bird.crow svg{ width:15px; height:9px; }
+  .fb-body{ fill:#8FA6B8; }
+  .fb-wing{ fill:#7C94A8; }
+  .fb-tail{ fill:#7C94A8; }
+  .fb-beak{ fill:#D9A768; }
+  .hm-bird.crow .fb-body, .hm-bird.crow .fb-wing, .hm-bird.crow .fb-tail{ fill:#4C484C; }
+  .hm-bird.crow .fb-beak{ fill:#3B373B; }
+  .fw-l{ transform-box:fill-box; transform-origin:100% 100%;
+    animation:flapL .32s ease-in-out infinite; }
+  .fw-r{ transform-box:fill-box; transform-origin:0% 100%;
+    animation:flapR .32s ease-in-out infinite; }
+  @keyframes flapL{ 0%,100%{ transform:rotate(-28deg); } 50%{ transform:rotate(26deg); } }
+  @keyframes flapR{ 0%,100%{ transform:rotate(28deg); } 50%{ transform:rotate(-26deg); } }
+  @keyframes birdBob{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-5px); } }
+  .hm-ufo{ filter:drop-shadow(0 0 9px rgba(158,222,236,.5)); }
+  /* マントをなびかせて、まっすぐ飛んでいく人 */
+  .hm-hero{ position:absolute; z-index:2; pointer-events:none; }
+  .hm-hero svg{ display:block; }
+  .hm-hero .bw-in{ display:block; animation:none; }
+  .hr-suit{ fill:#5E8C86; }
+  .hr-arm{ fill:#54807B; }
+  .hr-boot{ fill:#3F5F5C; }
+  .hr-boot2{ fill:#36524F; }
+  .hr-cape{ fill:#C0564C; transform-box:fill-box; transform-origin:100% 50%;
+    animation:capeWave .72s ease-in-out infinite; }
+  .hr-skin{ fill:#E8C6A6; }
+  .hr-hair{ fill:#6B4A33; }
+  @keyframes capeWave{
+    0%{ transform:skewY(-5deg) scaleY(.95); }
+    25%{ transform:skewY(3deg) scaleY(1.07); }
+    50%{ transform:skewY(6.5deg) scaleY(1.01); }
+    75%{ transform:skewY(-1.5deg) scaleY(1.09); }
+    100%{ transform:skewY(-5deg) scaleY(.95); } }
+  .hm-ufo .bw-in{ display:block; animation:ufoBob 3.4s ease-in-out infinite; }
+  .uf-body{ fill:#9BA8B5; }
+  .uf-dome{ fill:#BFD8E4; }
+  .uf-shine{ fill:#EDF5F9; opacity:.75; }
+  .uf-lamp{ fill:#F2DC85; animation:ufoLamp 1.3s ease-in-out infinite; }
+  /* ときどき、チカッと光る */
+  .uf-flash{ fill:#FFFDF2; opacity:0; animation:ufoFlash 5.4s linear infinite; }
+  @keyframes ufoBob{ 0%,100%{ transform:translateY(0) rotate(-2.5deg); }
+    50%{ transform:translateY(-8px) rotate(2.5deg); } }
+  @keyframes ufoLamp{ 0%,100%{ opacity:.3; } 50%{ opacity:1; } }
+  @keyframes ufoFlash{
+    0%,84%{ opacity:0; } 86%{ opacity:.8; } 88%{ opacity:.08; }
+    90%{ opacity:.55; } 93%,100%{ opacity:0; } }
+  @media (prefers-reduced-motion: reduce){
+    .fw-l, .fw-r, .hm-bird .bw-in, .hm-ufo .bw-in, .uf-lamp, .hr-cape{ animation:none; } }
+
+  /* 雨の日の水たまりと、かたつむり */
+  .hm-pud{ position:absolute; bottom:-3px; z-index:1; pointer-events:none;
+    opacity:0; animation:pudIn 3s ease forwards; }
+  .hm-pud.out{ animation:pudOut 2.4s ease forwards; }
+  .hm-pud svg{ display:block; }
+  .hm-pud .rip{ transform-origin:50% 50%; animation:pudRip 3.6s ease-out infinite; }
+  @keyframes pudIn{ to{ opacity:.9; } }
+  @keyframes pudOut{ from{ opacity:.9; } to{ opacity:0; } }
+  @keyframes pudRip{ 0%{ transform:scale(.15); opacity:.75; }
+    100%{ transform:scale(1); opacity:0; } }
+  /* 雨の日のかえる。ひと跳びずつ進む */
+  .hm-frog{ position:absolute; bottom:7px; z-index:3; pointer-events:none;
+    transition:left .42s ease-out, opacity .8s ease; }
+  .hm-frog .fr-in{ display:block; }
+  .hm-frog svg, .hm-frog span{ display:block; }
+  @keyframes frogUp{
+    0%{ transform:translateY(0) scaleY(.86) scaleX(1.08); }
+    28%{ transform:translateY(-13px) scaleY(1.08) scaleX(.95); }
+    62%{ transform:translateY(-7px) scaleY(1.02) scaleX(1); }
+    100%{ transform:translateY(0) scaleY(1) scaleX(1); }
+  }
+  @keyframes frogUpS{
+    0%{ transform:translateY(0) scaleY(.92) scaleX(1.04); }
+    34%{ transform:translateY(-5px) scaleY(1.04) scaleX(.98); }
+    100%{ transform:translateY(0) scaleY(1) scaleX(1); }
+  }
+  .fr-body{ fill:#8FB47A; }
+  .fr-leg{ fill:#7CA268; }
+  .fr-belly{ fill:#D9E4C8; }
+  .fr-eye{ fill:#3E4A36; }
+  .fr-mouth{ fill:none; stroke:#5F7A50; stroke-width:.9; stroke-linecap:round; }
+  /* うさぎと小鳥は、歩かずに、ひと跳びずつ移動する */
+  .walker.guest.rab:not(.gait-walk) .bob,
+  .walker.guest.rab:not(.gait-walk) .leg-a, .walker.guest.rab:not(.gait-walk) .leg-b,
+  .walker.guest.bird .bob, .walker.guest.bird .leg-a, .walker.guest.bird .leg-b{
+    animation:none; }
+  @keyframes rabJump{
+    0%{ transform:translateY(0) scaleY(.82) scaleX(1.12); }
+    14%{ transform:translateY(-11px) scaleY(1.14) scaleX(.9); }
+    34%{ transform:translateY(-19px) scaleY(1.08) scaleX(.95); }
+    64%{ transform:translateY(-11px) scaleY(1.02) scaleX(.99); }
+    88%{ transform:translateY(-2px) scaleY(.96) scaleX(1.04); }
+    100%{ transform:translateY(0) scaleY(1) scaleX(1); }
+  }
+  @keyframes birdJump{
+    0%{ transform:translateY(0) scaleY(.9); }
+    32%{ transform:translateY(-7px) scaleY(1.06); }
+    100%{ transform:translateY(0) scaleY(1); }
+  }
+  /* 庭の小鳥は、飛ぶ姿と とまっている姿を切り替える */
+  .home-stage .walker.guest.bird{ width:22px; height:22px; margin-left:-11px; margin-top:-11px; }
+  .walker.guest.bird .bd-stand, .walker.guest.bird .bd-fly,
+  .walker.guest.owl .bd-stand, .walker.guest.owl .bd-fly{ display:block; width:100%; height:100%; }
+  .walker.guest.bird .bd-fly, .walker.guest.owl .bd-fly{ display:none; }
+  .walker.guest.bird.flying .bd-stand, .walker.guest.owl.flying .bd-stand{ display:none; }
+  .walker.guest.bird.flying .bd-fly, .walker.guest.owl.flying .bd-fly{ display:block; }
+  /* 夜、小屋の屋根にとまるフクロウ */
+  .home-stage .walker.guest.owl{ width:27px; height:27px; margin-left:-13.5px; margin-top:-13.5px;
+    z-index:6; }
+  .ow-body{ fill:#8B7A66; }
+  .ow-wing{ fill:#736450; }
+  .ow-belly{ fill:#CBBAA0; }
+  .ow-face{ fill:#EADFCB; }
+  .ow-eye{ fill:#39312A; transform-box:fill-box; transform-origin:50% 50%;
+    animation:owlBlink 7.5s ease-in-out infinite; }
+  .ow-beak{ fill:#D9A768; }
+  .ow-foot{ fill:#C08A4E; }
+  @keyframes owlBlink{
+    0%,93%,100%{ transform:scaleY(1); } 95%{ transform:scaleY(.1); } 97%{ transform:scaleY(1); } }
+  /* フクロウは、ゆっくり大きくはばたく */
+  .walker.guest.owl .fw-l{ animation:owlFlapL 1.2s ease-in-out infinite; }
+  .walker.guest.owl .fw-r{ animation:owlFlapR 1.2s ease-in-out infinite; }
+  @keyframes owlFlapL{ 0%,100%{ transform:rotate(-34deg); } 50%{ transform:rotate(28deg); } }
+  @keyframes owlFlapR{ 0%,100%{ transform:rotate(34deg); } 50%{ transform:rotate(-28deg); } }
+  /* 小鳥 */
+  .bd-body{ fill:#9DB3C4; }
+  .bd-wing{ fill:#87A0B4; }
+  .bd-beak{ fill:#D9A768; }
+  .bd-eye{ fill:#3C4650; }
+  .bd-leg{ fill:none; stroke:#C08A4E; stroke-width:1.1; stroke-linecap:round; }
+  .walker.guest.bird.v2 .bd-body{ fill:#C3A987; }
+  .walker.guest.bird.v2 .bd-wing{ fill:#A98D69; }
+  @media (prefers-reduced-motion: reduce){
+    .hm-fly .fly-in{ animation:none; }
+    .hm-pud .rip{ animation:none; }
+    .walker.guest .pose{ animation:none !important; } }
+
+  /* ---------- ときどき遊びに来る子 ---------- */
+  .home-stage .walker.guest{ width:30px; height:30px; margin-left:-15px; margin-top:-15px;
+    z-index:4; }
+  .walker.guest.sit .pose{ transform-box:view-box; transform-origin:24px 26px;
+    transform:rotate(-13deg); }
+  .cat-body{ fill:#A79F97; }
+  .cat-dark{ fill:#8B837B; }
+  .cat-light{ fill:#E7E2DB; }
+  .cat-face{ fill:#4E463F; }
+  .walker.guest.v2 .cat-body{ fill:#5E564D; }
+  .walker.guest.v2 .cat-dark{ fill:#463F38; }
+  .walker.guest.v2 .cat-light{ fill:#8B8179; }
+  .rab-body{ fill:#FDFBF7; }
+  .rab-dark{ fill:#E6DFD4; }
+  .rab-pink{ fill:#E4B2B8; }
+  .rab-face{ fill:#6B5F55; }
+  .walker.guest.v2 .rab-body{ fill:#C8B096; }
+  .walker.guest.v2 .rab-dark{ fill:#AF977B; }
   @media (prefers-reduced-motion: reduce){ .wx-scene{ display:none; } }
 </style>
 </head>
@@ -3727,8 +3924,52 @@ PAWS.load();
       <ellipse class="dog-light" cx="29.6" cy="14.2" rx="3.1" ry="2.3"/>
       <circle class="dog-nose" cx="31.6" cy="13.4" r="1.15"/>
       <circle class="dog-nose" cx="27" cy="11.4" r="0.95"/>
+      <path class="dog-shut" d="M25.8 11.25 A1.2 1.2 0 0 0 28.2 11.25"/>
     </g></g>
   </svg>`);
+
+  const CAT_SVG = window.__CAT_SVG = `<svg viewBox="0 0 34 34" width="34" height="34" aria-hidden="true">
+    <g class="pose"><g class="bob">
+      <path class="tail cat-body" d="M8 20.5 C3.6 19.5, 2.6 13.4, 5.8 11.8
+        C6.4 15, 6.8 17.8, 9.6 19.4 Z"/>
+      <g class="leg-b"><rect class="cat-dark" x="10.2" y="20.5" width="2.9" height="6" rx="1.4"/></g>
+      <g class="leg-b"><rect class="cat-dark" x="19.4" y="20.5" width="2.9" height="6" rx="1.4"/></g>
+      <ellipse class="cat-body" cx="16.2" cy="19.4" rx="8.3" ry="5.4"/>
+      <g class="leg-a"><rect class="cat-light" x="12.9" y="21" width="2.9" height="5.5" rx="1.4"/></g>
+      <g class="leg-a"><rect class="cat-light" x="21.7" y="21" width="2.9" height="5.5" rx="1.4"/></g>
+      <path class="cat-body" d="M21.7 12.8 L20.9 8.3 L24.8 10.6 Z"/>
+      <path class="cat-body" d="M28.7 12.6 L29.9 8.6 L25.9 10.4 Z"/>
+      <circle class="cat-body" cx="25.2" cy="14" r="5.1"/>
+      <ellipse class="cat-light" cx="27.6" cy="15.8" rx="2.4" ry="1.9"/>
+      <circle class="cat-face" cx="27.4" cy="12.9" r="1"/>
+      <circle class="cat-face" cx="29.6" cy="15" r="0.8"/>
+    </g></g></svg>`;
+  const RAB_SVG = window.__RAB_SVG = `<svg viewBox="0 0 34 34" width="34" height="34" aria-hidden="true">
+    <g class="pose"><g class="bob">
+      <circle class="tail rab-dark" cx="8.2" cy="19.4" r="3.1"/>
+      <g class="leg-b"><rect class="rab-dark" x="10.6" y="21" width="3" height="5.5" rx="1.4"/></g>
+      <g class="leg-b"><rect class="rab-dark" x="18.8" y="21" width="3" height="5.5" rx="1.4"/></g>
+      <ellipse class="rab-body" cx="16" cy="19.6" rx="8" ry="5.6"/>
+      <g class="leg-a"><rect class="rab-body" x="13.2" y="21.4" width="3.1" height="5.1" rx="1.5"/></g>
+      <g class="leg-a"><rect class="rab-body" x="21.4" y="21.4" width="3.1" height="5.1" rx="1.5"/></g>
+      <ellipse class="rab-body" cx="22.9" cy="8.6" rx="2.1" ry="5.2" transform="rotate(-13 22.9 8.6)"/>
+      <ellipse class="rab-body" cx="26.9" cy="8.9" rx="2.1" ry="5.2" transform="rotate(7 26.9 8.9)"/>
+      <ellipse class="rab-pink" cx="22.9" cy="9" rx="0.9" ry="3.3" transform="rotate(-13 22.9 9)"/>
+      <ellipse class="rab-pink" cx="26.9" cy="9.3" rx="0.9" ry="3.3" transform="rotate(7 26.9 9.3)"/>
+      <circle class="rab-body" cx="25" cy="16.2" r="4.7"/>
+      <circle class="rab-face" cx="27" cy="15.3" r="0.9"/>
+      <circle class="rab-pink" cx="29.2" cy="17" r="0.9"/>
+    </g></g></svg>`;
+  const BIRD_SVG = window.__BIRD_SVG = `<svg viewBox="0 0 34 34" width="34" height="34" aria-hidden="true">
+    <g class="pose"><g class="bob">
+      <path class="bd-wing" d="M7.5 17.6 L1.8 14.2 L2.8 21.4 Z"/>
+      <ellipse class="bd-body" cx="15" cy="18.2" rx="8.2" ry="6.4"/>
+      <ellipse class="bd-wing" cx="14.2" cy="18.8" rx="5.2" ry="3.6" transform="rotate(-8 14.2 18.8)"/>
+      <circle class="bd-body" cx="22.6" cy="12.6" r="5.1"/>
+      <path class="bd-beak" d="M26.8 12.2 L31.6 13.8 L26.8 15.4 Z"/>
+      <circle class="bd-eye" cx="24.2" cy="11.5" r="1"/>
+      <path class="bd-leg" d="M13.4 24.2 v2.3 M17.6 24.2 v2.3"/>
+    </g></g></svg>`;
 
   const DIAL_SIZE = 260;
   const DIAL_R = 108;
@@ -3802,12 +4043,24 @@ PAWS.load();
     }
     return pupCoats[i];
   }
+  /* たまに、子犬の列にネコやうさぎが紛れこむ */
+  let pupKinds = [];
+  function kindFor(i){
+    while(pupKinds.length <= i){
+      const r = Math.random();
+      pupKinds.push({ k: r < .07 ? 'cat' : r < .14 ? 'rab' : 'dog', v2: Math.random() < .4 });
+    }
+    return pupKinds[i];
+  }
 
   function renderPups(dogClass){
     let out = '';
     for(let i = 0; i < pupCount(); i++){
       const size = i >= 4 ? 'p3' : i >= 2 ? 'p2' : '';
-      out += `<div class="walker pup ${size} ${coatFor(i)} ${dogClass}" data-pup="${i}">${DOG_SVG}</div>`;
+      const g = kindFor(i);
+      const art = g.k === 'cat' ? CAT_SVG : g.k === 'rab' ? RAB_SVG : DOG_SVG;
+      const coat = g.k === 'dog' ? coatFor(i) : 'guest ' + g.k + (g.v2 ? ' v2' : '');
+      out += `<div class="walker pup ${size} ${coat} ${dogClass}" data-pup="${i}">${art}</div>`;
     }
     return out;
   }
@@ -4103,8 +4356,8 @@ PAWS.load();
     const season = currentSeason();
 
     if(season === 'fireworks'){
-      const n = 3 + Math.floor(Math.random() * 2);
-      for(let i = 0; i < n; i++) setTimeout(spawnFirework, i * (500 + Math.random() * 700));
+      const n = 4 + Math.floor(Math.random() * 4);            /* 4〜7発 */
+      for(let i = 0; i < n; i++) setTimeout(spawnFirework, i * (420 + Math.random() * 600));
       return;
     }
 
@@ -4139,10 +4392,19 @@ PAWS.load();
         : { [s.type || 'WORK']: s.work || 0 };
       Object.keys(seg).forEach(k => { byType[k] = (byType[k] || 0) + seg[k]; });
     });
+    /* いまの Type の、週と月の合計（進行中のぶんも足す） */
+    const sinceType = from => {
+      let t = 0;
+      (data.sessions || []).forEach(s => { if(s.ts >= from) t += segOf(s)[curType] || 0; });
+      if(data.phase === 'working' || data.phase === 'break') t += (typeTotals()[curType] || 0);
+      return t;
+    };
+    const weekWork = sinceType(startOfWeek(new Date()).getTime());
+    const monthWork = sinceType(startOfMonth(new Date()).getTime());
     const successCount = logs.filter(l => l.elapsed <= data.thresholdSec).length;
     const successRate = logs.length ? Math.round((successCount / logs.length) * 100) : null;
     return { todayAvg, allFastest, bestTs, todayWork, todayWorkAll, successRate, byType,
-             sessionCount, curType };
+             sessionCount, curType, weekWork, monthWork };
   }
 
   // ---- history chart: day / week / month, pageable ----
@@ -4285,6 +4547,7 @@ PAWS.load();
       const tip = `${bucketLabel(r.start)} · ${fmtElapsed(r.total)}${detail ? ' · ' + detail : ''}`;
       const hit = goalPerBucket && r.total >= goalPerBucket;
       return `<div class="bar-col"><div class="bar-slot">
+        <span class="bar-val">${r.total > 0 ? fmtHours(r.total) : ''}</span>
         <div class="bar ${hit ? 'hit' : ''}" style="height:${hPct}%" title="${tip}">${segs}</div>
       </div></div>`;
     }).join('');
@@ -4763,6 +5026,14 @@ PAWS.load();
         <div class="stat-card">
           <div class="stat-label lbl">${ICON.stack}Sessions today<span class="goal-type" style="color:${typeColor(stats.curType)}">${typeLabel(stats.curType)}</span></div>
           <div class="stat-value">${stats.sessionCount || '—'}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label lbl">${ICON.clock}This week<span class="goal-type" style="color:${typeColor(stats.curType)}">${typeLabel(stats.curType)}</span></div>
+          <div class="stat-value">${stats.weekWork > 0 ? fmtElapsed(stats.weekWork) : '—'}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label lbl">${ICON.clock}This month<span class="goal-type" style="color:${typeColor(stats.curType)}">${typeLabel(stats.curType)}</span></div>
+          <div class="stat-value">${stats.monthWork > 0 ? fmtElapsed(stats.monthWork) : '—'}</div>
         </div>
       </div>
 
@@ -5873,6 +6144,7 @@ PAWS.load();
       <ellipse class="dog-light" cx="29.6" cy="14.2" rx="3.1" ry="2.3"/>
       <circle class="dog-nose" cx="31.6" cy="13.4" r="1.15"/>
       <circle class="dog-nose" cx="27" cy="11.4" r="0.95"/>
+      <path class="dog-shut" d="M25.8 11.25 A1.2 1.2 0 0 0 28.2 11.25"/>
     </g></g>
   </svg>`);
 
@@ -6540,10 +6812,11 @@ PAWS.load();
   // a small heap behind and below the dog, which stands at twelve facing right
   const POOP_SPOTS = [[-15,12],[-25,16],[-9,21],[-32,10],[-20,26],[-36,22],[-6,30],[-29,32]];
 
-  // One as soon as the goal is passed, then another every ten minutes.
+  // 目標を過ぎて 10 秒ほどしてから最初のひとつ、あとは十分おきに。
+  const POOP_DELAY = 10;
   function poopCount(){
     if(data.phase !== 'ready' || !data.armed) return 0;
-    const over = armedElapsed() - (data.armed.goalSec || 300);
+    const over = armedElapsed() - (data.armed.goalSec || 300) - POOP_DELAY;
     if(over <= 0) return 0;
     return Math.min(POOP_SPOTS.length, 1 + Math.floor(over / 600));
   }
@@ -8064,6 +8337,7 @@ PAWS.load();
         source: 'onestep-cal',
         today: todayKey(),
         events: events().map(e => ({
+          id: e.id || '',
           title: e.title || '',
           date: e.date || '',
           endDate: e.endDate || '',
@@ -8868,7 +9142,17 @@ PAWS.load();
 
   window.addEventListener('message', ev => {
     const d = ev.data;
-    if(d && d.source === 'tasks-req-cal') postCalToHost();
+    if(!d) return;
+    if(d.source === 'tasks-req-cal'){ postCalToHost(); return; }
+    /* Tasks の右サイドで肉球を押されたら、その日ぶんを完了にする */
+    if(d.source === 'tasks-set-done' && d.id && d.day){
+      const e2 = events().find(x => x.id === d.id);
+      if(!e2) return;
+      if(e2.doneOn === d.day) delete e2.doneOn; else e2.doneOn = d.day;
+      e2.at = Date.now();
+      save();
+      render();
+    }
   });
 
   render();
@@ -9420,6 +9704,21 @@ PAWS.load();
             'こっちだよ！', 'もふもふしたい', 'まったり']
   };
   const TAP_PUP = ['わん！', 'あそぼ！', 'まってー', 'ぼく、ちいさい', 'わーい'];
+  const TAP_CAT = ['にゃあ', 'ちょっと おじゃま', 'ここ あったかい', 'なでても いいよ', 'にゃ…'];
+  const TAP_RAB = ['ぴょん', 'こんにちは', 'はっぱ ある？', 'もふもふ', 'そろそろ 帰ろうかな'];
+  let bubbleFrom = 'dog';
+  function tapGuest(isCat){
+    const bub = $id('hmBubble');
+    if(!bub) return;
+    const pool = isCat ? TAP_CAT : TAP_RAB;
+    bubbleText = pool[Math.floor(Math.random() * pool.length)];
+    bubbleFrom = 'guest';
+    bub.innerHTML = bubbleText + PAW_TAG;
+    bub.classList.remove('hide');
+    bubbleUntil = Date.now() + 4500;
+    if(visitor && visitor.phase === 'stay'){ visitor.pose = 'still'; visitor.next = Date.now() + 5000; }
+    paintDog();
+  }
   function tapDog(isPup){
     const bub = $id('hmBubble');
     if(!bub) return;
@@ -9435,6 +9734,7 @@ PAWS.load();
       if(pose === 'walk'){ pose = 'still'; poseUntil = now + 4500; nextPose = poseUntil; }
     }
     bubbleText = text;
+    bubbleFrom = 'dog';
     bub.innerHTML = bubbleText + PAW_TAG;
     bub.classList.remove('hide');
     bubbleUntil = now + 4500;
@@ -9450,7 +9750,8 @@ PAWS.load();
   function buildIntro(){
     introDone = true;
     const q = [GREET()];
-    const plans = todaysPlans();
+    /* 読み上げるのは「〇〇に伝える」を ON にした予定だけ */
+    const plans = todaysPlans().filter(e => e && e.tell);
     if(!plans.length){
       q.push('今日の予定は ないみたい');
     } else {
@@ -9466,6 +9767,488 @@ PAWS.load();
   let pupsUntil = 0, nextPups = Date.now() + 20000 + Math.random() * 40000;
   const COATS = ['coat-beige', 'coat-black', 'coat-brown'];
 
+  /* 1時間に一度くらい、ネコかうさぎが庭に遊びに来る */
+  let visitor = null;
+  let nextVisit = Date.now() + 120000 + Math.random() * 240000;   /* 最初は2〜6分後 */
+  const CAT_SVG = window.__CAT_SVG || '';
+  const RAB_SVG = window.__RAB_SVG || '';
+  const BIRD_SVG = window.__BIRD_SVG || '';
+  /* 羽ばたいている姿（とまっているときの絵と入れかえる） */
+  const BIRD_FLY_SVG = `<svg viewBox="0 0 34 34" width="34" height="34" aria-hidden="true">
+    <g class="pose">
+      <path class="bd-wing" d="M11.4 19.4 L5.4 17 L6.4 22.2 Z"/>
+      <ellipse class="bd-body" cx="17.2" cy="18.8" rx="6.6" ry="3.2"/>
+      <circle class="bd-body" cx="22.8" cy="16.4" r="3"/>
+      <path class="bd-beak" d="M25.4 16 L29.6 17.1 L25.4 18.2 Z"/>
+      <circle class="bd-eye" cx="23.8" cy="15.4" r=".85"/>
+      <path class="fw-l bd-wing" d="M16.6 16.6 C12.6 11.2, 7.6 9, 4.2 10.2
+        C8.2 13, 12.6 15.2, 16.6 17.8 Z"/>
+      <path class="fw-r bd-wing" d="M17.8 16.6 C21.8 11.2, 26.8 9, 30.2 10.2
+        C26.2 13, 21.8 15.2, 17.8 17.8 Z"/>
+    </g></svg>`;
+  const GUEST_ART = { cat: () => CAT_SVG, rab: () => RAB_SVG, bird: () => BIRD_SVG };
+  const HOPPER = { rab: 1, bird: 1 };
+  /* 木のてっぺんや小屋の屋根など、小鳥がとまれるところ */
+  function perchSpots(st){
+    const sr = st.getBoundingClientRect();
+    const W = sr.width || 300, H = sr.height || 150;
+    const out = [];
+    st.querySelectorAll('.scene.tree, .scene.fir, .scene.house').forEach(el => {
+      const r = el.getBoundingClientRect();
+      const cx = (r.left - sr.left) + r.width * (0.34 + Math.random() * 0.32);
+      const house = el.classList.contains('house');
+      const py = (r.top - sr.top) + (house ? 1 : r.height * 0.2);
+      out.push({ p: Math.min(1, Math.max(0, (cx - 26) / Math.max(1, W - 52))),
+                 lift: Math.max(4, (H - 14) - py) });
+    });
+    out.push({ p: 0.15 + Math.random() * 0.7, lift: 0 });   /* ときどき地面にも */
+    return out;
+  }
+  /* 小鳥は歩かずに、ぱたぱた飛んで、どこかにとまる */
+  function birdTick(g, now, st, wet){
+    if(g.phase === 'in' || g.phase === 'move'){
+      const dp = g.tp - g.p, dl = g.tlift - g.lift;
+      if(Math.abs(dp) > 0.008 || Math.abs(dl) > 1.6){
+        if(Math.abs(dp) > 0.004) g.face = dp < 0 ? -1 : 1;
+        g.p += Math.sign(dp) * Math.min(Math.abs(dp), 0.013);
+        g.lift += Math.sign(dl) * Math.min(Math.abs(dl), 2.6);
+        g.flying = true;
+        g.pose = 'walk';
+      } else {
+        g.p = g.tp; g.lift = g.tlift;
+        g.flying = false;
+        g.pose = 'still';
+        g.phase = 'stay';
+        g.perchUntil = now + 11000 + Math.random() * 26000;
+      }
+      return;
+    }
+    if(g.phase === 'stay'){
+      if(wet || now > g.until){ g.phase = 'out'; g.flying = true; g.pose = 'walk'; return; }
+      if(now > g.perchUntil){
+        const sp = perchSpots(st);
+        const t = sp[Math.floor(Math.random() * sp.length)];
+        g.tp = t.p; g.tlift = t.lift; g.phase = 'move';
+      }
+      return;
+    }
+    const target = g.p > 0.5 ? 1.25 : -0.25;
+    const d = target - g.p;
+    g.face = d < 0 ? -1 : 1;
+    g.p += Math.sign(d) * 0.016;
+    g.lift += 1.8;
+    g.flying = true;
+    g.pose = 'walk';
+    if(g.p >= 1.2 || g.p <= -0.2){
+      g.el.remove();
+      visitor = null;
+      nextVisit = now + 48 * 60000 + Math.random() * 24 * 60000;
+    }
+  }
+
+  /* ひと跳び。うさぎは大きく、小鳥はちょこんと */
+  function guestJump(el, kind){
+    const pose = el.querySelector('.pose');
+    if(!pose) return;
+    /* 横に移動する時間と、跳ねる動きの長さをそろえる */
+    const ms = kind === 'bird' ? 340 : 500;
+    el.style.transitionProperty = 'transform';
+    el.style.transitionTimingFunction = 'linear';
+    el.style.transitionDuration = (ms / 1000).toFixed(2) + 's';
+    pose.style.animation = 'none';
+    /* SVG の <g> には offsetWidth がないので、外側の要素で描き直しを促す。
+       これをしないと、跳ねる動きが最初の一回しか再生されない */
+    void el.offsetWidth;
+    pose.style.animation = (kind === 'bird' ? 'birdJump .34s' : 'rabJump .5s') + ' ease-out';
+  }
+
+  /* ときどき空を横切るもの、雨あがりの虹 */
+  let nextFly = Date.now() + 6 * 60000 + Math.random() * 14 * 60000;
+  let lastWx = null, lastRainbow = 0;
+  const BALLOON_SVG = `<svg viewBox="0 0 40 54" width="34" height="46" aria-hidden="true">
+    <path fill="#D8969F" d="M20 2c9 0 15 7.5 15 16 0 8-7 14-10.5 19h-9C12 32 5 26 5 18 5 9.5 11 2 20 2Z"/>
+    <path fill="#EBD5A2" d="M20 2c4 0 6.4 7 6.4 16 0 8-2.8 15-6.4 19-3.6-4-6.4-11-6.4-19C13.6 9 16 2 20 2Z"/>
+    <path fill="#9DB6A5" d="M20 2c2 0 3.2 7 3.2 16 0 8-1.6 15-3.2 19-1.6-4-3.2-11-3.2-19C16.8 9 18 2 20 2Z"/>
+    <path stroke="#B9A78F" stroke-width="1" fill="none" d="M16.2 37.5 17.6 43.5M23.8 37.5 22.4 43.5"/>
+    <rect x="16" y="43" width="8" height="6.6" rx="1.6" fill="#C39F76"/>
+  </svg>`;
+  /* 風船はひとつだけ。色はそのときどきで */
+  const BAL_COLORS = ['#DDA0A8', '#E7CE9B', '#9EBAC6', '#A6C0A2', '#C4A6C6', '#E0AE8E'];
+  const PARTY_SVG = `<svg viewBox="0 0 26 40" width="21" height="32" aria-hidden="true">
+    <path stroke="#C8BCAA" stroke-width=".9" fill="none" d="M13 21c1.7 5-1.7 9 0 15"/>
+    <ellipse cx="13" cy="10.6" rx="7.2" ry="8.6" fill="var(--bal, #DDA0A8)"/>
+    <path d="M11.3 18.9h3.4L13 21.4Z" fill="var(--bal, #DDA0A8)"/>
+    <ellipse cx="10.3" cy="7.5" rx="2" ry="2.5" fill="#fff" opacity=".5"/>
+  </svg>`;
+  /* 空の上のほうにかかる半円。両端は地面に届かず、すうっと消える。
+     7本いっしょに、時間をかけて少しずつのびていく（pathLength で長さをそろえる） */
+  const RAINBOW_SVG = (() => {
+    const band = ['#D98E8E','#DFA97C','#DCC98A','#9FBE95','#8FB0C4','#9294BD','#B292BB'];
+    let p = '';
+    band.forEach((c, i) => {
+      const r = 110 - i * 7;
+      p += `<path pathLength="100" d="M${120 - r} 124 A${r} ${r} 0 0 1 ${120 + r} 124"
+        fill="none" stroke="${c}" stroke-width="6.4" stroke-linecap="butt"/>`;
+    });
+    return `<svg viewBox="0 0 240 130" aria-hidden="true">
+      <defs>
+        <linearGradient id="rbFade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#fff" stop-opacity="1"/>
+          <stop offset=".42" stop-color="#fff" stop-opacity="1"/>
+          <stop offset=".7" stop-color="#fff" stop-opacity=".5"/>
+          <stop offset=".92" stop-color="#fff" stop-opacity="0"/>
+        </linearGradient>
+        <mask id="rbMask"><rect width="240" height="130" fill="url(#rbFade)"/></mask>
+      </defs>
+      <g mask="url(#rbMask)">${p}</g>
+    </svg>`;
+  })();
+
+  const PUDDLE_SVG = `<svg viewBox="0 0 46 14" width="46" height="14" aria-hidden="true">
+    <ellipse cx="23" cy="9" rx="21" ry="4.4" fill="#B7C7CD" opacity=".5"/>
+    <ellipse cx="23" cy="8.3" rx="17.5" ry="3.3" fill="#D2DEE2" opacity=".75"/>
+    <ellipse class="rip" cx="19" cy="8.4" rx="9" ry="2.4" fill="none"
+      stroke="#EDF3F5" stroke-width="1"/>
+    <ellipse class="rip" cx="30" cy="9.3" rx="6" ry="1.7" fill="none"
+      stroke="#EDF3F5" stroke-width="1" style="animation-delay:1.8s"/>
+  </svg>`;
+  const FROG_SVG = `<svg viewBox="0 0 28 20" width="19" height="13.6" aria-hidden="true">
+    <ellipse class="fr-leg" cx="7.6" cy="16.4" rx="4.4" ry="2"/>
+    <ellipse class="fr-leg" cx="17.4" cy="16.6" rx="3.8" ry="1.8"/>
+    <ellipse class="fr-body" cx="13" cy="12.4" rx="9.2" ry="5.2"/>
+    <ellipse class="fr-belly" cx="13.6" cy="14.6" rx="6.4" ry="2.6"/>
+    <ellipse class="fr-body" cx="19.6" cy="8.8" rx="5.8" ry="4.8"/>
+    <circle class="fr-body" cx="17.4" cy="4.9" r="2.5"/>
+    <circle class="fr-body" cx="22.4" cy="4.7" r="2.5"/>
+    <circle class="fr-eye" cx="17.6" cy="4.7" r="1.15"/>
+    <circle class="fr-eye" cx="22.6" cy="4.5" r="1.15"/>
+    <path class="fr-mouth" d="M16.6 10.4c1.8 1.2 4.6 1.2 6.6 0"/>
+  </svg>`;
+  let nextFrog = Date.now() + 3 * 60000;
+  let frog = null;
+  let pudRecs = [];
+
+  /* HOME は一分ごとに描き直されるので、飛んでいる途中のものは持っておいて
+     そのつど元の場所に戻し、経過したぶんだけ進めた状態で続きから見せる */
+  let ambient = [];
+  function keepAmbient(el, ms, resume){
+    const rec = { el: el, at: Date.now(), resume: resume || null, timer: 0 };
+    ambient.push(rec);
+    if(ms) rec.timer = setTimeout(() => dropAmbient(rec), ms);
+    return rec;
+  }
+  function dropAmbient(rec){
+    if(!rec) return;
+    if(rec.timer) clearTimeout(rec.timer);
+    if(rec.el) rec.el.remove();
+    ambient = ambient.filter(a => a !== rec);
+    pudRecs = pudRecs.filter(a => a !== rec);
+  }
+  function reAmbient(st){
+    if(!st) return;
+    ambient.forEach(a => {
+      if(a.el && a.el.parentNode !== st){
+        st.appendChild(a.el);
+        if(a.resume) a.resume(a.el, (Date.now() - a.at) / 1000);
+      }
+    });
+  }
+
+  /* 空をわたっていくものたち */
+  const BIRDFLY_SVG = `<svg viewBox="0 0 30 18" width="22" height="13" aria-hidden="true">
+    <path class="fb-tail" d="M10 11 L5.4 9.2 L6.3 13.2 Z"/>
+    <ellipse class="fb-body" cx="15" cy="11" rx="5.4" ry="2.6"/>
+    <circle class="fb-body" cx="19.8" cy="9.4" r="2.4"/>
+    <path class="fb-beak" d="M21.9 9.1 L25.2 10 L21.9 10.9 Z"/>
+    <path class="fw-l fb-wing" d="M14.6 9.6 C11 5.2, 7 3.4, 4 4.4 C7.3 6.7, 11 8.5, 14.6 10.6 Z"/>
+    <path class="fw-r fb-wing" d="M15.4 9.6 C19 5.2, 23 3.4, 26 4.4 C22.7 6.7, 19 8.5, 15.4 10.6 Z"/>
+  </svg>`;
+  const UFO_SVG = `<svg viewBox="0 0 48 28" width="40" height="23" aria-hidden="true">
+    <ellipse class="uf-body" cx="24" cy="15.6" rx="19.5" ry="5.2"/>
+    <ellipse class="uf-dome" cx="24" cy="10.6" rx="9.2" ry="7.2"/>
+    <ellipse class="uf-shine" cx="20.8" cy="8.4" rx="3.1" ry="2.1"/>
+    <circle class="uf-lamp" cx="10.5" cy="17" r="1.5"/>
+    <circle class="uf-lamp" cx="17.2" cy="18.1" r="1.5" style="animation-delay:.2s"/>
+    <circle class="uf-lamp" cx="24" cy="18.4" r="1.5" style="animation-delay:.4s"/>
+    <circle class="uf-lamp" cx="30.8" cy="18.1" r="1.5" style="animation-delay:.6s"/>
+    <circle class="uf-lamp" cx="37.5" cy="17" r="1.5" style="animation-delay:.8s"/>
+    <ellipse class="uf-flash" cx="24" cy="14.4" rx="24" ry="12"/>
+  </svg>`;
+  /* だれかがマントをなびかせて飛んでいく（このアプリのためのオリジナルの姿） */
+  const HERO_SVG = `<svg viewBox="0 0 64 30" width="52" height="24" aria-hidden="true">
+    <path class="hr-cape" d="M35 10.6C26 6.4 14.4 8 2.8 14.2c3.8-.4 7.6-.4 11.2.1
+      -4.2 1.4-8.4 3.4-12.4 6.2 4.8-1.8 9.6-2.9 14.2-3.2
+      -3 2-5.9 4.4-8.6 7.3 6.4-4 12.6-6.3 18.4-7.2 3.6-.6 7-.7 10.2-.4Z"/>
+    <path class="hr-suit" d="M23 15.6c-4.8.4-9.2.9-13 1.6l-.5-2.6c3.9-.7 8.4-1.3 13.3-1.7Z"/>
+    <path class="hr-boot" d="M11.2 17.6 4.4 18.8 4 16.4 10.8 15.2Z"/>
+    <path class="hr-suit" d="M23.4 18.2c-4.6.9-8.8 2-12.2 3.1l-.8-2.5c3.4-1.1 7.7-2.2 12.5-3.1Z"/>
+    <path class="hr-boot2" d="M12.4 21.8 5.8 23.8 5.1 21.4 11.6 19.5Z"/>
+    <ellipse class="hr-suit" cx="31.4" cy="15" rx="9.4" ry="4.1"/>
+    <path class="hr-arm" d="M30.6 17.8c-3.7.9-7.2 2-10.1 3.1l-.9-2.5c3.1-1.2 6.8-2.3 10.6-3.1Z"/>
+    <circle class="hr-skin" cx="19.4" cy="20.8" r="2.2"/>
+    <circle class="hr-skin" cx="44" cy="12.8" r="4.3"/>
+    <path class="hr-hair" d="M39.9 10.8c1.1-3.2 6.3-3.8 8.3-1.1-2.6-.2-6.1.2-8.3 2.2Z"/>
+    <path class="hr-suit" d="M45.6 13.6c4.2-1 8.4-1.6 12-1.8l.2 2.7c-3.9.2-8.2.8-12 1.8Z"/>
+    <circle class="hr-skin" cx="58.6" cy="13.2" r="2.6"/>
+  </svg>`;
+  /* 夜のフクロウ：とまっている姿と、飛んでいる姿 */
+  const OWL_SVG = `<svg viewBox="0 0 34 34" width="34" height="34" aria-hidden="true">
+    <g class="pose">
+      <path class="ow-body" d="M9.8 9.8 L11.4 4.6 L14.8 8.6 Z"/>
+      <path class="ow-body" d="M24.2 9.8 L22.6 4.6 L19.2 8.6 Z"/>
+      <ellipse class="ow-body" cx="17" cy="16.8" rx="7.8" ry="9"/>
+      <ellipse class="ow-belly" cx="17" cy="19.6" rx="5" ry="5.8"/>
+      <circle class="ow-face" cx="13.3" cy="11.6" r="4"/>
+      <circle class="ow-face" cx="20.7" cy="11.6" r="4"/>
+      <circle class="ow-eye" cx="13.3" cy="11.6" r="2.3"/>
+      <circle class="ow-eye" cx="20.7" cy="11.6" r="2.3"/>
+      <path class="ow-beak" d="M17 12.6 L18.7 15.6 L15.3 15.6 Z"/>
+      <ellipse class="ow-foot" cx="14.2" cy="25.6" rx="2.1" ry="1"/>
+      <ellipse class="ow-foot" cx="19.8" cy="25.6" rx="2.1" ry="1"/>
+    </g></svg>`;
+  /* 飛んでいるフクロウは横向き。手前の翼が大きく羽ばたく */
+  const OWL_FLY_SVG = `<svg viewBox="0 0 34 34" width="34" height="34" aria-hidden="true">
+    <g class="pose">
+      <path class="fw-l ow-wing" d="M15.6 16.4 C11.6 7.6, 4.4 3.8, 0.2 6
+        C5.2 10.2, 11 14.2, 15.6 18.4 Z"/>
+      <path class="ow-wing" d="M9.4 18.6 L3 17 L3.8 21.8 Z"/>
+      <ellipse class="ow-body" cx="15.8" cy="18.4" rx="7.4" ry="5.2"/>
+      <ellipse class="ow-belly" cx="15.2" cy="19.8" rx="4.8" ry="3.2"/>
+      <path class="ow-body" d="M19.6 11.2 L20.6 7 L23.2 10.2 Z"/>
+      <path class="ow-body" d="M27.2 11 L26.4 6.8 L23.8 10 Z"/>
+      <circle class="ow-body" cx="23.4" cy="15" r="5.3"/>
+      <circle class="ow-face" cx="24.8" cy="14.8" r="3.4"/>
+      <circle class="ow-eye" cx="25.2" cy="14.6" r="1.8"/>
+      <path class="ow-beak" d="M27.8 15.4 L30.8 16.4 L27.8 17.4 Z"/>
+      <path class="fw-r ow-wing" d="M13.8 16.6 C16.8 7.8, 24 3.8, 28.6 5.8
+        C23.8 10.4, 18.2 14.2, 13.8 18.8 Z"/>
+    </g></svg>`;
+  let owl = null;
+  let nextOwl = Date.now() + 2 * 60000 + Math.random() * 9 * 60000;
+  let nextHero = Date.now() + 3.5 * 3600000 + Math.random() * 7 * 3600000;
+  let nextBirdFly = Date.now() + 4 * 60000 + Math.random() * 9 * 60000;
+  let nextCrows   = Date.now() + 5 * 60000 + Math.random() * 14 * 60000;
+  let nextUfo     = Date.now() + 3 * 3600000 + Math.random() * 7 * 3600000;
+
+  /* 空を横切るものを、ひとつ空に放つ */
+  function makeFlier(st, cls, art, o){
+    if(!st) return null;
+    const W = st.clientWidth || 300;
+    const el = document.createElement('div');
+    el.className = cls;
+    el.style.left = (o.toRight ? -(o.w + 12) : W + 12) + 'px';
+    el.style.top = o.top.toFixed(0) + 'px';
+    el.style.setProperty('--dx', ((o.toRight ? 1 : -1) * (W + o.w + 44)).toFixed(0) + 'px');
+    el.style.setProperty('--dy', o.dy.toFixed(0) + 'px');
+    el.style.animation = 'flyAcross ' + o.dur.toFixed(1) + 's linear forwards';
+    const wait = o.delay || 0;
+    if(wait) el.style.animationDelay = wait.toFixed(2) + 's';
+    const art2 = o.toRight ? art
+      : '<span style="display:block;transform:scaleX(-1)">' + art + '</span>';
+    el.innerHTML = '<span class="bw-in"'
+      + (o.bob ? ' style="animation-duration:' + o.bob.toFixed(2) + 's"' : '') + '>'
+      + art2 + '</span>';
+    st.appendChild(el);
+    keepAmbient(el, (o.dur + wait) * 1000 + 700, (e2, off) => {
+      e2.style.animationDelay = (wait - off).toFixed(2) + 's';
+    });
+    return el;
+  }
+  /* ときどき、小鳥が羽をぱたぱたさせて飛んでいく */
+  function birdFlyBy(st){
+    const toRight = Math.random() < .5;
+    makeFlier(st, 'hm-bird', BIRDFLY_SVG, {
+      toRight: toRight, w: 22, top: 8 + Math.random() * 30,
+      dy: -6 - Math.random() * 18, dur: 7 + Math.random() * 5,
+      bob: 1.3 + Math.random() * .6 });
+  }
+  /* 夕方、ちいさなカラスの群れ */
+  function crowsBy(st){
+    const toRight = Math.random() < .5;
+    const n = 3 + Math.floor(Math.random() * 3);
+    const dur = 9 + Math.random() * 5;
+    for(let i = 0; i < n; i++){
+      makeFlier(st, 'hm-bird crow', BIRDFLY_SVG, {
+        toRight: toRight, w: 16, top: 5 + Math.random() * 26,
+        dy: -4 - Math.random() * 14, dur: dur + Math.random() * 1.4,
+        delay: i * (0.32 + Math.random() * 0.42), bob: 1 + Math.random() * .5 });
+    }
+  }
+  /* ごくまれに、なにかが飛んでいく */
+  function ufoBy(st){
+    const toRight = Math.random() < .5;
+    makeFlier(st, 'hm-ufo', UFO_SVG, {
+      toRight: toRight, w: 40, top: 4 + Math.random() * 16,
+      dy: -4 - Math.random() * 12, dur: 15 + Math.random() * 8 });
+  }
+
+  /* 小屋の屋根のてっぺん */
+  function housePerch(st){
+    const sr = st.getBoundingClientRect();
+    const W = sr.width || 300, H = sr.height || 150;
+    const el = st.querySelector('.scene.house');
+    if(!el) return { p: 0.76, lift: 42 };
+    const r = el.getBoundingClientRect();
+    const cx = (r.left - sr.left) + r.width * 0.63;   /* てっぺんより少し右 */
+    const py = (r.top - sr.top) + 3;
+    return { p: Math.min(1, Math.max(0, (cx - 26) / Math.max(1, W - 52))),
+             lift: Math.max(6, (H - 14) - py) };
+  }
+  /* 夜、フクロウがぱたぱた飛んできて、屋根でじっとしている */
+  function owlIn(st){
+    if(!st || owl) return;
+    const t = housePerch(st);
+    const fromLeft = Math.random() < .5;
+    const W0 = st.clientWidth || 300, H0 = st.clientHeight || 150;
+    const el = document.createElement('div');
+    el.className = 'walker guest owl flying';
+    el.innerHTML = '<span class="bd-stand">' + OWL_SVG + '</span>'
+                 + '<span class="bd-fly">' + OWL_FLY_SVG + '</span>';
+    const p0 = fromLeft ? -0.22 : 1.22;
+    el.style.transition = 'none';
+    el.style.transform = 'translate(' + (26 + p0 * (W0 - 52)).toFixed(1) + 'px, '
+      + (H0 - 14 - 52).toFixed(1) + 'px)' + (fromLeft ? '' : ' scaleX(-1)');
+    st.appendChild(el);
+    owl = { el: el, p: p0, lift: 52, face: fromLeft ? 1 : -1,
+            tp: t.p, tlift: t.lift, phase: 'in', flying: true, rec: null,
+            until: Date.now() + 480000 + Math.random() * 1500000 };   /* 8〜33分 */
+    owl.rec = keepAmbient(el, 0, null);
+    void el.offsetWidth;
+    el.style.transition = '';
+  }
+  function owlTick(now, st){
+    if(!owl) return;
+    if(owl.phase === 'in'){
+      const dp = owl.tp - owl.p, dl = owl.tlift - owl.lift;
+      if(Math.abs(dp) > 0.008 || Math.abs(dl) > 1.6){
+        if(Math.abs(dp) > 0.004) owl.face = dp < 0 ? -1 : 1;
+        owl.p += Math.sign(dp) * Math.min(Math.abs(dp), 0.011);
+        owl.lift += Math.sign(dl) * Math.min(Math.abs(dl), 2.2);
+      } else {
+        owl.p = owl.tp; owl.lift = owl.tlift;
+        owl.flying = false;
+        owl.face = Math.random() < .5 ? 1 : -1;
+        owl.phase = 'stay';
+      }
+      return;
+    }
+    if(owl.phase === 'stay'){
+      const h = new Date().getHours();
+      if(!(h >= 19 || h < 5) || now > owl.until){ owl.phase = 'out'; owl.flying = true; }
+      return;
+    }
+    const target = owl.p > 0.5 ? 1.3 : -0.3;
+    const d = target - owl.p;
+    owl.face = d < 0 ? -1 : 1;
+    owl.p += Math.sign(d) * 0.014;
+    owl.lift += 1.7;
+    if(owl.p >= 1.26 || owl.p <= -0.26){
+      dropAmbient(owl.rec);
+      owl = null;
+      nextOwl = now + 40 * 60000 + Math.random() * 50 * 60000;
+    }
+  }
+
+  /* ごくまれに、だれかがまっすぐ飛んでいく */
+  function heroBy(st){
+    const toRight = Math.random() < .5;
+    makeFlier(st, 'hm-hero', HERO_SVG, {
+      toRight: toRight, w: 52, top: 10 + Math.random() * 20,
+      dy: -2 + Math.random() * 4, dur: 6.5 + Math.random() * 3.5 });
+  }
+
+  function dogSays(t){
+    const b = $id('hmBubble');
+    if(!b || !t) return;
+    bubbleText = t;
+    bubbleFrom = 'dog';
+    b.innerHTML = t + PAW_TAG;
+    b.classList.remove('hide');
+    bubbleUntil = Date.now() + 5200;
+    paintDog();
+  }
+  /* 風船か気球が、のんびり空をわたっていく */
+  function flyBy(st){
+    if(!st || st.querySelector('.hm-fly')) return;
+    const W = st.clientWidth || 300;
+    const party = Math.random() < .5;
+    const toRight = Math.random() < .5;
+    const dur = 26 + Math.random() * 16;
+    const el = document.createElement('div');
+    el.className = 'hm-fly';
+    el.style.left = (toRight ? -56 : W + 22) + 'px';
+    el.style.top = (8 + Math.random() * 26) + 'px';
+    el.style.setProperty('--dx', ((toRight ? 1 : -1) * (W + 96)).toFixed(0) + 'px');
+    el.style.setProperty('--dy', (-10 - Math.random() * 24).toFixed(0) + 'px');
+    el.style.animation = 'flyAcross ' + dur.toFixed(1) + 's linear forwards';
+    if(party) el.style.setProperty('--bal', BAL_COLORS[Math.floor(Math.random() * BAL_COLORS.length)]);
+    el.innerHTML = '<span class="fly-in">' + (party ? PARTY_SVG : BALLOON_SVG) + '</span>';
+    st.appendChild(el);
+    keepAmbient(el, dur * 1000 + 600, (e2, off) => {
+      e2.style.animationDelay = (-off).toFixed(2) + 's';
+    });
+  }
+  /* 雨の日、ぴょん、ぴょん、と庭を横切るかえる */
+  function frogBy(st){
+    if(!st || frog) return;
+    const W = st.clientWidth || 300;
+    const toRight = Math.random() < .5;
+    const el = document.createElement('div');
+    el.className = 'hm-frog';
+    el.style.opacity = '0';
+    el.style.left = (toRight ? -26 : W + 4) + 'px';
+    const art = toRight ? FROG_SVG
+      : '<span style="display:block;transform:scaleX(-1)">' + FROG_SVG + '</span>';
+    el.innerHTML = '<span class="fr-in">' + art + '</span>';
+    st.appendChild(el);
+    frog = { el: el, x: toRight ? -26 : W + 4, dir: toRight ? 1 : -1,
+             next: Date.now() + 300, rec: null };
+    frog.rec = keepAmbient(el, 0, null);
+    requestAnimationFrame(() => { el.style.opacity = '1'; });
+    setTimeout(() => dogSays('かえる だ'), 4000 + Math.random() * 7000);
+  }
+  function frogTick(now, st){
+    if(!frog) return;
+    if(now < frog.next) return;
+    const W = st.clientWidth || 300;
+    /* 大きく跳んだり、ちょこんと跳ねたり */
+    const bigHop = Math.random() < .42;
+    frog.x += frog.dir * (bigHop ? 22 + Math.random() * 13 : 7 + Math.random() * 7);
+    frog.el.style.transitionDuration = bigHop ? '.48s' : '.3s';
+    frog.el.style.left = frog.x.toFixed(0) + 'px';
+    const inner = frog.el.querySelector('.fr-in');
+    if(inner){
+      inner.style.animation = 'none';
+      void inner.offsetWidth;
+      inner.style.animation = (bigHop ? 'frogUp .5s' : 'frogUpS .34s') + ' ease-out';
+    }
+    /* ときどき、ひと休み */
+    frog.next = now + (Math.random() < .28 ? 3200 + Math.random() * 4200
+                                           : 950 + Math.random() * 900);
+    if(frog.x > W + 20 || frog.x < -30){
+      const f = frog;
+      frog = null;
+      f.el.style.opacity = '0';
+      setTimeout(() => dropAmbient(f.rec), 900);
+    }
+  }
+  /* 雨があがったら、虹 */
+  function showRainbow(st){
+    if(!st || st.querySelector('.hm-rainbow')) return;
+    const el = document.createElement('div');
+    el.className = 'hm-rainbow';
+    el.innerHTML = RAINBOW_SVG;
+    st.insertBefore(el, st.firstChild);
+    keepAmbient(el, 220000, (e2, off) => {
+      e2.style.animationDelay = (-off).toFixed(2) + 's, '
+        + Math.max(0, 200 - off).toFixed(2) + 's';
+      e2.querySelectorAll('path').forEach(p2 => {
+        if(off > 151){ p2.style.animation = 'none'; p2.style.strokeDashoffset = '0'; }
+        else p2.style.animationDelay = (-off).toFixed(2) + 's';
+      });
+    });
+    setTimeout(() => dogSays('にじ が でてる！'), 2200);
+  }
   /* ---------------- the little yard ---------------- */
 
   // Foliage follows the season, the way the falling petals do.
@@ -9673,13 +10456,18 @@ PAWS.load();
   function skyNow(){
     const d = new Date();
     const t = d.getHours() + d.getMinutes() / 60;
-    if(t >= 5 && t < 17){
-      const k = (t - 5) / 12;                       // the sun's arc, 5:00 → 17:00
-      return { cls:'day', orb:'sun', x: 8 + k * 84, y: 54 - Math.sin(Math.PI * k) * 20 };
+    /* 東（右）から昇って、正午に真上、西（左）へしずむ */
+    if(t >= 6 && t < 18){
+      const k = (t - 6) / 12;                       // 6:00 → 18:00、まんなかが正午
+      return { cls:'day', orb:'sun', x: 92 - k * 84, y: 56 - Math.sin(Math.PI * k) * 24 };
     }
-    if(t >= 17 && t < 19){
-      const k = (t - 17) / 2;
-      return { cls:'dusk', orb:'sun', x: 78 + k * 14, y: 46 + k * 22 };
+    if(t >= 5 && t < 6){                            // 夜明け、東のひくいところ
+      const k = t - 5;
+      return { cls:'dusk', orb:'sun', x: 96 - k * 4, y: 74 - k * 18 };
+    }
+    if(t >= 18 && t < 20){                          // 西の空にしずんでいく
+      const k = (t - 18) / 2;
+      return { cls:'dusk', orb:'sun', x: 8 - k * 4, y: 56 + k * 20 };
     }
     const k = ((t + 5) % 24) / 24;
     return { cls:'night', orb:'moon', x: 81, y: 44 };
@@ -9749,9 +10537,9 @@ PAWS.load();
 
     let fall = '';
     if(kind === 'rain' || kind === 'storm'){
-      fall = '<span class="wx-rain">' + Array.from({ length: 16 }, (_, i) =>
-        `<i style="left:${(4 + i * 6 + Math.random() * 4).toFixed(1)}%;
-            animation-duration:${(0.7 + Math.random() * 0.5).toFixed(2)}s;
+      fall = '<span class="wx-rain">' + Array.from({ length: 30 }, (_, i) =>
+        `<i style="left:${(2 + i * 3.3 + Math.random() * 2.6).toFixed(1)}%;
+            animation-duration:${(0.62 + Math.random() * 0.42).toFixed(2)}s;
             animation-delay:${(Math.random() * 1.2).toFixed(2)}s"></i>`).join('') + '</span>';
     } else if(kind === 'snow'){
       fall = '<span class="wx-snow">' + Array.from({ length: 12 }, (_, i) =>
@@ -9819,11 +10607,31 @@ PAWS.load();
                            + (p.face < 0 ? ' scaleX(-1)' : '');
       p.el.classList.toggle('still', !!p.pause);
     });
+    /* 遊びに来ている子 */
+    if(visitor && visitor.el){
+      const vx = 26 + visitor.p * (W - 52);
+      const base = visitor.kind === 'bird' ? H - 14 : H - 15;
+      const vy = base - (visitor.lift || 0);
+      visitor.el.className = 'walker guest ' + visitor.kind + (visitor.v2 ? ' v2' : '')
+        + (visitor.flying ? ' flying' : '')
+        + (visitor.kind === 'rab' && visitor.gait === 'walk' ? ' gait-walk' : '')
+        + (visitor.pose === 'walk' ? '' : ' ' + visitor.pose);
+      visitor.el.style.transform = 'translate(' + vx.toFixed(1) + 'px, ' + vy.toFixed(1) + 'px)'
+                                 + (visitor.face < 0 ? ' scaleX(-1)' : '');
+    }
+    /* 夜のフクロウ */
+    if(owl && owl.el){
+      const ox = 26 + owl.p * (W - 52);
+      owl.el.className = 'walker guest owl' + (owl.flying ? ' flying' : ' still');
+      owl.el.style.transform = 'translate(' + ox.toFixed(1) + 'px, '
+        + ((H - 14) - owl.lift).toFixed(1) + 'px)' + (owl.face < 0 ? ' scaleX(-1)' : '');
+    }
     const bub = $id('hmBubble');
     if(bub){
-      bub.style.left = x.toFixed(1) + 'px';
+      const bx = (bubbleFrom === 'guest' && visitor) ? (26 + visitor.p * (W - 52)) : x;
+      bub.style.left = bx.toFixed(1) + 'px';
       bub.style.top  = (y - 20).toFixed(1) + 'px';
-      bub.classList.toggle('flip', x > W * 0.6);
+      bub.classList.toggle('flip', bx > W * 0.6);
     }
     const z = $id('hmZzz');
     if(z){
@@ -9865,9 +10673,9 @@ PAWS.load();
         pose = 'walk';
         const h2 = new Date().getHours();
         const deep2 = h2 >= 22 || h2 < 6, quiet2 = h2 >= 20 && h2 < 22;
-        nextPose = now + (deep2 ? 3000 + Math.random() * 6000
-                        : quiet2 ? 8000 + Math.random() * 16000
-                        : 19000 + Math.random() * 40000);
+        nextPose = now + (deep2 ? 2500 + Math.random() * 5000
+                        : quiet2 ? 5000 + Math.random() * 10000
+                        : 9000 + Math.random() * 18000);
       }
     } else if(!wet){
       dogX += dogDir * 0.018;
@@ -9879,16 +10687,195 @@ PAWS.load();
         const quiet = h >= 20 && h < 22;
         const rr = (a, b) => a + Math.random() * (b - a);
         const r = Math.random();
-        pose = deep  ? (r < .78 ? 'sleep' : r < .93 ? 'lie' : r < .98 ? 'sit' : 'still')
-             : quiet ? (r < .35 ? 'sleep' : r < .70 ? 'lie' : r < .92 ? 'sit' : 'still')
-                     : (r < .26 ? 'still' : r < .58 ? 'sit' : r < .86 ? 'lie' : 'sleep');
+        pose = deep  ? (r < .82 ? 'sleep' : r < .95 ? 'lie' : r < .99 ? 'sit' : 'still')
+             : quiet ? (r < .40 ? 'sleep' : r < .76 ? 'lie' : r < .95 ? 'sit' : 'still')
+                     : (r < .13 ? 'still' : r < .42 ? 'sit' : r < .80 ? 'lie' : 'sleep');
         poseUntil = now + (
-            pose === 'sleep' ? (deep ? rr(420000, 1800000)
-                             : quiet ? rr(180000, 480000) : rr(120000, 420000))
-          : pose === 'lie'   ? (deep ? rr(120000, 300000)
-                             : quiet ? rr(90000, 240000) : rr(70000, 220000))
-          : pose === 'sit'   ? rr(35000, 110000)
-          : rr(12000, 35000));
+            pose === 'sleep' ? (deep ? rr(600000, 2100000)
+                             : quiet ? rr(240000, 600000) : rr(180000, 540000))
+          : pose === 'lie'   ? (deep ? rr(180000, 420000)
+                             : quiet ? rr(140000, 330000) : rr(110000, 300000))
+          : pose === 'sit'   ? rr(50000, 150000)
+          : rr(14000, 42000));
+      }
+    }
+
+    /* 雨あがりの虹 */
+    const kNow = wxScene();
+    if(lastWx === null) lastWx = kNow;
+    else if(kNow !== lastWx){
+      const wasWet = lastWx === 'rain' || lastWx === 'storm';
+      lastWx = kNow;
+      if(wasWet && kNow !== 'rain' && kNow !== 'storm' && now - lastRainbow > 20 * 60000){
+        lastRainbow = now;
+        showRainbow(st);
+      }
+    }
+    /* 雨の日は水たまりができて、ときどきかたつむりが通る */
+    const hasPud = !!st.querySelector('.hm-pud:not(.out)');
+    if(wet && !hasPud && !pudRecs.length){
+      const W2 = st.clientWidth || 300;
+      const n2 = 2 + Math.floor(Math.random() * 2);
+      for(let i = 0; i < n2; i++){
+        const pu = document.createElement('div');
+        pu.className = 'hm-pud';
+        pu.style.left = (16 + Math.random() * Math.max(30, W2 - 92)).toFixed(0) + 'px';
+        pu.style.animationDelay = (i * 1.7).toFixed(1) + 's';
+        pu.style.transform = 'scale(' + (0.72 + Math.random() * 0.5).toFixed(2) + ')';
+        pu.innerHTML = PUDDLE_SVG;
+        st.appendChild(pu);
+        pudRecs.push(keepAmbient(pu, 0, (e2) => { e2.style.animationDelay = '-3s'; }));
+      }
+    }
+    if(!wet && pudRecs.length){
+      pudRecs.slice().forEach(r2 => {
+        r2.el.classList.add('out');
+        const rr = r2;
+        setTimeout(() => dropAmbient(rr), 2600);
+      });
+      pudRecs = [];
+    }
+    if(wet && !frog && now > nextFrog){
+      nextFrog = now + 12 * 60000 + Math.random() * 16 * 60000;
+      frogBy(st);
+    }
+    if(!wet && frog){ frog.dir = frog.x > (st.clientWidth || 300) / 2 ? 1 : -1; }
+    frogTick(now, st);
+
+    /* 夜だけ、フクロウが屋根にとまりに来る */
+    const hOwl = new Date().getHours();
+    if(!owl && !wet && (hOwl >= 19 || hOwl < 5) && now > nextOwl) owlIn(st);
+    owlTick(now, st);
+
+    /* ときどき、小鳥が羽ばたいて空をわたっていく */
+    if(now > nextBirdFly){
+      nextBirdFly = now + 6 * 60000 + Math.random() * 11 * 60000;
+      if(!wet) birdFlyBy(st);
+    }
+    /* 夕方だけ、ちいさなカラスの群れ */
+    if(now > nextCrows){
+      nextCrows = now + 18 * 60000 + Math.random() * 24 * 60000;
+      const hh2 = new Date().getHours();
+      if(!wet && hh2 >= 16 && hh2 < 19) crowsBy(st);
+    }
+    /* ごくまれに、だれかが飛んでいく */
+    if(now > nextHero){
+      nextHero = now + 4 * 3600000 + Math.random() * 6 * 3600000;
+      if(!wet) heroBy(st);
+    }
+    /* ごくまれに、UFO */
+    if(now > nextUfo){
+      nextUfo = now + 4 * 3600000 + Math.random() * 6 * 3600000;
+      if(!wet) ufoBy(st);
+    }
+
+    /* ときどき、空を風船や気球がわたっていく */
+    if(now > nextFly){
+      nextFly = now + 22 * 60000 + Math.random() * 26 * 60000;
+      if(!wet) flyBy(st);
+    }
+
+    /* 1時間に一度くらい、ネコかうさぎが来て、ゆっくりして帰る */
+    if(!visitor && now > nextVisit && !wet){
+      const rk = Math.random();
+      const kind = rk < 0.38 ? 'cat' : rk < 0.76 ? 'rab' : 'bird';
+      const el = document.createElement('div');
+      const v2 = Math.random() < 0.4;
+      el.className = 'walker guest ' + kind + (v2 ? ' v2' : '');
+      el.innerHTML = kind === 'bird'
+        ? '<span class="bd-stand">' + BIRD_SVG + '</span>'
+          + '<span class="bd-fly">' + BIRD_FLY_SVG + '</span>'
+        : (GUEST_ART[kind] || GUEST_ART.cat)();
+      const fromLeft = Math.random() < 0.5;
+      visitor = { el: el, kind: kind, v2: v2,
+                  p: fromLeft ? -0.18 : 1.18, face: fromLeft ? 1 : -1,
+                  spot: 0.18 + Math.random() * 0.42 + (fromLeft ? 0 : 0.18),
+                  phase: 'in', pose: 'walk', until: 0, next: 0, hopAt: 0,
+                  lift: 0, tp: 0, tlift: 0, perchUntil: 0, flying: false };
+      if(kind === 'bird'){
+        visitor.lift = 34 + Math.random() * 26;
+        visitor.flying = true;
+        visitor.until = Date.now() + 240000 + Math.random() * 150000;
+        const sp0 = perchSpots(st);
+        const t0 = sp0[Math.floor(Math.random() * sp0.length)];
+        visitor.tp = t0.p; visitor.tlift = t0.lift;
+      }
+      /* 置く前に居場所を決めておく。あとから決めると、左上から飛んできてしまう */
+      const W0 = st.clientWidth || 300, H0 = st.clientHeight || 150;
+      el.style.transition = 'none';
+      el.style.transform = 'translate(' + (26 + visitor.p * (W0 - 52)).toFixed(1) + 'px, '
+        + (H0 - 15).toFixed(1) + 'px)' + (visitor.face < 0 ? ' scaleX(-1)' : '');
+      st.appendChild(el);
+      paintDog();
+      void el.offsetWidth;
+      el.style.transition = '';
+    }
+    if(visitor && visitor.kind === 'bird'){
+      birdTick(visitor, now, st, wet);
+    } else if(visitor){
+      const g = visitor;
+      if(g.phase === 'in'){
+        const d = g.spot - g.p;
+        if(Math.abs(d) > 0.012){
+          g.face = d < 0 ? -1 : 1;
+          if(g.kind === 'rab' && now > (g.gaitAt || 0)){
+            /* たいていは跳ねて、ときどき犬のようにてくてく歩く */
+            g.gait = Math.random() < .72 ? 'hop' : 'walk';
+            g.gaitAt = now + 3500 + Math.random() * 5200;
+          }
+          if(HOPPER[g.kind] && !(g.kind === 'rab' && g.gait === 'walk')){
+            if(now > g.hopAt){
+              const far = g.kind === 'rab' ? 0.05 + Math.random() * 0.03
+                                           : 0.022 + Math.random() * 0.02;
+              g.p += Math.sign(d) * far;
+              guestJump(g.el, g.kind);
+              g.hopAt = now + (g.kind === 'rab' ? 560 + Math.random() * 420
+                                                : 420 + Math.random() * 520);
+            }
+          } else {
+            g.p += Math.sign(d) * (g.kind === 'rab' ? 0.011 : 0.015);
+          }
+          g.pose = 'walk';
+        } else {
+          g.phase = 'stay';
+          g.pose = 'still';
+          g.until = now + 240000 + Math.random() * 150000;   /* 4〜6分半 いる */
+          g.next = now + 4000;
+        }
+      } else if(g.phase === 'stay'){
+        if(now > g.next){
+          const r = Math.random();
+          g.pose = r < .45 ? 'lie' : r < .82 ? 'sit' : 'still';
+          g.next = now + 20000 + Math.random() * 60000;
+          if(Math.random() < .3) g.face = -g.face;
+        }
+        if(wet || now > g.until){ g.phase = 'out'; g.pose = 'walk'; }
+      } else {
+        const target = g.p > 0.5 ? 1.25 : -0.25;
+        const d = target - g.p;
+        g.face = d < 0 ? -1 : 1;
+        if(g.kind === 'rab' && now > (g.gaitAt || 0)){
+          g.gait = Math.random() < .72 ? 'hop' : 'walk';
+          g.gaitAt = now + 3500 + Math.random() * 5200;
+        }
+        if(HOPPER[g.kind] && !(g.kind === 'rab' && g.gait === 'walk')){
+          if(now > g.hopAt){
+            const far = g.kind === 'rab' ? 0.055 + Math.random() * 0.03
+                                         : 0.025 + Math.random() * 0.02;
+            g.p += Math.sign(d) * far;
+            guestJump(g.el, g.kind);
+            g.hopAt = now + (g.kind === 'rab' ? 520 + Math.random() * 340
+                                              : 400 + Math.random() * 420);
+          }
+        } else {
+          g.p += Math.sign(d) * (g.kind === 'rab' ? 0.012 : 0.018);
+        }
+        g.pose = 'walk';
+        if(g.p >= 1.2 || g.p <= -0.2){
+          g.el.remove();
+          visitor = null;
+          nextVisit = now + 48 * 60000 + Math.random() * 24 * 60000;   /* だいたい1時間後 */
+        }
       }
     }
 
@@ -10049,8 +11036,8 @@ PAWS.load();
       if(S){
         const season = S.season();
         if(season === 'fireworks'){
-          const n = 2 + Math.floor(Math.random() * 2);
-          for(let i = 0; i < n; i++) setTimeout(() => S.firework(st), i * (600 + Math.random() * 700));
+          const n = 4 + Math.floor(Math.random() * 5);          /* 4〜8発 */
+          for(let i = 0; i < n; i++) setTimeout(() => S.firework(st), i * (380 + Math.random() * 520));
         } else {
           const n = 3 + Math.floor(Math.random() * 4);
           for(let i = 0; i < n; i++) S.drift(st, season, i * (0.25 + Math.random() * 0.5));
@@ -10080,7 +11067,10 @@ PAWS.load();
     if(st && dog){
       pups = pups.filter(p => p.el);
       pups.forEach(p => st.appendChild(p.el));
-      const movers = [dog].concat(pups.map(p => p.el));
+      if(visitor && visitor.el) st.appendChild(visitor.el);
+      reAmbient(st);
+      const movers = [dog].concat(pups.map(p => p.el))
+        .concat(visitor && visitor.el ? [visitor.el] : []);
       movers.forEach(el => { el.style.transition = 'none'; });
       /* 庭のどの子をさわっても返事をする */
       if(!st.__dogTap){
@@ -10089,6 +11079,8 @@ PAWS.load();
           const w = ev.target && ev.target.closest ? ev.target.closest('.walker') : null;
           if(!w) return;
           ev.stopPropagation();
+          if(w.classList.contains('guest')){ tapGuest(w.classList.contains('cat')); return; }
+          bubbleFrom = 'dog';
           tapDog(w.classList.contains('pup'));
         });
       }
