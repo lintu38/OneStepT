@@ -1096,6 +1096,66 @@
   /* the session goal can run to three digits, so give it room */
   .goal-row .settings input#workGoalInput{ width: 68px; }
 
+  /* 自然音のラジオ */
+  .bgm-box{ display:flex; flex-direction:column; gap:9px;
+    background:var(--bg-card); border:1px solid var(--ring-track);
+    border-radius:14px; padding:11px 13px; font-size:13px; color:var(--text-muted); }
+  .bgm-main{ display:flex; align-items:center; gap:9px; }
+  .bgm-main .lbl{ display:inline-flex; align-items:center; gap:6px; flex:0 0 auto; white-space:nowrap; }
+  .bgm-main .lbl svg{ width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.4;
+    stroke-linecap:round; stroke-linejoin:round; }
+  .bgm-play{ flex:0 0 auto; width:30px; height:30px; border-radius:50%;
+    border:1px solid var(--ring-track); background:var(--bg); color:var(--text-muted);
+    font-size:11px; line-height:1; cursor:pointer; display:inline-flex;
+    align-items:center; justify-content:center; transition:background .15s,color .15s; }
+  .bgm-play:hover{ background:var(--bg-soft); }
+  .bgm-play.on{ background:linear-gradient(135deg,#D2BB99,var(--beige) 60%,var(--beige-deep));
+    border-color:transparent; color:var(--beige-ink); }
+  .bgm-play:active{ transform:scale(.94); }
+  .bgm-name{ flex:1; min-width:0; font-family:'Zen Kaku Gothic New',sans-serif; font-size:12px;
+    color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .bgm-name.none{ color:var(--text-faint); }
+  .bgm-vol{ flex:0 0 84px; width:84px; height:16px; cursor:pointer;
+    -webkit-appearance:none; appearance:none; background:none; }
+  .bgm-vol::-webkit-slider-runnable-track{ height:4px; border-radius:999px; background:var(--ring-track); }
+  .bgm-vol::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:13px; height:13px;
+    margin-top:-4.5px; border-radius:50%; background:var(--beige); border:none; cursor:pointer; }
+  .bgm-vol::-moz-range-track{ height:4px; border-radius:999px; background:var(--ring-track); }
+  .bgm-vol::-moz-range-thumb{ width:13px; height:13px; border-radius:50%;
+    background:var(--beige); border:none; cursor:pointer; }
+  .bgm-msg{ font-family:'Zen Kaku Gothic New',sans-serif; font-size:11px; color:var(--text-faint); }
+  .bgm-msg.err{ color:#A9605E; }
+
+  .bgm-pick{ display:flex; flex-direction:column; gap:8px;
+    border-top:1px dashed var(--ring-track); padding-top:9px; }
+  .bgm-tags{ display:flex; flex-wrap:wrap; gap:5px; }
+  .bgm-tags button{ border:1px solid var(--line); background:var(--bg-card);
+    border-radius:999px; padding:3px 10px; font-family:'Zen Kaku Gothic New',sans-serif;
+    font-size:10.5px; color:var(--text-muted); cursor:pointer; }
+  .bgm-tags button:hover{ background:var(--bg-soft); }
+  .bgm-find{ display:flex; gap:6px; align-items:center; }
+  .bgm-find input{ flex:1; min-width:0; border:1px solid var(--line); background:var(--bg-card);
+    border-radius:10px; padding:6px 9px; font-family:'Zen Kaku Gothic New',sans-serif;
+    font-size:12px; color:var(--text); }
+  .bgm-find input:focus{ outline:none; border-color:var(--beige); }
+  .bgm-sub{ font-family:'Space Mono',monospace; font-size:9px; letter-spacing:.1em;
+    color:var(--text-faint); margin-top:1px; }
+  .bgm-list{ display:flex; flex-direction:column; gap:2px; max-height:236px; overflow-y:auto; }
+  .bgm-item{ display:flex; align-items:center; gap:7px; min-height:26px; }
+  .bgm-item .nm{ flex:1; min-width:0; font-family:'Zen Kaku Gothic New',sans-serif;
+    font-size:11.5px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .bgm-item.on .nm{ color:var(--beige-deep); }
+  .bgm-item .meta{ flex:0 0 auto; font-family:'Space Mono',monospace; font-size:9px;
+    color:var(--text-faint); }
+  .bgm-item button{ flex:0 0 auto; border:1px solid var(--line); background:none;
+    border-radius:999px; padding:2px 8px; font-family:'Zen Kaku Gothic New',sans-serif;
+    font-size:9.5px; color:var(--beige-deep); cursor:pointer; white-space:nowrap; }
+  .bgm-item button.x{ border:none; padding:0 2px; font-family:'Space Mono',monospace;
+    font-size:12px; color:var(--text-faint); }
+  .bgm-item button.x:hover{ color:#A9605E; }
+  .bgm-auto{ display:flex; align-items:center; justify-content:space-between; gap:8px;
+    font-family:'Zen Kaku Gothic New',sans-serif; font-size:11.5px; }
+
   .settings{
     display:flex; align-items:center; justify-content:space-between;
     background: var(--bg-card);
@@ -3387,6 +3447,433 @@ window.PAWS = (function(){
 </script>
 
 <script>
+/* =====================================================================
+   自然音のラジオ — 曲は持たず、公開されている局をそのまま鳴らす。
+   局の一覧は radio-browser.info（無料・登録不要）からそのつど取る。
+   置き場所（スロット）は Session と Home のふたつ。局はそれぞれ別に選べて、
+   鳴るのはいつもどちらか一方だけ。
+   ===================================================================== */
+window.PAWBGM = (function(){
+  'use strict';
+
+  const HOSTS = ['https://all.api.radio-browser.info', 'https://de1.api.radio-browser.info'];
+  const TAGS = [
+    { t:'nature',     l:'自然' },
+    { t:'birds',      l:'鳥' },
+    { t:'forest',     l:'森' },
+    { t:'water',      l:'小川' },
+    { t:'rain',       l:'雨' },
+    { t:'relaxation', l:'やすらぎ' }
+  ];
+  const MAX_FAV = 24, TOMB_MAX = 200;
+  const LEAF = '<svg viewBox="0 0 16 16" aria-hidden="true">'
+    + '<path d="M3 13.2c0-5 3.4-8.4 9.4-9.4C13 9.4 9.7 13 4.6 13.2z"/>'
+    + '<path d="M2.4 14c1.6-2.6 3.6-4.6 6.2-6.2"/></svg>';
+
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+      ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+  }
+  const clamp = v => Math.max(0, Math.min(1, v));
+
+  /* ---------------- おぼえておくこと ---------------- */
+
+  let data = null;
+  function store(){
+    if(!data){
+      data = PAWS.section('bgm', { favs:[], slots:null, tombs:[] });
+      if(!Array.isArray(data.favs)) data.favs = [];
+      if(!Array.isArray(data.tombs)) data.tombs = [];
+      if(!data.slots || typeof data.slots !== 'object') data.slots = {};
+      /* はじめの版はひとつぶんしか持っていなかったので、Session のぶんとして引き取る */
+      if(data.curId !== undefined || data.vol !== undefined || data.autoSession !== undefined){
+        data.slots.ss = Object.assign({
+          cur: data.curId || null,
+          vol: typeof data.vol === 'number' ? data.vol : 0.45,
+          auto: data.autoSession !== false
+        }, data.slots.ss || {});
+        delete data.curId; delete data.vol; delete data.autoSession;
+      }
+    }
+    return data;
+  }
+  function slot(k){
+    const s = store();
+    if(!s.slots[k] || typeof s.slots[k] !== 'object') s.slots[k] = {};
+    const o = s.slots[k];
+    if(typeof o.vol !== 'number') o.vol = 0.45;
+    if(o.cur === undefined) o.cur = null;
+    if(k === 'ss' && typeof o.auto !== 'boolean') o.auto = true;
+    if(k === 'ss' && typeof o.brk !== 'boolean') o.brk = false;
+    return o;
+  }
+  const save = () => PAWS.save();
+  const favOf = id => store().favs.find(f => f.id === id) || null;
+  const newId = () => 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+
+  /* ---------------- 音そのもの ---------------- */
+
+  let el = null, active = null, busy = false, duckT = 0;
+  const msg = {}, hits = {}, searching = {}, openPick = {};
+  /* 休憩中、Session の箱は休憩ぶんを映す */
+  const effOf = k => (k === 'ss' && active === 'break') ? 'break' : k;
+
+  function say(k, text, isErr){ msg[k] = text ? { t:text, e:!!isErr } : null; paint(k); }
+
+  function media(){
+    if(el) return el;
+    el = document.createElement('audio');
+    el.preload = 'none';
+    el.hidden = true;
+    el.addEventListener('playing', () => { busy = false; if(active) msg[active] = null; paintAll(); });
+    el.addEventListener('waiting', () => { busy = true; paintAll(); });
+    el.addEventListener('stalled', () => { busy = true; paintAll(); });
+    el.addEventListener('error', () => {
+      const k = active;
+      active = null; busy = false;
+      if(k) say(k, 'この局にはつながりませんでした', true); else paintAll();
+    });
+    document.body.appendChild(el);
+    return el;
+  }
+
+  function play(k, id){
+    const s = store(), o = slot(k);
+    const f = (id && favOf(id)) || favOf(o.cur) || s.favs[0];
+    if(!f){ say(k, '局がまだありません。「局」から選んでください', true); return; }
+    if(location.protocol === 'https:' && /^http:/i.test(f.url)){
+      say(k, 'この局は http なので、この画面からは鳴らせません', true); return;
+    }
+    o.cur = f.id; save();
+    const prev = active;
+    active = k;
+    if(prev && prev !== k) msg[prev] = null;
+    const a = media();
+    if(a.getAttribute('src') !== f.url) a.src = f.url;
+    a.volume = clamp(o.vol);
+    busy = true; msg[k] = null;
+    paintAll();
+    const p = a.play();
+    if(p && p.catch) p.catch(() => {
+      if(active !== k) return;
+      active = null; busy = false;
+      say(k, '鳴らせませんでした。もう一度押してみてください', true);
+    });
+  }
+  function stop(){
+    active = null; busy = false;
+    if(el){ el.pause(); el.removeAttribute('src'); try{ el.load(); }catch(e){} }
+    paintAll();
+  }
+  function toggle(k){ if(active === k) stop(); else play(k); }
+
+  /* チャイムが鳴るあいだだけ、そっと音を下げる */
+  function duck(ms){
+    if(!el || !active) return;
+    el.volume = clamp(slot(active).vol * 0.22);
+    clearTimeout(duckT);
+    duckT = setTimeout(() => { if(el && active) el.volume = clamp(slot(active).vol); }, ms || 1900);
+  }
+  function setVol(k, v){
+    const o = slot(k);
+    o.vol = clamp(v); save();
+    if(el && active === k) el.volume = o.vol;
+  }
+  /* Session のはじまり（START と GO! のどちらでも）と終わりに合わせる */
+  function onPhase(phase){
+    const o = slot('ss');
+    if(o.auto === false) return;
+    if(phase === 'ready' || phase === 'working'){
+      if(o.cur && active !== 'ss') play('ss', o.cur);
+      else if(!o.cur && active === 'break') stop();
+    } else if(phase === 'break'){
+      const bo = slot('break');
+      if(o.brk && bo.cur && active !== 'break') play('break', bo.cur);
+    } else if(phase === 'done' || phase === 'idle'){
+      if(active === 'ss' || active === 'break') stop();
+    }
+  }
+
+  /* ---------------- 局をさがす ---------------- */
+
+  function search(k, q){
+    q = String(q || '').trim();
+    if(!q) return;
+    searching[k] = true; hits[k] = []; msg[k] = null; paint(k);
+    const httpsOnly = location.protocol === 'https:';
+    const path = '/json/stations/bytag/' + encodeURIComponent(q)
+      + '?limit=60&order=clickcount&reverse=true&hidebroken=true';
+    let i = 0;
+    (function tryHost(){
+      if(i >= HOSTS.length){
+        searching[k] = false;
+        say(k, '局の一覧を取れませんでした（ネットにつながっていますか）', true);
+        return;
+      }
+      const url = HOSTS[i++] + path;
+      const ctl = ('AbortController' in window) ? new AbortController() : null;
+      const timer = setTimeout(() => { if(ctl) ctl.abort(); }, 9000);
+      fetch(url, ctl ? { signal: ctl.signal } : undefined)
+        .then(r => r.ok ? r.json() : Promise.reject(new Error(r.status)))
+        .then(list => {
+          clearTimeout(timer);
+          searching[k] = false;
+          const seen = {};
+          hits[k] = (Array.isArray(list) ? list : [])
+            .map(x => ({
+              name: String(x.name || '').trim().slice(0, 60),
+              url:  String(x.url_resolved || x.url || '').trim(),
+              bitrate: x.bitrate || 0, cc: x.countrycode || ''
+            }))
+            .filter(x => x.name && /^https?:\/\//i.test(x.url))
+            .filter(x => !httpsOnly || /^https:/i.test(x.url))
+            .filter(x => (seen[x.url] ? false : (seen[x.url] = 1)))
+            .slice(0, 20);
+          if(!hits[k].length){
+            say(k, httpsOnly ? 'この画面から鳴らせる局が見つかりませんでした' : '見つかりませんでした');
+          } else paint(k);
+        })
+        .catch(() => { clearTimeout(timer); tryHost(); });
+    })();
+  }
+
+  function addFav(k, name, url){
+    const s = store();
+    url = String(url || '').trim();
+    if(!/^https?:\/\//i.test(url)){ say(k, 'http で始まる URL を入れてください', true); return null; }
+    const dup = s.favs.find(f => f.url === url);
+    if(dup){ slot(k).cur = dup.id; save(); paintAll(); return dup; }
+    const f = { id:newId(), name:(String(name || '').trim() || url).slice(0, 40), url:url, at:Date.now() };
+    s.favs.push(f);
+    if(s.favs.length > MAX_FAV) s.favs = s.favs.slice(-MAX_FAV);
+    slot(k).cur = f.id;
+    save(); paintAll();
+    return f;
+  }
+  function delFav(id){
+    const s = store();
+    s.favs = s.favs.filter(f => f.id !== id);
+    if(s.tombs.indexOf(id) < 0) s.tombs.push(id);
+    if(s.tombs.length > TOMB_MAX) s.tombs = s.tombs.slice(-TOMB_MAX);
+    Object.keys(s.slots).forEach(k => {
+      const o = s.slots[k];
+      if(o && o.cur === id){
+        o.cur = s.favs.length ? s.favs[0].id : null;
+        if(active === k) stop();
+      }
+    });
+    save(); paintAll();
+  }
+
+  /* ---------------- 見た目 ---------------- */
+
+  function pickHTML(k){
+    const s = store(), o = slot(k), hl = hits[k] || [];
+    return `<div class="bgm-pick">
+      <div class="bgm-tags">
+        ${TAGS.map(x => `<button data-bgmtag="${esc(x.t)}">${esc(x.l)}</button>`).join('')}
+      </div>
+      <div class="bgm-find">
+        <input type="text" class="bgm-q" placeholder="タグで探す（例: forest）" autocomplete="off">
+        <button class="mini-btn solid" data-bgm="find">${searching[k] ? '…' : 'さがす'}</button>
+      </div>
+      ${hl.length ? `<div class="bgm-sub">みつかった局</div>
+        <div class="bgm-list">${hl.map((h, i) => `<div class="bgm-item">
+          <span class="nm">${esc(h.name)}</span>
+          <span class="meta">${esc(h.cc)}${h.bitrate ? ' ' + h.bitrate + 'k' : ''}</span>
+          <button data-bgmtry="${i}">ためす</button>
+          <button data-bgmadd="${i}">入れる</button>
+        </div>`).join('')}</div>` : ''}
+      ${s.favs.length ? `<div class="bgm-sub">お気に入り${k === 'ss' ? '（Session に使う局を選びます）' : '（Home に使う局を選びます）'}</div>
+        <div class="bgm-list">${s.favs.map(f => `<div class="bgm-item${f.id === o.cur ? ' on' : ''}">
+          <span class="nm">${esc(f.name)}</span>
+          <button data-bgmuse="${esc(f.id)}">${f.id === o.cur ? '流す' : 'これに'}</button>
+          <button class="x" data-bgmdel="${esc(f.id)}" title="消す">×</button>
+        </div>`).join('')}</div>` : '<div class="bgm-sub">お気に入りはまだありません</div>'}
+      <div class="bgm-find">
+        <input type="text" class="bgm-url" placeholder="ストリームの URL を直接入れる" autocomplete="off">
+        <button class="mini-btn" data-bgm="addurl">＋</button>
+      </div>
+      ${k === 'ss' ? `<div class="bgm-auto">
+        <span>Session を始めたら流す</span>
+        <button class="toggle ${o.auto === false ? '' : 'on'}" data-bgm="auto">${o.auto === false ? 'OFF' : 'ON'}</button>
+      </div>
+      <div class="bgm-auto">
+        <span>休憩中は別の局</span>
+        <button class="toggle ${o.brk ? 'on' : ''}" data-bgm="brk">${o.brk ? 'ON' : 'OFF'}</button>
+      </div>
+      ${o.brk ? `<div class="bgm-sub">休憩中に使う局</div>
+        ${s.favs.length ? `<div class="bgm-list">${s.favs.map(f => `<div class="bgm-item${f.id === slot('break').cur ? ' on' : ''}">
+          <span class="nm">${esc(f.name)}</span>
+          <button data-bgmbrk="${esc(f.id)}">${f.id === slot('break').cur ? '選択中' : 'これに'}</button>
+        </div>`).join('')}</div>` : '<div class="bgm-sub">お気に入りを先に入れてください</div>'}
+        <div class="bgm-auto">
+          <span>休憩中の音量</span>
+          <input class="bgm-vol bgm-brkvol" type="range" min="0" max="100" step="1"
+            value="${Math.round(slot('break').vol * 100)}" data-bgm="vol"
+            title="休憩中の音量" aria-label="休憩中の音量">
+        </div>` : ''}` : ''}
+    </div>`;
+  }
+
+  function boxHTML(k){
+    k = k || 'ss';
+    const e = effOf(k);
+    const o = slot(e), f = favOf(o.cur);
+    const on = active === e;
+    const m = msg[k];
+    return `<div class="bgm-box" id="bgmBox-${esc(k)}" data-bgmk="${esc(k)}">
+      <div class="bgm-main">
+        <span class="lbl">${LEAF}自然音</span>
+        <button class="bgm-play${on ? ' on' : ''}" data-bgm="toggle"
+          title="${on ? '止める' : '流す'}" aria-label="${on ? '止める' : '流す'}">${on && busy ? '…' : on ? '■' : '▶'}</button>
+        <span class="bgm-name${f ? '' : ' none'}">${f ? esc(f.name) : '局を選んでください'}</span>
+        <input class="bgm-vol" type="range" min="0" max="100" step="1"
+          value="${Math.round(o.vol * 100)}" data-bgm="vol" title="音量" aria-label="音量">
+        <button class="mini-btn${openPick[k] ? ' solid' : ''}" data-bgm="pick">局</button>
+      </div>
+      ${m ? `<div class="bgm-msg${m.e ? ' err' : ''}">${esc(m.t)}</div>` : ''}
+      ${openPick[k] ? pickHTML(k) : ''}
+    </div>`;
+  }
+
+  /* 描き直すのはこの箱だけ。鳴っている音には触れない */
+  function paint(k){
+    const box = document.getElementById('bgmBox-' + k);
+    if(!box) return;
+    const q = box.querySelector('.bgm-q'), u = box.querySelector('.bgm-url');
+    const act = document.activeElement;
+    const keep = {
+      q: q ? q.value : '', u: u ? u.value : '',
+      focus: act && box.contains(act)
+        ? (act.classList.contains('bgm-q') ? '.bgm-q'
+          : act.classList.contains('bgm-url') ? '.bgm-url' : null)
+        : null
+    };
+    const wrap = document.createElement('div');
+    wrap.innerHTML = boxHTML(k);
+    const fresh = wrap.firstElementChild;
+    box.replaceWith(fresh);
+    const q2 = fresh.querySelector('.bgm-q'), u2 = fresh.querySelector('.bgm-url');
+    if(q2) q2.value = keep.q;
+    if(u2) u2.value = keep.u;
+    bind(k);
+    if(keep.focus){ const back = fresh.querySelector(keep.focus); if(back) back.focus(); }
+  }
+  function paintAll(){ ['ss', 'home'].forEach(paint); }
+
+  function bind(k){
+    k = k || 'ss';
+    const root = document.getElementById('bgmBox-' + k);
+    if(!root) return;
+    const q = sel => root.querySelectorAll(sel);
+    const val = sel => { const i = root.querySelector(sel); return i ? i.value : ''; };
+
+    q('[data-bgm]').forEach(elx => {
+      const what = elx.dataset.bgm;
+      if(what === 'vol'){
+        const brk = elx.classList.contains('bgm-brkvol');
+        elx.addEventListener('input', () =>
+          setVol(brk ? 'break' : effOf(k), parseInt(elx.value, 10) / 100));
+        return;
+      }
+      elx.addEventListener('click', ev => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        if(what === 'toggle'){ if(active === effOf(k)) stop(); else play(k); }
+        else if(what === 'pick'){ openPick[k] = !openPick[k]; msg[k] = null; paint(k); }
+        else if(what === 'find') search(k, val('.bgm-q'));
+        else if(what === 'addurl'){
+          const i = root.querySelector('.bgm-url');
+          if(i && addFav(k, i.value, i.value)) i.value = '';
+        }
+        else if(what === 'auto'){ const o = slot(k); o.auto = o.auto === false; save(); paint(k); }
+        else if(what === 'brk'){ const o = slot(k); o.brk = !o.brk; save(); paint(k); }
+      });
+    });
+    q('[data-bgmtag]').forEach(b => b.addEventListener('click', ev => {
+      ev.stopPropagation();
+      const i = root.querySelector('.bgm-q');
+      if(i) i.value = b.dataset.bgmtag;
+      search(k, b.dataset.bgmtag);
+    }));
+    q('[data-bgmtry]').forEach(b => b.addEventListener('click', ev => {
+      ev.stopPropagation();
+      const h = (hits[k] || [])[parseInt(b.dataset.bgmtry, 10)];
+      if(!h) return;
+      const f = addFav(k, h.name, h.url);
+      if(f) play(k, f.id);
+    }));
+    q('[data-bgmadd]').forEach(b => b.addEventListener('click', ev => {
+      ev.stopPropagation();
+      const h = (hits[k] || [])[parseInt(b.dataset.bgmadd, 10)];
+      if(h) addFav(k, h.name, h.url);
+    }));
+    q('[data-bgmuse]').forEach(b => b.addEventListener('click', ev => {
+      ev.stopPropagation();
+      play(k, b.dataset.bgmuse);
+    }));
+    q('[data-bgmbrk]').forEach(b => b.addEventListener('click', ev => {
+      ev.stopPropagation();
+      slot('break').cur = b.dataset.bgmbrk;
+      save();
+      paint(k);
+    }));
+    q('[data-bgmdel]').forEach(b => b.addEventListener('click', ev => {
+      ev.stopPropagation();
+      delFav(b.dataset.bgmdel);
+    }));
+    const qi = root.querySelector('.bgm-q');
+    if(qi) qi.addEventListener('keydown', ev => {
+      if(ev.key === 'Enter' && !ev.isComposing) search(k, qi.value);
+    });
+    const ui = root.querySelector('.bgm-url');
+    if(ui) ui.addEventListener('keydown', ev => {
+      if(ev.key === 'Enter' && !ev.isComposing && addFav(k, ui.value, ui.value)) ui.value = '';
+    });
+  }
+
+  /* ---------------- ほかの端末とのやりとり ---------------- */
+
+  function payload(){
+    const s = store();
+    return { app:'bgm', version:1, metaAt:s.metaAt || 0, savedAt:new Date().toISOString(),
+             favs:s.favs, tombs:s.tombs };
+  }
+  function mergeRemote(r){
+    if(!r || r.app !== 'bgm') return false;
+    const s = store();
+    let changed = false;
+    const tomb = {};
+    [].concat(s.tombs, r.tombs || []).forEach(id => { if(id) tomb[id] = 1; });
+    const kept = {};
+    s.favs.forEach(f => { if(f && f.id) kept[f.id] = f; });
+    (r.favs || []).forEach(f => {
+      if(!f || !f.id || tomb[f.id]) return;
+      if(!kept[f.id]){ kept[f.id] = f; changed = true; }
+    });
+    const before = s.favs.length;
+    const list = Object.keys(kept).map(x => kept[x]).filter(f => !tomb[f.id]);
+    if(list.length !== before) changed = true;
+    s.favs = list.slice(-MAX_FAV);
+    const nt = Object.keys(tomb).slice(-TOMB_MAX);
+    if(nt.length !== s.tombs.length){ s.tombs = nt; changed = true; }
+    return changed;
+  }
+
+  PAWS.register('bgm', {
+    gistFile: 'bgm.json',
+    appId: 'bgm',
+    payload: payload,
+    merge: mergeRemote,
+    rerender: () => paintAll()
+  });
+
+  return { boxHTML, bind, paint, paintAll, play, stop, toggle, duck, onPhase, setVol };
+})();
+</script>
+
+<script>
 PAWS.load();
 (function(){
   // Inside an iframe (the Tasks panel) the timer keeps its own separate history.
@@ -3713,6 +4200,7 @@ PAWS.load();
   function ensureAudio(){ return PAWS.audio(); }
 
   function playNote(ctx, freq, startAt, dur, peak){
+    if(window.PAWBGM) PAWBGM.duck(Math.round((dur + 0.7) * 1000));
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     const filter = ctx.createBiquadFilter();
@@ -5141,6 +5629,8 @@ PAWS.load();
         </div>
       </div>
 
+      ${window.PAWBGM ? PAWBGM.boxHTML('ss') : ''}
+
 
       <div class="result ${banner ? 'show' : ''} ${banner && banner.celebrate ? 'celebrate' : ''}">
         ${banner ? banner.text : '&nbsp;'}
@@ -5211,6 +5701,7 @@ PAWS.load();
 
     bind('startBtn', onStartWork);
     bind('miniBtn2', openMini);
+    if(window.PAWBGM) PAWBGM.bind('ss');
     bind('soundToggle', () => { data.soundOn = data.soundOn === false; saveData(); PAWS.refreshAll(); if(data.soundOn){ ensureAudio(); playChime(); } });
     bind('goBtn', onGo);
     bind('breakBtn', onBreak);
@@ -5860,6 +6351,8 @@ PAWS.load();
     if(data.soundOn !== false) startReminder(nudgePlan(data.thresholdSec).ms);
     banner = null;
     data.phase = 'ready';
+    /* 押した指がまだ離れていないうちに鳴らしはじめる（ブラウザの決まり） */
+    if(window.PAWBGM) PAWBGM.onPhase('ready');
     data.readyStart = Date.now();
     data.initialElapsed = null;
     data.workAccum = 0;
@@ -5882,6 +6375,7 @@ PAWS.load();
     data.logs.push({ ts: Date.now(), elapsed });
     data.phase = 'working';
     data.workStart = Date.now();
+    if(window.PAWBGM) PAWBGM.onPhase('working');
     cheerSlot = 0;
     pickCheer();
     stopReminder();
@@ -5934,6 +6428,7 @@ PAWS.load();
     data.workStart = null;
     data.breakStart = Date.now();
     data.phase = 'break';
+    if(window.PAWBGM) PAWBGM.onPhase('break');
     playPause();
     banner = { text: 'On a break. The clock is paused.', celebrate: false };
     await saveData();
@@ -5947,6 +6442,7 @@ PAWS.load();
     data.breakStart = null;
     data.workStart = Date.now();
     data.phase = 'working';
+    if(window.PAWBGM) PAWBGM.onPhase('working');
     playResume();
     banner = null;
     await saveData();
@@ -5975,6 +6471,7 @@ PAWS.load();
     data.breakAccum = rest;
     data.breakStart = null;
     data.phase = 'done';
+    if(window.PAWBGM) PAWBGM.onPhase('done');
     cheerText = null;
     cheerSlot = -1;
     stopTicking();
@@ -5989,6 +6486,7 @@ PAWS.load();
 
   async function onDoneReset(){
     data.phase = 'idle';
+    if(window.PAWBGM) PAWBGM.onPhase('idle');
     data.readyStart = null;
     data.initialElapsed = null;
     data.workStart = null;
@@ -6148,6 +6646,8 @@ PAWS.load();
       data.logs.push({ ts: Date.now(), elapsed: el });
       data.phase = 'working';
       data.readyStart = null;
+      /* 押した指がまだ離れていないうちに鳴らしはじめる（ブラウザの決まり） */
+      if(window.PAWBGM) PAWBGM.onPhase('working');
       data.workStart = Date.now();
       data.workAccum = 0;
       data.typeAccum = {};
@@ -6487,6 +6987,7 @@ PAWS.load();
 
   function ensureAudio(){ return PAWS.audio(); }
   function playNote(ctx, freq, at, dur, peak){
+    if(window.PAWBGM) PAWBGM.duck(Math.round((dur + 0.7) * 1000));
     const osc = ctx.createOscillator(), gain = ctx.createGain(), filt = ctx.createBiquadFilter();
     filt.type = 'lowpass'; filt.frequency.value = 2200;
     osc.type = 'sine'; osc.frequency.value = freq;
@@ -7506,6 +8007,8 @@ PAWS.load();
         ${histOpen ? renderHistory() : ''}
       </div>
 
+      ${window.PAWBGM ? PAWBGM.boxHTML('home') : ''}
+
       <div class="settings">
         <span class="lbl">${ICON.clock}アプリを開いている間の自動開始</span>
         <button class="toggle ${data.autoArm === false ? '' : 'on'}" id="autoToggle">${data.autoArm === false ? 'OFF' : 'ON'}</button>
@@ -7594,6 +8097,7 @@ PAWS.load();
     bind('edSave', onSaveTask);
     bind('edDel', onDeleteTask);
     bind('edCancel', () => { editId = null; draft = null; render(); });
+    if(window.PAWBGM) PAWBGM.bind('home');
     bind('fmHist', () => { histOpen = !histOpen; render(); });
     bind('clearLogs', onClearLogs);
     app.querySelectorAll('[data-dellog]').forEach(b => {
