@@ -2,16 +2,16 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#FAF6EF">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="First Move">
+<meta name="apple-mobile-web-app-title" content="One Step">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22%3E%3Crect%20width=%22100%22%20height=%22100%22%20rx=%2218%22%20fill=%22%23FAF6EF%22/%3E%3Cg%20fill=%22%23B09878%22%20transform=%22translate%2850,50%29%20scale%280.8%29%20translate%28-50.5,-44.75%29%22%3E%3Cellipse%20cx=%2250%22%20cy=%2263.5%22%20rx=%2221.5%22%20ry=%2217.5%22/%3E%3Cellipse%20cx=%2223.5%22%20cy=%2237.5%22%20rx=%2210.5%22%20ry=%2213.5%22/%3E%3Cellipse%20cx=%2241.5%22%20cy=%2221.5%22%20rx=%229.8%22%20ry=%2213%22/%3E%3Cellipse%20cx=%2261.5%22%20cy=%2221.5%22%20rx=%229.8%22%20ry=%2213%22/%3E%3Cellipse%20cx=%2277.5%22%20cy=%2237.5%22%20rx=%2210.5%22%20ry=%2213.5%22/%3E%3C/g%3E%3C/svg%3E">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
-<meta name="application-name" content="First Move">
+<meta name="application-name" content="One Step">
 <title>One Step at a Time</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2540,10 +2540,10 @@
 window.PAWS = (function(){
   'use strict';
 
-  const KEY      = 'paw_suite_v1';
+  const KEY      = 'paw_mobile_v1';
   const OLD_SS   = 'start_tracker_data';
   const OLD_FM   = 'on_your_marks_v1';
-  const SYNC_KEY = 'paw_suite_sync';
+  const SYNC_KEY = 'paw_mobile_sync';
   // The little window is only a view of another window's session.
   const MINI = /[?&]mini=1/.test(window.location.search);
   /* 庭だけを出す小窓 */
@@ -2857,8 +2857,8 @@ window.PAWS = (function(){
   // The browser can write into one folder you choose, and remembers it.
   // Edge and Chrome on a computer only; iPhone has no such thing.
 
-  const AUTO_KEY = 'paw_auto_export';
-  const DB_NAME = 'paw_fs', DB_STORE = 'handles';
+  const AUTO_KEY = 'paw_mobile_auto';
+  const DB_NAME = 'paw_mobile_fs', DB_STORE = 'handles';
   let autoCfg = { on:false, everyMin:60, at:0, msg:null };
   let dirHandle = null;
   let autoTimer = null;
@@ -3114,6 +3114,14 @@ window.PAWS = (function(){
         </div>` : ''}
       </div>
 
+      <div class="card">
+        <div class="section-title"><span>この端末の記録</span></div>
+        <div class="te-note">記録はこのブラウザの中に保存されます。上の同期を設定すると、パソコンとも行き来します。<br>
+          ときどき下の EXPORT でファイルに保管しておくと安心です。</div>
+        <div class="te-note" id="mStore">保存の状態を調べています…</div>
+        <div class="ed-actions"><button class="ed-cancel" id="mStoreFix">保存を守る</button></div>
+      </div>
+
       <div class="help ${helpOpen ? 'open' : ''}">
         <button id="shHelp"><span class="caret">▸</span>使い方とセットアップ</button>
         ${helpOpen ? `<div class="help-body">
@@ -3123,8 +3131,8 @@ window.PAWS = (function(){
           <p>READY… を押してから GO! までが初動、そこから FINISH までが作業時間です。休憩をはさんでも合計は正しく積み上がります。</p>
           <h4>2つのタブのつながり</h4>
           <p>タスクの編集画面で「計測」を ON にしておくと、Ready タブで GO! を押したあと自動で Session タブへ切り替わり、そのタスクの種類で作業計測が始まります。切りたいタスクは OFF にしてください。</p>
-          <h4>同期</h4>
-          <p>GitHub の Fine-grained token（Account permissions → Gists を Read and write）を発行して貼り付け、「Gist を作成」を押します。もう一方の端末に同じトークンと Gist ID を入れれば、両方の記録が自動でひとつになります。</p>
+          <h4>パソコンと同期する</h4>
+          <p>GitHub の Fine-grained token（Account permissions → Gists を Read and write）を発行して「Sync · GitHub Gist」の設定に貼り付けます。先にパソコン側で「Gist を作成」しておき、こちらには<b>同じトークンと Gist ID</b> を入れてください。予定・アラーム・記録・To Do が両方でひとつになります。</p>
         </div>` : ''}
       </div>
 
@@ -3135,31 +3143,6 @@ window.PAWS = (function(){
             <input type="text" id="shDogName" maxlength="12" value="${esc(dogName())}"
                    placeholder="${esc(DEFAULT_DOG_NAME)}"></div>
           <div class="te-note">Today の犬の名前です。予定を「${esc(dogName())}に伝える」にすると、この子が話してくれます。</div>
-        </div>
-      </div>
-
-      <div>
-        <div class="section-title"><span>Auto Export</span></div>
-        <div class="sync-status">
-          <b>${autoCfg.on ? '自動書き出し ON' : 'OFF'}</b>${autoCfg.at ? ' · 最終 ' + fmtWhen(autoCfg.at) : ' · まだ書き出していません'}
-          ${autoCfg.msg ? `<br><span class="warn">${esc(autoCfg.msg)}</span>` : ''}
-        </div>
-        <div class="sync-fields">
-          <div class="ed-field"><label>間隔</label>
-            <div class="rep-picker">
-              ${[30,60,180,720,1440].map(m => `<button data-auto="${m}" class="${autoCfg.everyMin === m ? 'on' : ''}">${
-                m < 60 ? m + '分' : (m/60) + '時間'}</button>`).join('')}
-            </div>
-          </div>
-          <div class="ed-actions">
-            <button class="ed-save" id="shPickDir">フォルダを選ぶ</button>
-            <button class="ed-cancel" id="shAutoNow">今すぐ書き出す</button>
-            <button class="ed-cancel" id="shAutoOff">${autoCfg.on ? 'OFF にする' : 'ON にする'}</button>
-            ${inFrame ? '<button class="ed-cancel" id="shOpenTop">別ウィンドウで開く</button>' : ''}
-          </div>
-          <div class="te-note">選んだフォルダに「one-step-2026-09-02.json」のような名前で保存し、同じ日は上書きします。パソコンの Edge / Chrome でのみ使えます。${
-            inFrame ? 'いまは Tasks の枠の中なので、「別ウィンドウで開く」で単独のウィンドウにしてから設定してください。'
-                    : ''}</div>
         </div>
       </div>
 
@@ -3349,7 +3332,7 @@ window.PAWS = (function(){
       const btn = document.querySelector('.tabbtn[data-tab="' + k + '"]');
       if(btn) btn.classList.toggle('on', k === id);
     });
-    try{ writeLS('paw_suite_tab', id); }catch(e){}
+    try{ writeLS('paw_mobile_tab', id); }catch(e){}
     window.scrollTo({ top:0, behavior:'smooth' });
   }
 
@@ -5520,7 +5503,7 @@ PAWS.load();
   }
 
   // The little window remembers the size and the spot you left it in.
-  const MINI_WIN_KEY = 'paw_mini_win';
+  const MINI_WIN_KEY = 'paw_mobile_win';
   let miniWatch = null;
   function readMiniWin(){
     try{ return JSON.parse(localStorage.getItem(MINI_WIN_KEY)) || null; }catch(e){ return null; }
@@ -6197,7 +6180,7 @@ PAWS.load();
     chartDays:14,
     fmType:null,
     fmGoalSec:300,
-    fmTrack:true,
+    fmTrack:false,           // Session への引き継ぎは、はじめは OFF
     metaAt:0,
     tombs:[],       // keys of deleted records, so a delete survives a sync
     snoozed:null    // a countdown put on hold, waiting to come back
@@ -6414,6 +6397,12 @@ PAWS.load();
     if(!Array.isArray(data.tasks)) data.tasks = [];
     if(!Array.isArray(data.logs)) data.logs = [];
     if(!Array.isArray(data.tombs)) data.tombs = [];
+    /* 以前は ON がはじめの姿だったので、一度だけ OFF に戻す。
+       そのあとは、ここで選んだほうをずっと覚えている。 */
+    if(data.fmTrackOff !== true){
+      data.fmTrack = false;
+      data.fmTrackOff = true;
+    }
   }
   function saveData(bump){ PAWS.save(bump); }
 
@@ -7070,7 +7059,7 @@ PAWS.load();
       <div class="goal-row">
         <div class="settings">
           <span class="lbl">${ICON.clock}Session</span>
-          <button class="toggle ${data.fmTrack === false ? '' : 'on'}" id="fmTrack">${data.fmTrack === false ? 'OFF' : 'ON'}</button>
+          <button class="toggle ${data.fmTrack === true ? 'on' : ''}" id="fmTrack">${data.fmTrack === true ? 'ON' : 'OFF'}</button>
         </div>
         <div class="settings">
           <span class="lbl">${ICON.sound}Sound</span>
@@ -7548,7 +7537,7 @@ PAWS.load();
       saveData();
       render();
     });
-    bind('fmTrack', () => { data.fmTrack = data.fmTrack === false; saveData(); render(); });
+    bind('fmTrack', () => { data.fmTrack = data.fmTrack !== true; saveData(); render(); });
     bind('fmSound', () => {
       data.soundOn = data.soundOn === false;
       if(!data.soundOn) stopReminder();
@@ -7765,7 +7754,7 @@ PAWS.load();
 
   function onQuickArm(){
     ensureAudio();
-    armType(currentType(), data.fmTrack !== false);
+    armType(currentType(), data.fmTrack === true);
   }
 
   function onGo(){
@@ -11758,5 +11747,53 @@ window.PAWTASK = (function(){
 PAWS.initShell();
 </script>
 
+<script>
+  // Android clears a site's storage when space runs short — unless the site
+  // has asked to be kept. Ask quietly, and say plainly where things stand.
+  (function(){
+    const store = navigator.storage;
+    function paint(){
+      const box = document.getElementById('mStore');
+      if(!box) return;
+      const btn = document.getElementById('mStoreFix');
+      if(!store || !store.persisted){
+        if(box.textContent !== 'この端末では保存の状態を確認できません。')
+          box.textContent = 'この端末では保存の状態を確認できません。';
+        if(btn) btn.style.display = 'none';
+        return;
+      }
+      Promise.all([store.persisted(), store.estimate ? store.estimate().catch(() => null) : null])
+        .then(([kept, q]) => {
+          const size = (q && q.usage != null)
+            ? '（いま ' + Math.max(1, Math.round(q.usage / 1024)) + ' KB 使用）' : '';
+          const text = kept
+            ? '保存は守られています。空き容量が少なくなっても、記録が消されることはありません。' + size
+            : 'まだ守られていません。「保存を守る」を押すか、ホーム画面に追加して使うと守られます。' + size;
+          if(box.textContent !== text) box.textContent = text;
+          if(btn) btn.style.display = kept ? 'none' : '';
+        }).catch(() => {});
+    }
+    document.addEventListener('click', e => {
+      if(e.target && e.target.id === 'mStoreFix'){
+        (store && store.persist ? store.persist() : Promise.resolve()).catch(() => {}).then(paint);
+      }
+    });
+    addEventListener('load', () => {
+      const pane = document.getElementById('paneShared');
+      if(pane) new MutationObserver(paint).observe(pane, { childList:true });
+      paint();
+      // ask once, without bothering anyone: Chrome decides by itself
+      if(store && store.persist && store.persisted){
+        store.persisted().then(k => { if(!k) return store.persist(); }).catch(() => {});
+      }
+    });
+  })();
+</script>
+<script>
+  // Installed on a phone, the app should still open with no signal.
+  if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
+    addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
+</script>
 </body>
 </html>
