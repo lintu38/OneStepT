@@ -2071,6 +2071,11 @@
     stroke-width:1.5; stroke-linejoin:round; }
   @media (hover: none){ .yard-btn{ display:none; } }
   html.yard .yard-btn{ display:none; }
+  /* 小窓のときだけ、音の入り切りを出す */
+  .snd-btn{ display:none; }
+  html.yard .snd-btn{ display:inline-flex; right:8px; top:8px; }
+  html.yard .snd-btn.off{ color:#B4693F; }
+  html.yard .snd-btn.off:hover{ color:#96543A; }
   /* ---- 庭だけの小窓 ---- */
   html.yard, html.yard body{ height:100%; min-height:0; overflow:hidden; }
   html.yard body{ padding:0; display:block; background:var(--bg); }
@@ -10624,6 +10629,7 @@ window.PAWTASK = (function(){
         <span class="walker" id="hmDog">${window.__DOG_SVG || ''}</span>
         <span class="zzz hide" id="hmZzz"><i>z</i><i>z</i><i>z</i></span>
         <div class="dog-bubble sess hide" id="hmBubble"></div>
+        <button class="yard-btn snd-btn${data.soundOn === false ? ' off' : ''}" id="hmSnd" title="${data.soundOn === false ? '音を出す' : '音を止める'}" aria-label="${data.soundOn === false ? '音を出す' : '音を止める'}">${data.soundOn === false ? SND_OFF : SND_ON}</button>
         <button class="yard-btn" id="hmYard" title="庭だけの小窓で開く" aria-label="庭だけの小窓で開く"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><rect x="8.2" y="8" width="5" height="4" rx="1"/></svg></button>
       </div>
 
@@ -10693,6 +10699,11 @@ window.PAWTASK = (function(){
       const el = $id('hmCity'); if(el) el.focus(); });
     on('hmReload', () => loadWeather(true));
     on('hmYard', () => { if(window.__openYard) window.__openYard(); });
+    on('hmSnd', () => {
+      data.soundOn = data.soundOn === false;      /* root の soundOn を切り替える */
+      PAWS.save();
+      PAWS.refreshAll();                          /* もうひとつの窓へは storage ごしに伝わる */
+    });
     on('hmFind', () => { const el = $id('hmCity'); findPlace(el ? el.value : ''); });
     on('hmHere', useHere);
     $qa('[data-hit]').forEach(b => b.addEventListener('click', () => {
@@ -10781,6 +10792,15 @@ window.PAWTASK = (function(){
     if(h < 23) return 'こんばんは';
     return 'おやすみ';
   };
+
+  /* 小窓の音ボタン。入っているときは波、切ってあるときは × */
+  const SND_ON = '<svg viewBox="0 0 16 16" aria-hidden="true">'
+    + '<path d="M3.4 6.2h2.1L9 3.4v9.2L5.5 9.8H3.4z"/>'
+    + '<path d="M11.3 6.4a3.4 3.4 0 0 1 0 3.2"/>'
+    + '<path d="M12.9 4.9a5.6 5.6 0 0 1 0 6.2"/></svg>';
+  const SND_OFF = '<svg viewBox="0 0 16 16" aria-hidden="true">'
+    + '<path d="M3.4 6.2h2.1L9 3.4v9.2L5.5 9.8H3.4z"/>'
+    + '<path d="M11.4 6.6l3.2 2.8M14.6 6.6l-3.2 2.8"/></svg>';
 
   const PAW_TAG = '<span class="bpaw"></span>';
 
