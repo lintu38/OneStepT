@@ -2071,11 +2071,14 @@
     stroke-width:1.5; stroke-linejoin:round; }
   @media (hover: none){ .yard-btn{ display:none; } }
   html.yard .yard-btn{ display:none; }
-  /* 小窓のときだけ、音の入り切りを出す */
+  /* 小窓のときだけ、自然音の入り切りを出す */
   .snd-btn{ display:none; }
-  html.yard .snd-btn{ display:inline-flex; right:8px; top:8px; }
-  html.yard .snd-btn.off{ color:#B4693F; }
-  html.yard .snd-btn.off:hover{ color:#96543A; }
+  html.yard .snd-btn{ display:inline-flex; right:9px; top:9px;
+    width:34px; height:34px; border-radius:11px; opacity:.55; }
+  html.yard .snd-btn:hover{ opacity:1; }
+  html.yard .snd-btn svg{ width:20px; height:20px; }
+  html.yard .snd-btn.off{ color:#A79B8D; }
+  html.yard .snd-btn.off:hover{ color:#6E563D; }
   /* ---- 庭だけの小窓 ---- */
   html.yard, html.yard body{ height:100%; min-height:0; overflow:hidden; }
   html.yard body{ padding:0; display:block; background:var(--bg); }
@@ -3502,6 +3505,42 @@ window.PAWBGM = (function(){
   /* ---------------- 音そのもの ---------------- */
 
   let el = null, active = null, busy = false, duckT = 0;
+  /* いまどの窓で鳴っているかを、窓どうしで分け合うための覚え書き */
+  const NOW_KEY = 'paw_bgm_now';
+  let remote = null;
+  function markNow(){
+    remote = null;
+    try{ localStorage.setItem(NOW_KEY, active || ''); }catch(e){}
+  }
+  const nowSlot = () => active || remote;
+  window.addEventListener('storage', ev => {
+    if(ev.key !== NOW_KEY) return;
+    remote = ev.newValue || null;
+    paintAll();
+    if(typeof window.__pawBgmPaint === 'function') window.__pawBgmPaint();
+  });
+  function opener(){
+    try{ return (window.opener && !window.opener.closed) ? window.opener : null; }
+    catch(e){ return null; }
+  }
+  /* 小窓から押されたとき：もとの窓があればそちらで鳴らす */
+  function remoteToggle(k){
+    const o = opener();
+    if(o){
+      try{
+        remote = o.__pawBgmCmd(k, 'toggle') || null;
+        paintAll();
+        return true;
+      }catch(e){}
+    }
+    toggle(k);
+    return false;
+  }
+  function remoteState(){
+    const o = opener();
+    if(o){ try{ remote = o.__pawBgmCmd(null, 'state') || null; }catch(e){} }
+    return nowSlot();
+  }
   const msg = {}, hits = {}, searching = {}, openPick = {};
   /* 休憩中、Session の箱は休憩ぶんを映す */
   const effOf = k => (k === 'ss' && active === 'break') ? 'break' : k;
@@ -3540,17 +3579,19 @@ window.PAWBGM = (function(){
     if(a.getAttribute('src') !== f.url) a.src = f.url;
     a.volume = clamp(o.vol);
     busy = true; msg[k] = null;
+    markNow();
     paintAll();
     const p = a.play();
     if(p && p.catch) p.catch(() => {
       if(active !== k) return;
-      active = null; busy = false;
+      active = null; busy = false; markNow();
       say(k, '鳴らせませんでした。もう一度押してみてください', true);
     });
   }
   function stop(){
     active = null; busy = false;
     if(el){ el.pause(); el.removeAttribute('src'); try{ el.load(); }catch(e){} }
+    markNow();
     paintAll();
   }
   function toggle(k){ if(active === k) stop(); else play(k); }
@@ -3857,7 +3898,15 @@ window.PAWBGM = (function(){
     rerender: () => paintAll()
   });
 
-  return { boxHTML, bind, paint, paintAll, play, stop, toggle, duck, onPhase, setVol };
+  /* 小窓からの指図を受ける口 */
+  window.__pawBgmCmd = function(k, what){
+    if(what === 'state') return nowSlot();
+    toggle(k || 'ss');
+    return nowSlot();
+  };
+
+  return { boxHTML, bind, paint, paintAll, play, stop, toggle, duck, onPhase, setVol,
+           nowSlot, remoteToggle, remoteState };
 })();
 </script>
 
@@ -5771,7 +5820,32 @@ PAWS.load();
     .m-btns #mB{ background:linear-gradient(135deg,#D2BB99,#C7AC87 60%,#B79A73);
       border-color:transparent; color:#FFFCF6; }
     .m-btns #mB:hover{ filter:brightness(1.05); color:#FFFCF6; }
+    .m-ico{ display:flex; gap:7px; width:100%; }
+    .m-ico button{ flex:1; border:1px solid #EAE1D3; background:#fff; color:#7C7064;
+      border-radius:11px; padding:6px 0; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; }
+    .m-ico button:hover{ background:#F3EDE2; color:#2A231C; }
+    .m-ico button.off{ color:#C6BDB2; }
+    .m-ico button svg{ width:19px; height:19px; fill:none; stroke:currentColor;
+      stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
   `;
+
+  /* 小窓のふたつのボタンの絵 */
+  const M_SND_ON = '<svg viewBox="0 0 16 16" aria-hidden="true">'
+    + '<path d="M3.4 6.2h2.1L9 3.4v9.2L5.5 9.8H3.4z"/>'
+    + '<path d="M11.3 6.4a3.4 3.4 0 0 1 0 3.2"/>'
+    + '<path d="M12.9 4.9a5.6 5.6 0 0 1 0 6.2"/></svg>';
+  const M_SND_OFF = '<svg viewBox="0 0 16 16" aria-hidden="true">'
+    + '<path d="M3.4 6.2h2.1L9 3.4v9.2L5.5 9.8H3.4z"/>'
+    + '<path d="M11.4 6.6l3.2 2.8M14.6 6.6l-3.2 2.8"/></svg>';
+  const M_LEAF_ON = '<svg viewBox="0 0 16 16" aria-hidden="true">'
+    + '<path d="M2.2 12.4c0-4.6 3-7.6 8.4-8.6C11.2 8.6 8.2 12 3.6 12.4z"/>'
+    + '<path d="M1.7 14c1.4-2.4 3.2-4.2 5.6-5.6"/>'
+    + '<path d="M12.6 5.6a4.4 4.4 0 0 1 0 5.2"/>'
+    + '<path d="M14.4 3.9a7 7 0 0 1 0 8.6"/></svg>';
+  const M_LEAF_OFF = '<svg viewBox="0 0 16 16" aria-hidden="true">'
+    + '<path d="M2.2 12.4c0-4.6 3-7.6 8.4-8.6C11.2 8.6 8.2 12 3.6 12.4z"/>'
+    + '<path d="M1.7 14c1.4-2.4 3.2-4.2 5.6-5.6"/></svg>';
 
   let pipWin = null, pipTimer = null;
   let hostWin = null;       // the window whose session the little one shows
@@ -5796,6 +5870,9 @@ PAWS.load();
     +     '<div class="walker" id="mWalker">' + DOG_SVG + '</div>'
     +     '<div class="dog-bubble sess hide" id="mCheer"></div>'
     +   '</div></div>'
+    +   '<div class="m-ico">'
+    +     '<button id="mSnd" title="音"></button><button id="mBgm" title="自然音"></button>'
+    +   '</div>'
     +   '<div class="m-btns">'
     +     '<button id="mA">BREAK</button><button id="mB">FINISH</button>'
     +   '</div>'
@@ -5813,6 +5890,12 @@ PAWS.load();
   window.__pawMiniCmd = function(cmd){
     if(cmd === 'toggle'){ if(data.phase === 'break') onRestart(); else onBreak(); }
     else if(cmd === 'finish') onFinish();
+    else if(cmd === 'sound'){
+      data.soundOn = data.soundOn === false;
+      saveData();
+      PAWS.refreshAll();
+    }
+    else if(cmd === 'bgm'){ if(window.PAWBGM) PAWBGM.toggle('ss'); }
     paintMini();
     return data.phase;
   };
@@ -5825,6 +5908,20 @@ PAWS.load();
     g('mA').addEventListener('click', () => {
       if(hostWin){ try{ hostWin.__pawMiniCmd('toggle'); return; }catch(e){} }
       if(data.phase === 'break') onRestart(); else onBreak();
+      paintMini();
+    });
+    const sb = g('mSnd');
+    if(sb) sb.addEventListener('click', () => {
+      if(hostWin){ try{ hostWin.__pawMiniCmd('sound'); paintMini(); return; }catch(e){} }
+      data.soundOn = data.soundOn === false;
+      saveData();
+      PAWS.refreshAll();
+      paintMini();
+    });
+    const bb = g('mBgm');
+    if(bb) bb.addEventListener('click', () => {
+      if(hostWin){ try{ hostWin.__pawMiniCmd('bgm'); paintMini(); return; }catch(e){} }
+      if(window.PAWBGM) PAWBGM.toggle('ss');
       paintMini();
     });
     g('mB').addEventListener('click', () => {
@@ -5866,6 +5963,20 @@ PAWS.load();
     if(badge){
       badge.style.color = data.phase === 'break' ? '#A79B8D' : typeColor(tid);
       badge.innerHTML = data.phase === 'break' ? ICON.coffee : typeIcon(tid);
+    }
+    const sb = q('#mSnd');
+    if(sb){
+      const on = data.soundOn !== false;
+      sb.classList.toggle('off', !on);
+      sb.title = on ? '音を止める' : '音を出す';
+      sb.innerHTML = on ? M_SND_ON : M_SND_OFF;
+    }
+    const bb = q('#mBgm');
+    if(bb){
+      const on = !!(window.PAWBGM && PAWBGM.nowSlot());
+      bb.classList.toggle('off', !on);
+      bb.title = on ? '自然音を止める' : '自然音を流す';
+      bb.innerHTML = on ? M_LEAF_ON : M_LEAF_OFF;
     }
     const set = (sel, t) => { const e = q(sel); if(e) e.textContent = t; };
     set('.time-display', st.main);
@@ -10612,7 +10723,7 @@ window.PAWTASK = (function(){
         <span class="walker" id="hmDog">${window.__DOG_SVG || ''}</span>
         <span class="zzz hide" id="hmZzz"><i>z</i><i>z</i><i>z</i></span>
         <div class="dog-bubble sess hide" id="hmBubble"></div>
-        <button class="yard-btn snd-btn${data.soundOn === false ? ' off' : ''}" id="hmSnd" title="${data.soundOn === false ? '音を出す' : '音を止める'}" aria-label="${data.soundOn === false ? '音を出す' : '音を止める'}">${data.soundOn === false ? SND_OFF : SND_ON}</button>
+        <button class="yard-btn snd-btn${bgmOn() ? '' : ' off'}" id="hmSnd" title="${bgmOn() ? '自然音を止める' : '自然音を流す'}" aria-label="${bgmOn() ? '自然音を止める' : '自然音を流す'}">${bgmOn() ? SND_ON : SND_OFF}</button>
         <button class="yard-btn" id="hmYard" title="庭だけの小窓で開く" aria-label="庭だけの小窓で開く"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><rect x="8.2" y="8" width="5" height="4" rx="1"/></svg></button>
       </div>
 
@@ -10683,9 +10794,9 @@ window.PAWTASK = (function(){
     on('hmReload', () => loadWeather(true));
     on('hmYard', () => { if(window.__openYard) window.__openYard(); });
     on('hmSnd', () => {
-      data.soundOn = data.soundOn === false;      /* root の soundOn を切り替える */
-      PAWS.save();
-      PAWS.refreshAll();                          /* もうひとつの窓へは storage ごしに伝わる */
+      /* もとの窓があればそちらで鳴らす（同じ音が二重に鳴らないように） */
+      if(window.PAWBGM) PAWBGM.remoteToggle('home');
+      paintSnd();
     });
     on('hmFind', () => { const el = $id('hmCity'); findPlace(el ? el.value : ''); });
     on('hmHere', useHere);
@@ -10718,6 +10829,28 @@ window.PAWTASK = (function(){
     const city = $id('hmCity');
     if(city) city.addEventListener('keydown', ev => { if(ev.key === 'Enter') findPlace(city.value); });
     startDog();
+  }
+
+  /* 自然音が鳴っているかどうか。ほかの窓で鳴っていても拾う */
+  function bgmOn(){ return !!(window.PAWBGM && PAWBGM.nowSlot()); }
+  function paintSnd(){
+    const b = $id('hmSnd');
+    if(!b) return;
+    const on = bgmOn();
+    b.classList.toggle('off', !on);
+    b.title = on ? '自然音を止める' : '自然音を流す';
+    b.setAttribute('aria-label', b.title);
+    b.innerHTML = on ? SND_ON : SND_OFF;
+  }
+  /* PAWBGM から呼ばれる（ほかの窓で入り切りされたとき） */
+  window.__pawBgmPaint = paintSnd;
+  /* 庭だけの小窓では、もとの窓の様子をときどき見にいく */
+  if(document.documentElement.classList.contains('yard')){
+    setInterval(() => {
+      if(!window.PAWBGM) return;
+      const before = PAWBGM.nowSlot();
+      if(PAWBGM.remoteState() !== before) paintSnd();
+    }, 2500);
   }
 
   /* ---------------- the dog on the stage ---------------- */
@@ -10776,14 +10909,15 @@ window.PAWTASK = (function(){
     return 'おやすみ';
   };
 
-  /* 小窓の音ボタン。入っているときは波、切ってあるときは × */
+  /* 小窓の自然音ボタン。鳴っているときは葉と音の波、止まっているときは葉だけ */
   const SND_ON = '<svg viewBox="0 0 16 16" aria-hidden="true">'
-    + '<path d="M3.4 6.2h2.1L9 3.4v9.2L5.5 9.8H3.4z"/>'
-    + '<path d="M11.3 6.4a3.4 3.4 0 0 1 0 3.2"/>'
-    + '<path d="M12.9 4.9a5.6 5.6 0 0 1 0 6.2"/></svg>';
+    + '<path d="M2.2 12.4c0-4.6 3-7.6 8.4-8.6C11.2 8.6 8.2 12 3.6 12.4z"/>'
+    + '<path d="M1.7 14c1.4-2.4 3.2-4.2 5.6-5.6"/>'
+    + '<path d="M12.6 5.6a4.4 4.4 0 0 1 0 5.2"/>'
+    + '<path d="M14.4 3.9a7 7 0 0 1 0 8.6"/></svg>';
   const SND_OFF = '<svg viewBox="0 0 16 16" aria-hidden="true">'
-    + '<path d="M3.4 6.2h2.1L9 3.4v9.2L5.5 9.8H3.4z"/>'
-    + '<path d="M11.4 6.6l3.2 2.8M14.6 6.6l-3.2 2.8"/></svg>';
+    + '<path d="M2.2 12.4c0-4.6 3-7.6 8.4-8.6C11.2 8.6 8.2 12 3.6 12.4z"/>'
+    + '<path d="M1.7 14c1.4-2.4 3.2-4.2 5.6-5.6"/></svg>';
 
   const PAW_TAG = '<span class="bpaw"></span>';
 
