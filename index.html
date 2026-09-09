@@ -4170,12 +4170,12 @@ PAWS.load();
     }
     return pupCoats[i];
   }
-  /* たまに、子犬の列にネコやうさぎが紛れこむ */
+  /* たまに、子犬の列にネコが紛れこむ */
   let pupKinds = [];
   function kindFor(i){
     while(pupKinds.length <= i){
       const r = Math.random();
-      pupKinds.push({ k: r < .07 ? 'cat' : r < .14 ? 'rab' : 'dog', v2: Math.random() < .4 });
+      pupKinds.push({ k: r < .10 ? 'cat' : 'dog', v2: Math.random() < .4 });
     }
     return pupKinds[i];
   }
@@ -10353,7 +10353,7 @@ window.PAWTASK = (function(){
   let pupsUntil = 0, nextPups = Date.now() + 20000 + Math.random() * 40000;
   const COATS = ['coat-beige', 'coat-black', 'coat-brown'];
 
-  /* 1時間に一度くらい、ネコかうさぎが庭に遊びに来る */
+  /* 1時間に一度くらい、ネコか小鳥が庭に遊びに来る */
   let visitor = null;
   let nextVisit = Date.now() + 120000 + Math.random() * 240000;   /* 最初は2〜6分後 */
   const CAT_SVG = window.__CAT_SVG || '';
@@ -11412,10 +11412,10 @@ window.PAWTASK = (function(){
       if(!wet) flyBy(st);
     }
 
-    /* 1時間に一度くらい、ネコかうさぎが来て、ゆっくりして帰る */
+    /* 1時間に一度くらい、ネコか小鳥が来て、ゆっくりして帰る */
     if(!visitor && now > nextVisit && !wet){
       const rk = Math.random();
-      const kind = rk < 0.38 ? 'cat' : rk < 0.76 ? 'rab' : 'bird';
+      const kind = rk < 0.5 ? 'cat' : 'bird';
       const el = document.createElement('div');
       const v2 = Math.random() < 0.4;
       el.className = 'walker guest ' + kind + (v2 ? ' v2' : '');
