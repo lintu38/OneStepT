@@ -1954,6 +1954,10 @@
   .cal-ev .ev-done:hover{ color:#CBC1B1; }
   .cal-ev .ev-done.on{ color:var(--c); }
   .cal-ev .ev-done.on svg{ fill:currentColor; stroke:none; }
+  /* もう一度押すと「やらなかった」。うすいグレーの肉球で残しておく */
+  .cal-ev .ev-done.skip{ color:#E3DED6; }
+  .cal-ev .ev-done.skip:hover{ color:#D5CEC3; }
+  .cal-ev .ev-done.skip svg{ fill:currentColor; stroke:none; }
   /* 押した瞬間だけ、ぽんとスタンプを押した感じに */
   .cal-ev .ev-done.on.stamp svg{ animation:pawStamp .42s cubic-bezier(.2,1.5,.35,1) both; }
   .cal-ev .ev-done.on.stamp::after{ content:""; position:absolute; inset:-5px; border-radius:50%;
@@ -2204,6 +2208,11 @@
   .pt-task .pt-paw:hover{ color:#CBC1B1; }
   .pt-task .pt-paw.on{ color:var(--c); }
   .pt-task .pt-paw.on svg{ fill:currentColor; stroke:none; }
+  /* もう一度押すと「やらなかった」 */
+  .pt-task .pt-paw.skip{ color:#E3DED6; }
+  .pt-task .pt-paw.skip:hover{ color:#D5CEC3; }
+  .pt-task .pt-paw.skip svg{ fill:currentColor; stroke:none; }
+  .pt-task.skip .pt-title{ color:var(--text-faint); }
   .pt-task .pt-paw.on.stamp svg{ animation:pawStamp .42s cubic-bezier(.2,1.5,.35,1) both; }
   .pt-task .pt-title{ flex:1; min-width:0; border:none; background:none; padding:2px 0;
     font-family:'Zen Kaku Gothic New',sans-serif; font-size:12px; color:var(--text); }
@@ -8378,13 +8387,19 @@ window.PAWTASK = (function(){
     return typeList().map(t =>
       `<option value="${esc(t.id)}"${t.id === sel ? ' selected' : ''}>${esc(t.label)}</option>`).join('');
   }
+  const pawTitle = st => st === 'done' ? 'やらなかったことにする'
+                       : st === 'skip' ? 'まっさらに戻す' : '完了にする';
+  const stateOf = t => t && t.done ? 'done' : (t && t.skip ? 'skip' : 'none');
   function row(t, gutter){
     const c = typeOf(t.type).color;
-    const stamp = t.done && stampId === t.id;
-    return `<div class="pt-task${t.done ? ' done' : ''}" data-trow="${esc(t.id)}" style="--c:${c}">
+    const st = stateOf(t);
+    const stamp = st === 'done' && stampId === t.id;
+    return `<div class="pt-task${st === 'done' ? ' done' : ''}${st === 'skip' ? ' skip' : ''}"
+      data-trow="${esc(t.id)}" style="--c:${c}">
       ${gutter == null ? '' : `<span class="pt-when">${esc(gutter)}</span>`}
-      <span class="pt-paw${t.done ? ' on' : ''}${stamp ? ' stamp' : ''}" role="button" tabindex="0"
-        data-tdone="${esc(t.id)}" title="${t.done ? '完了を取り消す' : '完了にする'}">${PAW}</span>
+      <span class="pt-paw${st === 'done' ? ' on' : ''}${st === 'skip' ? ' skip' : ''}${stamp ? ' stamp' : ''}"
+        role="button" tabindex="0"
+        data-tdone="${esc(t.id)}" title="${pawTitle(st)}">${PAW}</span>
       <input class="pt-title" data-ttl="${esc(t.id)}" value="${esc(t.title)}"
         placeholder="（無題）" autocomplete="off">
       <span class="pt-type" title="Type"><i></i><select data-ttype="${esc(t.id)}"
@@ -8444,6 +8459,21 @@ window.PAWTASK = (function(){
 
   /* ---------------- how it answers ---------------- */
 
+  /* 日本語を打っているあいだ、変換を確定する Enter は「決定」ではない。
+     Chrome は確定の keydown に isComposing を立て、Safari は先に
+     compositionend を出してくるので、その直後の Enter も見送る。 */
+  function onEnter(el, fn){
+    let composing = false, endedAt = 0;
+    el.addEventListener('compositionstart', () => { composing = true; });
+    el.addEventListener('compositionend', () => { composing = false; endedAt = Date.now(); });
+    el.addEventListener('keydown', ev => {
+      if(ev.key !== 'Enter') return;
+      if(composing || ev.isComposing || ev.keyCode === 229) return;
+      if(Date.now() - endedAt < 80) return;
+      fn(ev);
+    });
+  }
+
   function bind(scope, redraw){
     if(!scope) return;
     remember(scope, redraw);
@@ -8490,14 +8520,22 @@ window.PAWTASK = (function(){
         ev.preventDefault();
         const t = byId(el.dataset.tdone);
         if(!t) return;
-        t.done = !t.done;
+        /* ひと押しごとに 完了 → やらなかった → まっさら */
+        if(t.done){ t.done = false; t.skip = true; }
+        else if(t.skip){ t.skip = false; }
+        else { t.done = true; t.skip = false; }
+        const st = stateOf(t);
         t.at = Date.now();
         save();
         const r = el.closest('.pt-task');
-        if(r) r.classList.toggle('done', !!t.done);
-        el.classList.toggle('on', !!t.done);
-        el.title = t.done ? '完了を取り消す' : '完了にする';
-        if(t.done){
+        if(r){
+          r.classList.toggle('done', st === 'done');
+          r.classList.toggle('skip', st === 'skip');
+        }
+        el.classList.toggle('on', st === 'done');
+        el.classList.toggle('skip', st === 'skip');
+        el.title = pawTitle(st);
+        if(st === 'done'){
           stampId = t.id;
           el.classList.add('stamp');
           setTimeout(() => { if(stampId === t.id) stampId = ''; }, 900);
@@ -8521,7 +8559,7 @@ window.PAWTASK = (function(){
         save();
         syncSoon(scope);
       });
-      el.addEventListener('keydown', ev => { if(ev.key === 'Enter') el.blur(); });
+      onEnter(el, () => el.blur());
     });
 
     q('[data-ttype]').forEach(el => el.addEventListener('change', ev => {
@@ -8542,6 +8580,7 @@ window.PAWTASK = (function(){
       if(!t) return;
       t.day = nextDay(t.day);
       t.done = false;
+      t.skip = false;
       t.at = Date.now();
       save();
       both();
@@ -8558,8 +8597,7 @@ window.PAWTASK = (function(){
       both();
     }));
 
-    q('[data-tnew]').forEach(el => el.addEventListener('keydown', ev => {
-      if(ev.key !== 'Enter') return;
+    q('[data-tnew]').forEach(el => onEnter(el, ev => {
       ev.preventDefault();
       const title = el.value.trim();
       if(!title){ el.blur(); return; }
@@ -8573,6 +8611,7 @@ window.PAWTASK = (function(){
         title: title.slice(0, 120),
         type: base || (typeList()[0] || DEFAULT_TYPE).id,
         done: false,
+        skip: false,
         at: Date.now()
       });
       save();
@@ -8634,7 +8673,14 @@ window.PAWTASK = (function(){
     rerender: () => sync()
   });
 
-  return { plus, group, dayBox, bind, on, orphans, keyOf };
+  /* まだ手をつけていないぶん。犬はここから声をかける */
+  function pending(dayKey){
+    return items().filter(t => t && t.day === dayKey && !t.done && !t.skip
+                            && String(t.title || '').trim());
+  }
+
+  return { plus, group, dayBox, bind, on, orphans, keyOf, pending,
+           refresh: () => sync() };   /* 両方のページを描き直す */
 })();
 </script>
 
@@ -8852,6 +8898,7 @@ window.PAWTASK = (function(){
           monthEnd: !!e.monthEnd,
           cont: e.cont === false ? false : true,
           doneOn: e.doneOn || '',
+          skipOn: e.skipOn || '',
           note: e.note || '',
           type: typeOf(e.type).label,
           color: typeOf(e.type).color,
@@ -9029,6 +9076,13 @@ window.PAWTASK = (function(){
     </div>`;
   }
 
+  /* 肉球はひと押しごとに、完了 → やらなかった → まっさら と回る */
+  function cyclePaw(e, dk){
+    if(e.doneOn === dk){ delete e.doneOn; e.skipOn = dk; return 'skip'; }
+    if(e.skipOn === dk){ delete e.skipOn; return 'none'; }
+    delete e.skipOn; e.doneOn = dk; return 'done';
+  }
+
   /* 押したばかりの肉球だけアニメーションさせるための目印 */
   let stampKey = '';
   function markStamp(id, dk){
@@ -9039,8 +9093,9 @@ window.PAWTASK = (function(){
   function eventRow(e, dayKey){
     const dk = dayKey || cursor;
     const done = e.doneOn === dk;
+    const skip = !done && e.skipOn === dk;      /* やらなかった日 */
     const stamp = done && stampKey === (e.id + '|' + dk);
-    const rowHtml = `<button class="cal-ev${done ? ' is-done' : ''}" data-edit="${esc(e.id)}"
+    const rowHtml = `<button class="cal-ev${done ? ' is-done' : ''}${skip ? ' is-skip' : ''}" data-edit="${esc(e.id)}"
       style="--c:${typeColor(e.type)}; --cb:${tint(typeColor(e.type), 0.13)}">
       <span class="ev-time">${esc(dayTimeText(e, dk))}</span>
       <span class="ev-body">
@@ -9057,8 +9112,8 @@ window.PAWTASK = (function(){
         ${e.note ? `<span class="ev-note">${esc(e.note)}</span>` : ''}
       </span>
       ${window.PAWTASK ? PAWTASK.plus(e.id, dk) : ''}
-      <span class="ev-done${done ? ' on' : ''}${stamp ? ' stamp' : ''}" role="button" tabindex="0"
-        data-done="${esc(e.id)}|${dk}" title="${done ? '完了を取り消す' : '完了にする'}">
+      <span class="ev-done${done ? ' on' : ''}${skip ? ' skip' : ''}${stamp ? ' stamp' : ''}" role="button" tabindex="0"
+        data-done="${esc(e.id)}|${dk}" title="${done ? 'やらなかったことにする' : skip ? 'まっさらに戻す' : '完了にする'}">
         <svg viewBox="0 0 40 34" aria-hidden="true"><ellipse cx="20" cy="25" rx="8.6" ry="7"/><ellipse cx="9.5" cy="14.5" rx="4" ry="5.2" transform="rotate(-18 9.5 14.5)"/><ellipse cx="16.5" cy="8" rx="3.7" ry="5"/><ellipse cx="24.5" cy="8" rx="3.7" ry="5"/><ellipse cx="31" cy="14.5" rx="4" ry="5.2" transform="rotate(18 31 14.5)"/></svg></span>
     </button>`;
     return window.PAWTASK ? PAWTASK.group(e.id, dk, e.type, rowHtml) : rowHtml;
@@ -9438,10 +9493,11 @@ window.PAWTASK = (function(){
       const id = el.dataset.done.slice(0, i), dk = el.dataset.done.slice(i + 1);
       const e2 = events().find(x => x.id === id);
       if(!e2) return;
-      if(e2.doneOn === dk) delete e2.doneOn; else { e2.doneOn = dk; markStamp(id, dk); }
+      if(cyclePaw(e2, dk) === 'done') markStamp(id, dk);
       e2.at = Date.now();
       save();
-      render();
+      /* Home にも同じ予定が出ているので、そちらも一緒に */
+      if(window.PAWTASK) PAWTASK.refresh(); else render();
     }));
     // a box inside a day cell: open it without also selecting the day
     $qa('[data-chip]').forEach(el => el.addEventListener('click', ev => {
@@ -9617,14 +9673,15 @@ window.PAWTASK = (function(){
   window.__planDone = function(id, dayKey){
     const e = events().find(x => x.id === id);
     if(!e) return false;
-    if(e.doneOn === dayKey) delete e.doneOn; else { e.doneOn = dayKey; markStamp(id, dayKey); }
+    if(cyclePaw(e, dayKey) === 'done') markStamp(id, dayKey);
     e.at = Date.now();
     save();
     render();
     return true;
   };
   window.__planOn = function(dayKey){
-    return eventsOn(dayKey).filter(e => e.doneOn !== dayKey);   /* 済んだ予定は言わない */
+    /* 済んだ予定も、やらなかった予定も、もう言わない */
+    return eventsOn(dayKey).filter(e => e.doneOn !== dayKey && e.skipOn !== dayKey);
   };
   /* HOME に並べるぶんは、完了した予定も肉球つきのまま残す */
   window.__planAll = function(dayKey){ return eventsOn(dayKey); };
@@ -9655,7 +9712,7 @@ window.PAWTASK = (function(){
     if(d.source === 'tasks-set-done' && d.id && d.day){
       const e2 = events().find(x => x.id === d.id);
       if(!e2) return;
-      if(e2.doneOn === d.day) delete e2.doneOn; else e2.doneOn = d.day;
+      if(e2.doneOn === d.day) delete e2.doneOn; else { e2.doneOn = d.day; delete e2.skipOn; }
       e2.at = Date.now();
       save();
       render();
@@ -9943,6 +10000,19 @@ window.PAWTASK = (function(){
   }
   function toCheer(){
     return todaysPlans().filter(e => e && e.celebrate);
+  }
+  /* まだ残っている To Do を、ときどき気にかけてくれる */
+  const TODO_ASK = ['{}、した？', '{}、そろそろ？', '{} はどう？', '{}、終わった？', '{}、できた？'];
+  function todoLine(){
+    if(!window.PAWTASK || !PAWTASK.pending) return null;
+    let list = [];
+    try{ list = PAWTASK.pending(keyOf(new Date())) || []; }catch(e){ return null; }
+    if(!list.length) return null;
+    const t = list[Math.floor(Math.random() * list.length)];
+    let title = String(t.title || '').trim();
+    if(!title) return null;
+    if(title.length > 12) title = title.slice(0, 12) + '…';
+    return TODO_ASK[Math.floor(Math.random() * TODO_ASK.length)].replace('{}', title);
   }
   // What the dog makes of the weather outside.
   function wxLine(){
@@ -11549,6 +11619,7 @@ window.PAWTASK = (function(){
         if(tell.length && Math.random() < 0.35){
           text = planLine(tell[Math.floor(Math.random() * tell.length)]);
         }
+        if(!text && Math.random() < 0.4) text = todoLine();
         if(!text && Math.random() < 0.4) text = wxLine();
         bubbleText = text || GREET();
         bub.innerHTML = bubbleText + PAW_TAG;
