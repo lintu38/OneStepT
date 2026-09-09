@@ -1536,6 +1536,8 @@
 
   /* short or long, chosen while the break is on */
   .brk-stack{ display:flex; flex-direction:column; align-items:center; gap:13px; }
+  .brk-msg{ font-family:'Zen Kaku Gothic New',sans-serif; font-size:11.5px;
+    color:var(--text-faint); text-align:center; margin-bottom:-6px; }
   .brk-kind{ display:flex; gap:8px; justify-content:center; }
   .brk-kind button{ display:inline-flex; align-items:baseline; gap:2px;
     border:1px solid var(--line); background:var(--bg-card); border-radius:999px;
@@ -2172,6 +2174,73 @@
     font-size:14px; color:var(--text); }
   .home-plan .hp-note{ flex-basis:100%; font-family:'Zen Kaku Gothic New',sans-serif;
     font-size:11px; color:var(--text-faint); }
+
+  /* 簡易タスク — 予定にぶら下がる、一行だけのタスク */
+  .cal-ev .ev-add{ margin-left:auto; flex:0 0 auto; align-self:center;
+    display:inline-flex; align-items:center; justify-content:center;
+    width:20px; height:22px; padding:0; border:0; background:none;
+    font-family:'Space Mono',monospace; font-size:15px; line-height:1;
+    color:#DAD2C6; cursor:pointer; transition:color .15s; }
+  .cal-ev .ev-add:hover{ color:var(--beige-deep); }
+  .cal-ev .ev-add ~ .ev-done{ margin-left:0; }
+
+  .pt-grp{ display:flex; flex-direction:column; }
+  .pt-box{ border:1px solid var(--beige); background:#FFFDF8; border-radius:0;
+    margin-top:-1px; padding:4px 10px 5px; display:flex; flex-direction:column; gap:1px; }
+  /* 予定にひもづくぶんは、その予定と同じ色の枠で */
+  .pt-box.tied{ border-color:var(--c); }
+  /* 予定の時間が出ているところに To Do、肉球は予定のタイトルとおなじ位置から */
+  .pt-when{ flex:0 0 65px; align-self:center; font-family:'Space Mono',monospace;
+    font-size:10.5px; letter-spacing:.04em; color:var(--text-faint); }
+  .pt-box[hidden], .pt-add[hidden]{ display:none; }
+  .pt-rows{ display:flex; flex-direction:column; gap:1px; }
+  .pt-task{ display:flex; align-items:center; gap:7px; min-height:23px; }
+  .pt-task .pt-paw{ flex:0 0 auto; position:relative;
+    display:inline-flex; align-items:center; justify-content:center;
+    width:17px; height:15px; padding:0; border:0; background:none;
+    color:#E2DCD2; cursor:pointer; transition:color .15s; }
+  .pt-task .pt-paw svg{ width:17px; height:15px; fill:none; stroke:currentColor;
+    stroke-width:1.7; transform:rotate(13deg); }
+  .pt-task .pt-paw:hover{ color:#CBC1B1; }
+  .pt-task .pt-paw.on{ color:var(--c); }
+  .pt-task .pt-paw.on svg{ fill:currentColor; stroke:none; }
+  .pt-task .pt-paw.on.stamp svg{ animation:pawStamp .42s cubic-bezier(.2,1.5,.35,1) both; }
+  .pt-task .pt-title{ flex:1; min-width:0; border:none; background:none; padding:2px 0;
+    font-family:'Zen Kaku Gothic New',sans-serif; font-size:12px; color:var(--text); }
+  .pt-task .pt-title:focus{ outline:none; box-shadow:0 1px 0 0 var(--beige); }
+  .pt-task.done .pt-title{ text-decoration:line-through; color:var(--text-faint); }
+  .pt-task .pt-type{ flex:0 0 auto; position:relative; display:inline-flex;
+    align-items:center; justify-content:center; width:16px; height:16px; }
+  .pt-task .pt-type i{ width:9px; height:9px; border-radius:50%; background:var(--c);
+    transition:background .15s; }
+  .pt-task .pt-type select{ position:absolute; inset:-3px; opacity:0; border:none;
+    padding:0; background:none; cursor:pointer; -webkit-appearance:none; appearance:none; }
+  .pt-task .pt-tmr{ flex:0 0 auto; border:1px solid var(--line); background:none;
+    border-radius:999px; padding:2px 7px; font-family:'Zen Kaku Gothic New',sans-serif;
+    font-size:9.5px; color:var(--beige-deep); cursor:pointer; white-space:nowrap; }
+  .pt-task .pt-tmr:active{ transform:scale(.95); }
+  .pt-task .pt-del{ flex:0 0 auto; border:none; background:none; padding:0 1px;
+    font-family:'Space Mono',monospace; font-size:12px; line-height:1; color:var(--text-faint);
+    cursor:pointer; }
+  .pt-task .pt-del:hover{ color:#A9605E; }
+  .pt-add{ display:flex; align-items:center; gap:7px; min-height:23px; }
+  .pt-add .pt-plus{ flex:0 0 auto; width:17px; text-align:center;
+    font-family:'Space Mono',monospace; font-size:11px; color:var(--beige); }
+  .pt-add .pt-new{ flex:1; min-width:0; border:none; background:none; padding:2px 0;
+    font-family:'Zen Kaku Gothic New',sans-serif; font-size:11.5px; color:var(--text); }
+  .pt-add .pt-new:focus{ outline:none; box-shadow:0 1px 0 0 var(--beige); }
+  .pt-add .pt-new::placeholder{ color:var(--text-faint); }
+  .pt-today{ margin-top:9px; }
+  .pt-today .section-title{ margin:0 0 4px; }
+  .pt-today .pt-box{ margin-top:0; }
+  .pt-new-btn{ display:inline-flex; align-items:center; justify-content:center;
+    width:22px; height:22px; padding:0; border:0; background:none;
+    font-family:'Space Mono',monospace; font-size:16px; line-height:1;
+    color:#CFC5B6; cursor:pointer; transition:color .15s; }
+  .pt-new-btn:hover{ color:var(--beige-deep); }
+  .pt-hint{ display:flex; align-items:center; min-height:23px; padding-left:1px;
+    font-family:'Zen Kaku Gothic New',sans-serif; font-size:11px; color:var(--text-faint); }
+  .pt-hint[hidden]{ display:none; }
 
   .wx-hits{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
   .wx-hits-t{ flex-basis:100%; font-family:'Zen Kaku Gothic New',sans-serif; font-size:11px;
@@ -3011,8 +3080,34 @@ window.PAWS = (function(){
       </div>
 
       <div class="card">
-        <div class="section-title"><span>この端末だけの記録</span></div>
-        <div class="te-note">スマホ版です。ほかの端末とは同期しません。記録はこのブラウザの中にだけ保存されます。<br>
+        <div class="section-title"><span>Sync · GitHub Gist</span>
+          <span class="tools"><button class="mini-btn ${syncOpen ? 'solid' : ''}" id="shSyncOpen">${syncOpen ? '閉じる' : '設定'}</button></span>
+        </div>
+        <div class="sync-status">
+          <b>${state}</b>${at ? ' · 最終同期 ' + (at.getMonth()+1) + '/' + at.getDate() + ' ' + pad2(at.getHours()) + ':' + pad2(at.getMinutes()) : ' · 未同期'}
+          ${syncMsg ? `<br><span class="${syncMsg.kind}">${esc(syncMsg.text)}</span>` : ''}
+        </div>
+        ${syncOpen ? `<div class="sync-fields">
+          <div class="ed-field"><label>トークン</label>
+            <input type="password" id="shToken" value="${esc(syncCfg.token)}" placeholder="github_pat_…" autocomplete="off"></div>
+          <div class="ed-field"><label>Gist ID</label>
+            <input type="text" id="shGist" value="${esc(syncCfg.gistId)}" placeholder="空のまま作成できます" autocomplete="off"></div>
+          <div class="ed-field"><label>自動同期</label>
+            <button class="toggle ${syncCfg.auto ? 'on' : ''}" id="shAuto">${syncCfg.auto ? 'ON' : 'OFF'}</button></div>
+          <div class="ed-actions">
+            ${syncCfg.gistId
+              ? `<button class="ed-save" id="shSyncNow" ${syncBusy ? 'disabled' : ''}>同期する</button>
+                 <button class="ed-cancel" id="shSyncPull" ${syncBusy ? 'disabled' : ''}>取り込む</button>`
+              : `<button class="ed-save" id="shSyncCreate" ${syncBusy ? 'disabled' : ''}>Gist を作成</button>`}
+          </div>
+          ${syncCfg.gistId ? `<div class="te-note">Gist ID：<span style="font-family:'Space Mono',monospace">${esc(syncCfg.gistId)}</span></div>` : ''}
+          <div class="te-note">トークンはこの端末のブラウザにだけ保存され、GitHub 以外には送られません。書き出しファイルにも含まれません。</div>
+        </div>` : ''}
+      </div>
+
+      <div class="card">
+        <div class="section-title"><span>この端末の記録</span></div>
+        <div class="te-note">記録はこのブラウザの中に保存されます。上の同期を設定すると、パソコンとも行き来します。<br>
           ときどき下の EXPORT でファイルに保管しておくと安心です。</div>
         <div class="te-note" id="mStore">保存の状態を調べています…</div>
         <div class="ed-actions"><button class="ed-cancel" id="mStoreFix">保存を守る</button></div>
@@ -3027,6 +3122,8 @@ window.PAWS = (function(){
           <p>READY… を押してから GO! までが初動、そこから FINISH までが作業時間です。休憩をはさんでも合計は正しく積み上がります。</p>
           <h4>2つのタブのつながり</h4>
           <p>タスクの編集画面で「計測」を ON にしておくと、Ready タブで GO! を押したあと自動で Session タブへ切り替わり、そのタスクの種類で作業計測が始まります。切りたいタスクは OFF にしてください。</p>
+          <h4>パソコンと同期する</h4>
+          <p>GitHub の Fine-grained token（Account permissions → Gists を Read and write）を発行して「Sync · GitHub Gist」の設定に貼り付けます。先にパソコン側で「Gist を作成」しておき、こちらには<b>同じトークンと Gist ID</b> を入れてください。予定・アラーム・記録・To Do が両方でひとつになります。</p>
         </div>` : ''}
       </div>
 
@@ -4920,6 +5017,7 @@ PAWS.load();
       const tid = data.taskType || 'WORK';
       const bm = breakMin();
       return `<div class="brk-stack">
+      <div class="brk-msg">休憩時間を選んでね<span class="bpaw"></span></div>
       <div class="brk-kind">
         ${BREAK_MINS.map(m => `<button data-brk="${m}" class="${bm === m ? 'on' : ''}">${m}<span>分</span></button>`).join('')}
       </div>
@@ -7076,7 +7174,7 @@ PAWS.load();
   function renderTasks(){
     const rows = (data.tasks || []).slice().sort((a,b) => (isSpent(a) - isSpent(b)) || (timeOrder(a) - timeOrder(b)));
     if(!rows.length){
-      return `<div class="empty-state">まだタスクがありません。<br>「+ 追加」で開始時間を決めましょう。</div>`;
+      return `<div class="empty-state">まだアラームがありません。<br>「+ 追加」で開始時間を決めましょう。</div>`;
     }
     return `<div class="task-list">${rows.map(t => `
       <div class="task-row ${t.on === false ? 'off' : ''} ${isSpent(t) ? 'spent' : ''}">
@@ -8143,6 +8241,388 @@ PAWS.load();
 
 <script>
 /* =====================================================================
+   簡易タスク — 予定にぶら下がる、一行だけのタスク。
+   Home からも Schedule からも同じものを見ているので、置き場所はここ一つ。
+   ===================================================================== */
+window.PAWTASK = (function(){
+  'use strict';
+
+  const PAW = '<svg viewBox="0 0 40 34" aria-hidden="true">'
+    + '<ellipse cx="20" cy="25" rx="8.6" ry="7"/>'
+    + '<ellipse cx="9.5" cy="14.5" rx="4" ry="5.2" transform="rotate(-18 9.5 14.5)"/>'
+    + '<ellipse cx="16.5" cy="8" rx="3.7" ry="5"/>'
+    + '<ellipse cx="24.5" cy="8" rx="3.7" ry="5"/>'
+    + '<ellipse cx="31" cy="14.5" rx="4" ry="5.2" transform="rotate(18 31 14.5)"/></svg>';
+
+  const pad2 = n => String(n).padStart(2, '0');
+  const keyOf = d => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+      ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+  }
+  function parseDay(k){
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(k || ''));
+    return m ? new Date(+m[1], +m[2] - 1, +m[3]) : new Date();
+  }
+  function nextDay(k){
+    const d = parseDay(k);
+    d.setDate(d.getDate() + 1);
+    return keyOf(d);
+  }
+  const DEFAULT_TYPE = { id:'OTHER', label:'OTHER', color:'#C7AC87' };
+  function typeList(){
+    const r = PAWS.root ? PAWS.root() : null;
+    return (r && Array.isArray(r.types) && r.types.length) ? r.types : [DEFAULT_TYPE];
+  }
+  const typeOf = id => typeList().find(t => t.id === id)
+    || { id:id, label:id || '—', color:'#B9AFA5' };
+
+  /* ---------------- the store ---------------- */
+
+  let data = null;
+  function items(){
+    if(!data){
+      data = PAWS.section('task', { items: [] });
+      if(!Array.isArray(data.items)) data.items = [];
+      /* まえの版では home に置いていたので、あれば引き取る */
+      const r = PAWS.root ? PAWS.root() : null;
+      const old = r && r.home && Array.isArray(r.home.tasks) ? r.home.tasks : null;
+      if(old && old.length){
+        const seen = {};
+        data.items.forEach(t => { if(t) seen[t.id] = 1; });
+        old.forEach(t => { if(t && t.id && !seen[t.id]) data.items.push(t); });
+      }
+      if(r && r.home) delete r.home.tasks;
+      prune();
+    }
+    return data.items;
+  }
+  function save(){ PAWS.save(); }        /* 変わったことを同期にも伝える */
+  function prune(){
+    const cut = new Date();
+    cut.setDate(cut.getDate() - 30);
+    const cutKey = keyOf(cut);
+    const kept = data.items.filter(t => t && t.day && t.day >= cutKey);
+    if(kept.length !== data.items.length) data.items = kept;
+  }
+  const TOMB_MAX = 300;
+  function tombs(){
+    if(!Array.isArray(data.tombs)) data.tombs = [];
+    return data.tombs;
+  }
+  const byId = id => items().find(t => t && t.id === id) || null;
+  function newId(){
+    return 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  }
+
+  function on(planId, dayKey){
+    return items().filter(t => t && t.day === dayKey && t.plan === planId);
+  }
+  /* その日ぶんのうち、行き先の予定が見あたらないもの */
+  function orphans(dayKey, planIds){
+    const shown = {};
+    (planIds || []).forEach(id => { shown[id] = 1; });
+    return items().filter(t => t && t.day === dayKey && !(t.plan && shown[t.plan]));
+  }
+
+  /* ---------------- what it looks like ---------------- */
+
+  const opened = {};        // "planId|day" -> 入力欄をひらいている
+  let refocus = null;       // 描き直したあとに戻る先
+  let stampId = '';         // 押したばかりの肉球
+
+  /* Home と Schedule は同じタスクを見ている。どちらかで動かしたら、両方を直す */
+  const panes = [];
+  let syncing = false;
+  let syncTimer = 0;
+  function remember(scope, redraw){
+    const p = panes.find(x => x.scope === scope);
+    if(p) p.redraw = redraw; else panes.push({ scope: scope, redraw: redraw });
+  }
+  function sync(except){
+    if(syncing) return;
+    syncing = true;
+    try{
+      panes.forEach(p => {
+        if(p.scope === except || !p.redraw) return;
+        if(p.scope.isConnected === false) return;
+        p.redraw();
+      });
+    } finally { syncing = false; }
+  }
+  function syncSoon(except){
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(() => sync(except), 400);
+  }
+
+  const keyFor = (planId, dayKey) => (planId || '') + '|' + dayKey;
+
+  function opts(sel){
+    return typeList().map(t =>
+      `<option value="${esc(t.id)}"${t.id === sel ? ' selected' : ''}>${esc(t.label)}</option>`).join('');
+  }
+  function row(t, gutter){
+    const c = typeOf(t.type).color;
+    const stamp = t.done && stampId === t.id;
+    return `<div class="pt-task${t.done ? ' done' : ''}" data-trow="${esc(t.id)}" style="--c:${c}">
+      ${gutter == null ? '' : `<span class="pt-when">${esc(gutter)}</span>`}
+      <span class="pt-paw${t.done ? ' on' : ''}${stamp ? ' stamp' : ''}" role="button" tabindex="0"
+        data-tdone="${esc(t.id)}" title="${t.done ? '完了を取り消す' : '完了にする'}">${PAW}</span>
+      <input class="pt-title" data-ttl="${esc(t.id)}" value="${esc(t.title)}"
+        placeholder="（無題）" autocomplete="off">
+      <span class="pt-type" title="Type"><i></i><select data-ttype="${esc(t.id)}"
+        aria-label="Type">${opts(t.type)}</select></span>
+      <button type="button" class="pt-tmr" data-ttmr="${esc(t.id)}" title="明日にまわす">明日へ</button>
+      <button type="button" class="pt-del" data-tdel="${esc(t.id)}" title="消す" aria-label="消す">×</button>
+    </div>`;
+  }
+  function addRow(planId, dayKey, baseType, hidden, gutter){
+    return `<div class="pt-add"${hidden ? ' hidden' : ''}>
+      ${gutter == null ? '' : `<span class="pt-when">${esc(gutter)}</span>`}
+      <span class="pt-plus">+</span>
+      <input class="pt-new" data-tnew="${esc(planId || '')}" data-tday="${esc(dayKey)}"
+        data-tbase="${esc(baseType || '')}" placeholder="To Do を追加" autocomplete="off">
+    </div>`;
+  }
+
+  /* 予定の行に置く、目立たない「+」 */
+  function plus(planId, dayKey){
+    return `<span class="ev-add" role="button" tabindex="0"
+      data-tadd="${esc(keyFor(planId, dayKey))}" title="To Do を追加" aria-label="To Do を追加">+</span>`;
+  }
+  /* 予定の行と、その下のタスク。rowHtml は予定の行そのもの */
+  function group(planId, dayKey, baseType, rowHtml){
+    const list = on(planId, dayKey);
+    const key = keyFor(planId, dayKey);
+    const open = !!opened[key];
+    const bare = !list.length && !open;
+    const c = typeOf(baseType).color;
+    return '<div class="pt-grp">' + rowHtml
+      + `<div class="pt-box tied" data-tbox="${esc(key)}" style="--c:${c}"${bare ? ' hidden' : ''}>`
+      + `<div class="pt-rows">${list.map((t, i) => row(t, i === 0 ? 'To Do' : '')).join('')}</div>`
+      + addRow(planId, dayKey, baseType, !open, list.length ? '' : 'To Do')
+      + '</div></div>';
+  }
+  /* 予定にひもづかないぶんの置き場。いつでもそこにある */
+  function dayBox(dayKey, planIds, isToday){
+    const list = orphans(dayKey, planIds);
+    const key = keyFor('', dayKey);
+    const open = !!opened[key];
+    const d = parseDay(dayKey);
+    const title = isToday ? 'Other To Do'
+                          : 'Other To Do (' + (d.getMonth() + 1) + '/' + d.getDate() + ')';
+    const bare = !list.length && !open;
+    return `<div class="pt-today">
+      <div class="section-title"><span>${esc(title)}</span>
+        <span class="tools"><span class="pt-new-btn" role="button" tabindex="0"
+          data-tadd="${esc(key)}" title="To Do を追加" aria-label="To Do を追加">+</span></span>
+      </div>
+      <div class="pt-grp"><div class="pt-box" data-tbox="${esc(key)}" data-tkeep="1">
+        <div class="pt-rows">${list.map(t => row(t)).join('')}</div>
+        ${addRow('', dayKey, '', !open)}
+        <div class="pt-hint"${bare ? '' : ' hidden'}>＋ を押して To Do を追加</div>
+      </div></div>
+    </div>`;
+  }
+
+  /* ---------------- how it answers ---------------- */
+
+  function bind(scope, redraw){
+    if(!scope) return;
+    remember(scope, redraw);
+    const q = sel => scope.querySelectorAll(sel);
+    const again = () => { if(redraw) redraw(); };
+    const both = () => { again(); sync(scope); };
+
+    q('[data-tadd]').forEach(el => {
+      const toggle = ev => {
+        ev.stopPropagation();
+        ev.preventDefault();
+        const key = el.dataset.tadd;
+        opened[key] = !opened[key];
+        /* おなじ日が二か所に出ていることがあるので、押された側の箱をひらく */
+        const grp = el.closest('.pt-grp');
+        const box = grp ? grp.querySelector('.pt-box')
+                        : scope.querySelector('[data-tbox="' + key + '"]');
+        if(!box) return;
+        const add = box.querySelector('.pt-add');
+        const hint = box.querySelector('.pt-hint');
+        if(opened[key]){
+          box.hidden = false;
+          if(hint) hint.hidden = true;
+          if(add){
+            add.hidden = false;
+            const inp = add.querySelector('.pt-new');
+            if(inp) inp.focus();
+          }
+        } else {
+          if(add) add.hidden = true;
+          if(hint) hint.hidden = !!box.querySelector('.pt-task');
+          if(!box.querySelector('.pt-task') && !box.dataset.tkeep) box.hidden = true;
+        }
+      };
+      el.addEventListener('click', toggle);
+      el.addEventListener('keydown', ev => {
+        if(ev.key === 'Enter' || ev.key === ' ') toggle(ev);
+      });
+    });
+
+    q('[data-tdone]').forEach(el => {
+      const hit = ev => {
+        ev.stopPropagation();
+        ev.preventDefault();
+        const t = byId(el.dataset.tdone);
+        if(!t) return;
+        t.done = !t.done;
+        t.at = Date.now();
+        save();
+        const r = el.closest('.pt-task');
+        if(r) r.classList.toggle('done', !!t.done);
+        el.classList.toggle('on', !!t.done);
+        el.title = t.done ? '完了を取り消す' : '完了にする';
+        if(t.done){
+          stampId = t.id;
+          el.classList.add('stamp');
+          setTimeout(() => { if(stampId === t.id) stampId = ''; }, 900);
+        } else {
+          el.classList.remove('stamp');
+        }
+        sync(scope);
+      };
+      el.addEventListener('click', hit);
+      el.addEventListener('keydown', ev => {
+        if(ev.key === 'Enter' || ev.key === ' ') hit(ev);
+      });
+    });
+
+    q('[data-ttl]').forEach(el => {
+      el.addEventListener('input', () => {
+        const t = byId(el.dataset.ttl);
+        if(!t) return;
+        t.title = el.value.slice(0, 120);
+        t.at = Date.now();
+        save();
+        syncSoon(scope);
+      });
+      el.addEventListener('keydown', ev => { if(ev.key === 'Enter') el.blur(); });
+    });
+
+    q('[data-ttype]').forEach(el => el.addEventListener('change', ev => {
+      ev.stopPropagation();
+      const t = byId(el.dataset.ttype);
+      if(!t) return;
+      t.type = el.value;
+      t.at = Date.now();
+      save();
+      const r = el.closest('.pt-task');
+      if(r) r.style.setProperty('--c', typeOf(t.type).color);
+      sync(scope);
+    }));
+
+    q('[data-ttmr]').forEach(el => el.addEventListener('click', ev => {
+      ev.stopPropagation();
+      const t = byId(el.dataset.ttmr);
+      if(!t) return;
+      t.day = nextDay(t.day);
+      t.done = false;
+      t.at = Date.now();
+      save();
+      both();
+    }));
+
+    q('[data-tdel]').forEach(el => el.addEventListener('click', ev => {
+      ev.stopPropagation();
+      const id = el.dataset.tdel;
+      data.items = items().filter(t => t && t.id !== id);
+      const tb = tombs();
+      if(tb.indexOf(id) < 0) tb.push(id);
+      if(tb.length > TOMB_MAX) data.tombs = tb.slice(-TOMB_MAX);
+      save();
+      both();
+    }));
+
+    q('[data-tnew]').forEach(el => el.addEventListener('keydown', ev => {
+      if(ev.key !== 'Enter') return;
+      ev.preventDefault();
+      const title = el.value.trim();
+      if(!title){ el.blur(); return; }
+      const planId = el.dataset.tnew || '';
+      const day = el.dataset.tday;
+      const base = el.dataset.tbase || '';
+      items().push({
+        id: newId(),
+        plan: planId,
+        day: day,
+        title: title.slice(0, 120),
+        type: base || (typeList()[0] || DEFAULT_TYPE).id,
+        done: false,
+        at: Date.now()
+      });
+      save();
+      opened[keyFor(planId, day)] = true;
+      const sel = '[data-tnew="' + planId + '"][data-tday="' + day + '"]';
+      const all = Array.prototype.slice.call(scope.querySelectorAll(sel));
+      refocus = { sel: sel, i: Math.max(0, all.indexOf(el)) };
+      both();
+    }));
+
+    if(refocus){
+      const all = scope.querySelectorAll(refocus.sel);
+      const el = all[refocus.i] || all[0];
+      if(el){ el.focus(); refocus = null; }
+    }
+  }
+
+  /* ---------------- ほかの端末とのやりとり ---------------- */
+
+  function payload(){
+    items();
+    return {
+      app:'todo', version:1,
+      metaAt: data.metaAt || 0,
+      savedAt: new Date().toISOString(),
+      items: items(),
+      tombs: tombs()
+    };
+  }
+  /* 同じ To Do は新しく触ったほうを残し、消したぶんは消えたままにする */
+  function mergeRemote(r){
+    if(!r || r.app !== 'todo') return false;
+    items();
+    let changed = false;
+    const tomb = {};
+    [].concat(tombs(), r.tombs || []).forEach(id => { if(id) tomb[id] = 1; });
+    const kept = {};
+    data.items.forEach(t => { if(t && t.id) kept[t.id] = t; });
+    (r.items || []).forEach(t => {
+      if(!t || !t.id || tomb[t.id]) return;
+      const cur = kept[t.id];
+      if(!cur || (t.at || 0) > (cur.at || 0)){ kept[t.id] = t; changed = true; }
+    });
+    const before = data.items.length;
+    const list = Object.keys(kept).map(k => kept[k]).filter(t => !tomb[t.id]);
+    if(list.length !== before) changed = true;
+    data.items = list;
+    const nt = Object.keys(tomb).slice(-TOMB_MAX);
+    if(nt.length !== tombs().length){ data.tombs = nt; changed = true; }
+    prune();
+    return changed;
+  }
+
+  PAWS.register('todo', {
+    gistFile: 'todo.json',
+    appId: 'todo',
+    payload: payload,
+    merge: mergeRemote,
+    rerender: () => sync()
+  });
+
+  return { plus, group, dayBox, bind, on, orphans, keyOf };
+})();
+</script>
+
+<script>
+/* =====================================================================
    Schedule — the plain calendar that sits before Ready.
    It keeps its own events; a timed one can be handed over to Ready,
    where it becomes a task that starts the timer.
@@ -8543,7 +9023,7 @@ PAWS.load();
     const dk = dayKey || cursor;
     const done = e.doneOn === dk;
     const stamp = done && stampKey === (e.id + '|' + dk);
-    return `<button class="cal-ev${done ? ' is-done' : ''}" data-edit="${esc(e.id)}"
+    const rowHtml = `<button class="cal-ev${done ? ' is-done' : ''}" data-edit="${esc(e.id)}"
       style="--c:${typeColor(e.type)}; --cb:${tint(typeColor(e.type), 0.13)}">
       <span class="ev-time">${esc(dayTimeText(e, dk))}</span>
       <span class="ev-body">
@@ -8559,10 +9039,12 @@ PAWS.load();
         </span>
         ${e.note ? `<span class="ev-note">${esc(e.note)}</span>` : ''}
       </span>
+      ${window.PAWTASK ? PAWTASK.plus(e.id, dk) : ''}
       <span class="ev-done${done ? ' on' : ''}${stamp ? ' stamp' : ''}" role="button" tabindex="0"
         data-done="${esc(e.id)}|${dk}" title="${done ? '完了を取り消す' : '完了にする'}">
         <svg viewBox="0 0 40 34" aria-hidden="true"><ellipse cx="20" cy="25" rx="8.6" ry="7"/><ellipse cx="9.5" cy="14.5" rx="4" ry="5.2" transform="rotate(-18 9.5 14.5)"/><ellipse cx="16.5" cy="8" rx="3.7" ry="5"/><ellipse cx="24.5" cy="8" rx="3.7" ry="5"/><ellipse cx="31" cy="14.5" rx="4" ry="5.2" transform="rotate(18 31 14.5)"/></svg></span>
     </button>`;
+    return window.PAWTASK ? PAWTASK.group(e.id, dk, e.type, rowHtml) : rowHtml;
   }
 
   // The day as a timetable: hours down the side, plans in their own slot.
@@ -8823,6 +9305,9 @@ PAWS.load();
         ${view === 'day' ? '' : (eventsOn(cursor).length
             ? `<div class="cal-day-list plain">${eventsOn(cursor).map(e => eventRow(e, cursor)).join('')}</div>`
             : '<div class="empty-state">この日の予定はまだありません。</div>')}
+        ${window.PAWTASK
+            ? PAWTASK.dayBox(cursor, eventsOn(cursor).map(e => e.id), cursor === todayKey())
+            : ''}
       </div>
     `;
     bind();
@@ -8891,6 +9376,7 @@ PAWS.load();
   }
 
   function bind(){
+    if(window.PAWTASK) PAWTASK.bind(app, render);
     const on = (id, fn) => { const el = $id(id); if(el) el.addEventListener('click', fn); };
     on('calPrev', () => { step(-1); note = null; render(); });
     on('calNext', () => { step(1);  note = null; render(); });
@@ -9527,6 +10013,7 @@ PAWS.load();
     const w = data.wx;
     const s = w ? sky(w.code) : null;
     const plans = todaysPlansAll();
+    const dk = keyOf(now);
 
     app.innerHTML = `
       <div class="home-stage ${skyNow().cls}" id="hmStage">
@@ -9599,6 +10086,7 @@ PAWS.load();
         ${plans.length ? `<div class="cal-day-list plain">
           ${plans.map(e => window.__planRow ? window.__planRow(e, keyOf(new Date())) : '').join('')}
         </div>` : `<div class="empty-state">今日の予定はありません。<br>ゆっくりいきましょう。</div>`}
+        ${window.PAWTASK ? PAWTASK.dayBox(dk, plans.map(p => p.id), true) : ''}
         ${alarmRows()}
       </div>
     `;
@@ -9635,6 +10123,7 @@ PAWS.load();
       if(window.__planDone) window.__planDone(el.dataset.done.slice(0, i), el.dataset.done.slice(i + 1));
       render();
     }));
+    if(window.PAWTASK) PAWTASK.bind(app, render);
     const city = $id('hmCity');
     if(city) city.addEventListener('keydown', ev => { if(ev.key === 'Enter') findPlace(city.value); });
     startDog();
@@ -11165,7 +11654,13 @@ PAWS.load();
   render();
   if(data.place) loadWeather(false);
   // the day turns, the greeting with it
-  setInterval(() => { if(app.offsetParent !== null) render(); }, 60 * 1000);
+  /* 一分ごとに描き直す。ただし何か書いている最中なら、書き終わるまで待つ */
+  setInterval(() => {
+    if(app.offsetParent === null) return;
+    const a = document.activeElement;
+    if(a && app.contains(a) && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) return;
+    render();
+  }, 60 * 1000);
   setInterval(() => { if(data.place) loadWeather(false); }, 15 * 60 * 1000);
 })();
 
