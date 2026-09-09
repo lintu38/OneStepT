@@ -6180,7 +6180,7 @@ PAWS.load();
     chartDays:14,
     fmType:null,
     fmGoalSec:300,
-    fmTrack:true,
+    fmTrack:false,           // Session への引き継ぎは、はじめは OFF
     metaAt:0,
     tombs:[],       // keys of deleted records, so a delete survives a sync
     snoozed:null    // a countdown put on hold, waiting to come back
@@ -6397,6 +6397,12 @@ PAWS.load();
     if(!Array.isArray(data.tasks)) data.tasks = [];
     if(!Array.isArray(data.logs)) data.logs = [];
     if(!Array.isArray(data.tombs)) data.tombs = [];
+    /* 以前は ON がはじめの姿だったので、一度だけ OFF に戻す。
+       そのあとは、ここで選んだほうをずっと覚えている。 */
+    if(data.fmTrackOff !== true){
+      data.fmTrack = false;
+      data.fmTrackOff = true;
+    }
   }
   function saveData(bump){ PAWS.save(bump); }
 
@@ -7053,7 +7059,7 @@ PAWS.load();
       <div class="goal-row">
         <div class="settings">
           <span class="lbl">${ICON.clock}Session</span>
-          <button class="toggle ${data.fmTrack === false ? '' : 'on'}" id="fmTrack">${data.fmTrack === false ? 'OFF' : 'ON'}</button>
+          <button class="toggle ${data.fmTrack === true ? 'on' : ''}" id="fmTrack">${data.fmTrack === true ? 'ON' : 'OFF'}</button>
         </div>
         <div class="settings">
           <span class="lbl">${ICON.sound}Sound</span>
@@ -7531,7 +7537,7 @@ PAWS.load();
       saveData();
       render();
     });
-    bind('fmTrack', () => { data.fmTrack = data.fmTrack === false; saveData(); render(); });
+    bind('fmTrack', () => { data.fmTrack = data.fmTrack !== true; saveData(); render(); });
     bind('fmSound', () => {
       data.soundOn = data.soundOn === false;
       if(!data.soundOn) stopReminder();
@@ -7748,7 +7754,7 @@ PAWS.load();
 
   function onQuickArm(){
     ensureAudio();
-    armType(currentType(), data.fmTrack !== false);
+    armType(currentType(), data.fmTrack === true);
   }
 
   function onGo(){
