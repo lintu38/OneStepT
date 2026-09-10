@@ -1096,7 +1096,7 @@
   /* the session goal can run to three digits, so give it room */
   .goal-row .settings input#workGoalInput{ width: 68px; }
 
-  /* 自然音のラジオ */
+  /* BGM のラジオ */
   .bgm-box{ display:flex; flex-direction:column; gap:9px;
     background:var(--bg-card); border:1px solid var(--ring-track);
     border-radius:14px; padding:11px 13px; font-size:13px; color:var(--text-muted); }
@@ -1911,6 +1911,10 @@
   .cal-ev .ev-meta i{ width:7px; height:7px; border-radius:999px; display:inline-block; }
   .cal-ev .ev-sent{ color:#5B9E6B; }
   .cal-ev .ev-note{ font-family:'Zen Kaku Gothic New',sans-serif; font-size:11px; color:var(--text-faint); }
+  /* 済んだ予定は字をすこし薄く（肉球には色がつく） */
+  .cal-ev.is-done .ev-title{ color:var(--text-muted); }
+  /* やらない予定は取り消し線（肉球はうすいグレーのまま） */
+  .cal-ev.is-skip .ev-title{ color:var(--text-faint); text-decoration:line-through; }
 
   .cal-editor .rep-picker{ display:flex; gap:5px; flex:1; }
   .cal-editor .rep-picker button{ flex:1; border:1px solid var(--line); background:var(--bg-soft);
@@ -2071,7 +2075,7 @@
     stroke-width:1.5; stroke-linejoin:round; }
   @media (hover: none){ .yard-btn{ display:none; } }
   html.yard .yard-btn{ display:none; }
-  /* 小窓のときだけ、自然音の入り切りを出す */
+  /* 小窓のときだけ、BGM の入り切りを出す */
   .snd-btn{ display:none; }
   html.yard .snd-btn{ display:inline-flex; right:9px; top:9px;
     width:34px; height:34px; border-radius:11px; opacity:.55; }
@@ -2280,12 +2284,12 @@
   .pt-task .pt-paw.skip{ color:#E3DED6; }
   .pt-task .pt-paw.skip:hover{ color:#D5CEC3; }
   .pt-task .pt-paw.skip svg{ fill:currentColor; stroke:none; }
-  .pt-task.skip .pt-title{ color:var(--text-faint); }
+  .pt-task.skip .pt-title{ color:var(--text-faint); text-decoration:line-through; }
   .pt-task .pt-paw.on.stamp svg{ animation:pawStamp .42s cubic-bezier(.2,1.5,.35,1) both; }
   .pt-task .pt-title{ flex:1; min-width:0; border:none; background:none; padding:2px 0;
     font-family:'Zen Kaku Gothic New',sans-serif; font-size:12px; color:var(--text); }
   .pt-task .pt-title:focus{ outline:none; box-shadow:0 1px 0 0 var(--beige); }
-  .pt-task.done .pt-title{ text-decoration:line-through; color:var(--text-faint); }
+  .pt-task.done .pt-title{ color:var(--text-muted); }
   .pt-task .pt-type{ flex:0 0 auto; position:relative; display:inline-flex;
     align-items:center; justify-content:center; width:16px; height:16px; }
   .pt-task .pt-type i{ width:9px; height:9px; border-radius:50%; background:var(--c);
@@ -3456,7 +3460,7 @@ window.PAWS = (function(){
 
 <script>
 /* =====================================================================
-   自然音のラジオ — 曲は持たず、公開されている局をそのまま鳴らす。
+   BGM のラジオ — 曲は持たず、公開されている局をそのまま鳴らす。
    局の一覧は radio-browser.info（無料・登録不要）からそのつど取る。
    置き場所（スロット）は Session と Home のふたつ。局はそれぞれ別に選べて、
    鳴るのはいつもどちらか一方だけ。
@@ -3474,9 +3478,10 @@ window.PAWBGM = (function(){
     { t:'relaxation', l:'やすらぎ' }
   ];
   const MAX_FAV = 24, TOMB_MAX = 200;
-  const LEAF = '<svg viewBox="0 0 16 16" aria-hidden="true">'
-    + '<path d="M3 13.2c0-5 3.4-8.4 9.4-9.4C13 9.4 9.7 13 4.6 13.2z"/>'
-    + '<path d="M2.4 14c1.6-2.6 3.6-4.6 6.2-6.2"/></svg>';
+  const NOTE = '<svg viewBox="0 0 16 16" aria-hidden="true">'
+    + '<path d="M6.2 11.4V4.1l6.2-1.2v7.3"/>'
+    + '<ellipse cx="4.5" cy="11.7" rx="1.7" ry="1.4" fill="currentColor" stroke="none"/>'
+    + '<ellipse cx="10.7" cy="10.5" rx="1.7" ry="1.4" fill="currentColor" stroke="none"/>' + '</svg>';
 
   function esc(s){
     return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
@@ -3770,7 +3775,7 @@ window.PAWBGM = (function(){
     const m = msg[k];
     return `<div class="bgm-box" id="bgmBox-${esc(k)}" data-bgmk="${esc(k)}">
       <div class="bgm-main">
-        <span class="lbl">${LEAF}自然音</span>
+        <span class="lbl">${NOTE}BGM</span>
         <button class="bgm-play${on ? ' on' : ''}" data-bgm="toggle"
           title="${on ? '止める' : '流す'}" aria-label="${on ? '止める' : '流す'}">${on && busy ? '…' : on ? '■' : '▶'}</button>
         <span class="bgm-name${f ? '' : ' none'}">${f ? esc(f.name) : '局を選んでください'}</span>
@@ -5837,13 +5842,15 @@ PAWS.load();
     .m-btns #mB{ background:linear-gradient(135deg,#D2BB99,#C7AC87 60%,#B79A73);
       border-color:transparent; color:#FFFCF6; }
     .m-btns #mB:hover{ filter:brightness(1.05); color:#FFFCF6; }
-    .m-ico{ display:flex; gap:7px; width:100%; }
-    .m-ico button{ flex:1; border:1px solid #EAE1D3; background:#fff; color:#7C7064;
-      border-radius:11px; padding:6px 0; cursor:pointer;
+    /* 庭の小窓のボタンとおなじ、小さな四角ふたつ */
+    .m-ico{ display:flex; gap:8px; justify-content:center; }
+    .m-ico button{ flex:0 0 auto; width:32px; height:32px; padding:0;
+      border:1px solid #EAE1D3; background:#fff; color:#7C7064;
+      border-radius:10px; cursor:pointer;
       display:flex; align-items:center; justify-content:center; }
     .m-ico button:hover{ background:#F3EDE2; color:#2A231C; }
     .m-ico button.off{ color:#C6BDB2; }
-    .m-ico button svg{ width:19px; height:19px; fill:none; stroke:currentColor;
+    .m-ico button svg{ width:18px; height:18px; fill:none; stroke:currentColor;
       stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
   `;
 
@@ -5856,13 +5863,14 @@ PAWS.load();
     + '<path d="M3.4 6.2h2.1L9 3.4v9.2L5.5 9.8H3.4z"/>'
     + '<path d="M11.4 6.6l3.2 2.8M14.6 6.6l-3.2 2.8"/></svg>';
   const M_LEAF_ON = '<svg viewBox="0 0 16 16" aria-hidden="true">'
-    + '<path d="M2.2 12.4c0-4.6 3-7.6 8.4-8.6C11.2 8.6 8.2 12 3.6 12.4z"/>'
-    + '<path d="M1.7 14c1.4-2.4 3.2-4.2 5.6-5.6"/>'
-    + '<path d="M12.6 5.6a4.4 4.4 0 0 1 0 5.2"/>'
-    + '<path d="M14.4 3.9a7 7 0 0 1 0 8.6"/></svg>';
+    + '<path d="M6.2 11.4V4.1l6.2-1.2v7.3"/>'
+    + '<ellipse cx="4.5" cy="11.7" rx="1.7" ry="1.4" fill="currentColor" stroke="none"/>'
+    + '<ellipse cx="10.7" cy="10.5" rx="1.7" ry="1.4" fill="currentColor" stroke="none"/>' + '</svg>';
   const M_LEAF_OFF = '<svg viewBox="0 0 16 16" aria-hidden="true">'
-    + '<path d="M2.2 12.4c0-4.6 3-7.6 8.4-8.6C11.2 8.6 8.2 12 3.6 12.4z"/>'
-    + '<path d="M1.7 14c1.4-2.4 3.2-4.2 5.6-5.6"/></svg>';
+    + '<path d="M6.2 11.4V4.1l6.2-1.2v7.3"/>'
+    + '<ellipse cx="4.5" cy="11.7" rx="1.7" ry="1.4" fill="currentColor" stroke="none"/>'
+    + '<ellipse cx="10.7" cy="10.5" rx="1.7" ry="1.4" fill="currentColor" stroke="none"/>'
+    + '<path d="M2.6 13.4 13.4 2.6"/></svg>';
 
   let pipWin = null, pipTimer = null;
   let hostWin = null;       // the window whose session the little one shows
@@ -5888,7 +5896,7 @@ PAWS.load();
     +     '<div class="dog-bubble sess hide" id="mCheer"></div>'
     +   '</div></div>'
     +   '<div class="m-ico">'
-    +     '<button id="mSnd" title="音"></button><button id="mBgm" title="自然音"></button>'
+    +     '<button id="mSnd" title="音"></button><button id="mBgm" title="BGM"></button>'
     +   '</div>'
     +   '<div class="m-btns">'
     +     '<button id="mA">BREAK</button><button id="mB">FINISH</button>'
@@ -5992,7 +6000,7 @@ PAWS.load();
     if(bb){
       const on = !!(window.PAWBGM && PAWBGM.nowSlot());
       bb.classList.toggle('off', !on);
-      bb.title = on ? '自然音を止める' : '自然音を流す';
+      bb.title = on ? 'BGM を止める' : 'BGM を流す';
       bb.innerHTML = on ? M_LEAF_ON : M_LEAF_OFF;
     }
     const set = (sel, t) => { const e = q(sel); if(e) e.textContent = t; };
@@ -10740,7 +10748,7 @@ window.PAWTASK = (function(){
         <span class="walker" id="hmDog">${window.__DOG_SVG || ''}</span>
         <span class="zzz hide" id="hmZzz"><i>z</i><i>z</i><i>z</i></span>
         <div class="dog-bubble sess hide" id="hmBubble"></div>
-        <button class="yard-btn snd-btn${bgmOn() ? '' : ' off'}" id="hmSnd" title="${bgmOn() ? '自然音を止める' : '自然音を流す'}" aria-label="${bgmOn() ? '自然音を止める' : '自然音を流す'}">${bgmOn() ? SND_ON : SND_OFF}</button>
+        <button class="yard-btn snd-btn${bgmOn() ? '' : ' off'}" id="hmSnd" title="${bgmOn() ? 'BGM を止める' : 'BGM を流す'}" aria-label="${bgmOn() ? 'BGM を止める' : 'BGM を流す'}">${bgmOn() ? SND_ON : SND_OFF}</button>
         <button class="yard-btn" id="hmYard" title="庭だけの小窓で開く" aria-label="庭だけの小窓で開く"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><rect x="8.2" y="8" width="5" height="4" rx="1"/></svg></button>
       </div>
 
@@ -10848,14 +10856,14 @@ window.PAWTASK = (function(){
     startDog();
   }
 
-  /* 自然音が鳴っているかどうか。ほかの窓で鳴っていても拾う */
+  /* BGM が鳴っているかどうか。ほかの窓で鳴っていても拾う */
   function bgmOn(){ return !!(window.PAWBGM && PAWBGM.nowSlot()); }
   function paintSnd(){
     const b = $id('hmSnd');
     if(!b) return;
     const on = bgmOn();
     b.classList.toggle('off', !on);
-    b.title = on ? '自然音を止める' : '自然音を流す';
+    b.title = on ? 'BGM を止める' : 'BGM を流す';
     b.setAttribute('aria-label', b.title);
     b.innerHTML = on ? SND_ON : SND_OFF;
   }
@@ -10926,15 +10934,16 @@ window.PAWTASK = (function(){
     return 'おやすみ';
   };
 
-  /* 小窓の自然音ボタン。鳴っているときは葉と音の波、止まっているときは葉だけ */
+  /* 小窓の BGM ボタン。止まっているときは音符に斜め線 */
   const SND_ON = '<svg viewBox="0 0 16 16" aria-hidden="true">'
-    + '<path d="M2.2 12.4c0-4.6 3-7.6 8.4-8.6C11.2 8.6 8.2 12 3.6 12.4z"/>'
-    + '<path d="M1.7 14c1.4-2.4 3.2-4.2 5.6-5.6"/>'
-    + '<path d="M12.6 5.6a4.4 4.4 0 0 1 0 5.2"/>'
-    + '<path d="M14.4 3.9a7 7 0 0 1 0 8.6"/></svg>';
+    + '<path d="M6.2 11.4V4.1l6.2-1.2v7.3"/>'
+    + '<ellipse cx="4.5" cy="11.7" rx="1.7" ry="1.4" fill="currentColor" stroke="none"/>'
+    + '<ellipse cx="10.7" cy="10.5" rx="1.7" ry="1.4" fill="currentColor" stroke="none"/>' + '</svg>';
   const SND_OFF = '<svg viewBox="0 0 16 16" aria-hidden="true">'
-    + '<path d="M2.2 12.4c0-4.6 3-7.6 8.4-8.6C11.2 8.6 8.2 12 3.6 12.4z"/>'
-    + '<path d="M1.7 14c1.4-2.4 3.2-4.2 5.6-5.6"/></svg>';
+    + '<path d="M6.2 11.4V4.1l6.2-1.2v7.3"/>'
+    + '<ellipse cx="4.5" cy="11.7" rx="1.7" ry="1.4" fill="currentColor" stroke="none"/>'
+    + '<ellipse cx="10.7" cy="10.5" rx="1.7" ry="1.4" fill="currentColor" stroke="none"/>'
+    + '<path d="M2.6 13.4 13.4 2.6"/></svg>';
 
   const PAW_TAG = '<span class="bpaw"></span>';
 
