@@ -2018,6 +2018,11 @@
   .cal-ev .ev-done:hover{ color:#CBC1B1; }
   .cal-ev .ev-done.on{ color:var(--c); }
   .cal-ev .ev-done.on svg{ fill:currentColor; stroke:none; }
+  /* 月のカレンダーと時間割でも、済み／やらないが分かるように */
+  .cal-cell .chip.is-done .cx{ color:var(--text-muted); }
+  .cal-cell .chip.is-skip .cx{ color:var(--text-faint); text-decoration:line-through; }
+  .tt-ev.is-done .te-title, .tt-ev.is-done .te-line{ color:var(--text-muted); }
+  .tt-ev.is-skip .te-title, .tt-ev.is-skip .te-line{ color:var(--text-faint); text-decoration:line-through; }
   /* もう一度押すと「やらなかった」。うすいグレーの肉球で残しておく */
   .cal-ev .ev-done.skip{ color:#E3DED6; }
   .cal-ev .ev-done.skip:hover{ color:#D5CEC3; }
@@ -2270,7 +2275,10 @@
     font-size:10.5px; letter-spacing:.04em; color:var(--text-faint); }
   .pt-box[hidden], .pt-add[hidden]{ display:none; }
   .pt-rows{ display:flex; flex-direction:column; gap:1px; }
-  .pt-task{ display:flex; align-items:center; gap:7px; min-height:23px; }
+  .pt-task{ display:flex; align-items:center; gap:7px; min-height:23px;
+    border-radius:7px; padding:0 4px; margin:0 -4px; }
+  .pt-task.done{ background:#F2EDE3; }
+  .pt-task.skip{ background:#EDE9E1; }
   .pt-task .pt-paw{ flex:0 0 auto; position:relative;
     display:inline-flex; align-items:center; justify-content:center;
     width:17px; height:15px; padding:0; border:0; background:none;
@@ -9343,6 +9351,8 @@ window.PAWTASK = (function(){
 
   let cursor = todayKey();     // the day in focus
   let editId = null;           // event being edited, or 'new'
+  let editDay = null;          // その予定の、どの日を開いたか
+  let editScope = 'all';       // one | fwd | all（くり返しのとき、どこまで直すか）
   let draft = null;
   let note = null;             // a short line under the header
   let scrollToEditor = false;  // after a plan is opened from the grid
@@ -9412,6 +9422,10 @@ window.PAWTASK = (function(){
     if(midnight(d) < midnight(a)) return false;
     const rep = ev.repeat || 'none';
     if(rep === 'none')  return keyOf(d) === ev.date;
+    /* くり返しの終わり（これ以降を分けたとき）と、この日だけ外したぶん */
+    const dk0 = keyOf(d);
+    if(ev.until && dk0 > ev.until) return false;
+    if(Array.isArray(ev.skips) && ev.skips.indexOf(dk0) >= 0) return false;
     if(rep === 'week'){
       if(repeatDays(ev).indexOf(idxOf(d)) < 0) return false;
       const every = Math.max(1, ev.every || 1);
@@ -9589,12 +9603,14 @@ window.PAWTASK = (function(){
     const joinL = run && onDay(e, keyOf(addDays(d, -1)));
     const joinR = run && onDay(e, keyOf(addDays(d, 1)));
     const head = !joinL || idxOf(d) === 0;          // the name shows again each week
-    const cls = 'chip' + (joinL ? ' join-l' : '') + (joinR ? ' join-r' : '');
+    const cDone = e.doneOn === k, cSkip = !cDone && e.skipOn === k;
+    const cls = 'chip' + (joinL ? ' join-l' : '') + (joinR ? ' join-r' : '')
+      + (cDone ? ' is-done' : '') + (cSkip ? ' is-skip' : '');
     return `<span class="${cls}" data-chip="${esc(e.id)}"
       style="--c:${typeColor(e.type)}; --cb:${tint(typeColor(e.type), 0.13)}"
       title="${esc(dayTimeText(e, k) + ' ' + e.title)}">
       <span class="ct">${joinL ? '&nbsp;' : esc(e.allDay ? '終日' : (e.start || '')) || '&nbsp;'}</span>
-      <span class="cn"><i></i>${head ? esc(e.title) : '&nbsp;'}</span>
+      <span class="cn"><i></i><span class="cx">${head ? esc(e.title) : '&nbsp;'}</span></span>
     </span>`;
   }
   // An empty slot, so a plan that runs on keeps the same line all week.
@@ -9712,7 +9728,7 @@ window.PAWTASK = (function(){
     const done = e.doneOn === dk;
     const skip = !done && e.skipOn === dk;      /* やらなかった日 */
     const stamp = done && stampKey === (e.id + '|' + dk);
-    const rowHtml = `<button class="cal-ev${done ? ' is-done' : ''}${skip ? ' is-skip' : ''}" data-edit="${esc(e.id)}"
+    const rowHtml = `<button class="cal-ev${done ? ' is-done' : ''}${skip ? ' is-skip' : ''}" data-edit="${esc(e.id)}" data-eday="${dk}"
       style="--c:${typeColor(e.type)}; --cb:${tint(typeColor(e.type), 0.13)}">
       <span class="ev-time">${esc(dayTimeText(e, dk))}</span>
       <span class="ev-body">
@@ -9817,7 +9833,7 @@ window.PAWTASK = (function(){
               : `<span class="te-time">${time}</span>
                  <span class="te-title"><i></i>${esc(t.e.title)}</span>
                  ${t.e.note && h > 66 ? `<span class="te-note">${esc(t.e.note)}</span>` : ''}`;
-            return `<button class="tt-ev ${h < 44 ? 'short' : ''}" data-edit="${esc(t.e.id)}"
+            return `<button class="tt-ev ${h < 44 ? 'short' : ''}${t.e.doneOn === k ? ' is-done' : ''}${t.e.doneOn !== k && t.e.skipOn === k ? ' is-skip' : ''}" data-edit="${esc(t.e.id)}" data-eday="${k}"
               style="top:${top.toFixed(1)}px; height:${h.toFixed(1)}px;
                      left:${(t.col * w).toFixed(2)}%; width:calc(${w.toFixed(2)}% - 4px);
                      --c:${typeColor(t.e.type)}; --cb:${tint(typeColor(t.e.type), 0.13)}">
@@ -9858,6 +9874,34 @@ window.PAWTASK = (function(){
       monthEnd: false,
       monthDay: 0
     };
+  }
+
+  /* くり返しの予定を直すとき、どこまで反映するかを選ぶ */
+  const SCOPES = [
+    ['one', 'この予定だけ'],
+    ['fwd', 'これ以降'],
+    ['all', 'すべて']
+  ];
+  function scopeHint(t){
+    const d = parseKey(editDay || t.date);
+    const md = (d.getMonth() + 1) + '/' + d.getDate();
+    if(editScope === 'one') return md + ' の回だけ直します。ほかの回はそのままです。';
+    if(editScope === 'fwd') return md + ' からあとの回を直します。それより前はそのままです。';
+    return 'くり返し全部を直します。';
+  }
+  function scopeField(t){
+    if(editId === 'new') return '';
+    if(!t.repeat || t.repeat === 'none') return '';
+    return `<div class="ed-field">
+        <label>反映する範囲</label>
+        <div class="rep-picker">
+          ${SCOPES.map(s => `<button data-scope="${s[0]}" class="${editScope === s[0] ? 'on' : ''}">${s[1]}</button>`).join('')}
+        </div>
+      </div>
+      <div class="ed-field">
+        <label></label>
+        <span class="unit">${esc(scopeHint(t))}</span>
+      </div>`;
   }
 
   function renderEditor(){
@@ -9950,6 +9994,7 @@ window.PAWTASK = (function(){
         <button class="mini-btn solid" id="cvSend" ${sent ? 'disabled' : ''}>${sent ? 'Alarm に登録済み' : 'Alarm に登録する'}</button>
         <span class="send-note">${PAW_MINI}の Alarm に入り、時間になるとカウントダウンが始まります</span>
       </div>`}
+      ${scopeField(t)}
       <div class="ed-actions">
         <button class="ed-save" id="cvSave">SAVE</button>
         ${editId === 'new' ? '' : '<button class="ed-del" id="cvDel">DELETE</button>'}
@@ -10089,18 +10134,17 @@ window.PAWTASK = (function(){
         render();
       });
     });
-    const openEditor = id => {
+    const openEditor = (id, day) => {
       const e = events().find(x => x.id === id);
       if(!e) return;
-      editId = e.id;
-      draft = Object.assign({}, e);
+      openDraft(e, day || cursor);
       copyDate = null;
       scrollToEditor = true;
       render();
     };
     $qa('[data-edit]').forEach(b => b.addEventListener('click', ev => {
       ev.stopPropagation();
-      openEditor(b.dataset.edit);
+      openEditor(b.dataset.edit, b.dataset.eday);
     }));
     /* 肉球を押すと、その日のぶんを完了にする */
     $qa('[data-done]').forEach(el => el.addEventListener('click', ev => {
@@ -10163,6 +10207,11 @@ window.PAWTASK = (function(){
     on('cvCont',  () => { if(!draft) return; readForm(); draft.cont = draft.cont === false; render(); });
     on('cvCheer', () => { if(!draft) return; readForm(); draft.celebrate = !draft.celebrate; render(); });
     on('cvTell',  () => { if(!draft) return; readForm(); draft.tell = !draft.tell; render(); });
+    $qa('[data-scope]').forEach(b => b.addEventListener('click', () => {
+      readForm();
+      editScope = b.dataset.scope;
+      render();
+    }));
     on('cvCancel', () => { editId = null; draft = null; render(); });
     on('cvSave', onSave);
     on('cvDel', onDelete);
@@ -10210,12 +10259,68 @@ window.PAWTASK = (function(){
     else if(!(draft.days || []).length) draft.days = [idxOf(parseKey(draft.date))];
     if(draft.allDay){ draft.start = ''; draft.end = ''; }
     draft.at = Date.now();
+
     const list = events();
     const i = list.findIndex(x => x.id === draft.id);
-    if(i >= 0) list[i] = draft; else list.push(draft);
+    const master = i >= 0 ? list[i] : null;
+    const rep = draft.repeat && draft.repeat !== 'none';
+    const origDay = draft.__origDay || draft.__origDate || draft.date;
+    const scope = (master && rep && editId !== 'new') ? editScope : 'all';
+    const body = Object.assign({}, draft);
+    delete body.__origDate; delete body.__origEnd; delete body.__origDay;
+
+    if(scope === 'one'){
+      /* この回だけ：もとのくり返しからこの日を外して、一回きりの予定を作る */
+      master.skips = (master.skips || []).slice();
+      if(master.skips.indexOf(origDay) < 0) master.skips.push(origDay);
+      master.at = Date.now();
+      const one = Object.assign({}, body, {
+        id: uid(), repeat: 'none', every: 1, days: [],
+        monthEnd: false, skips: [], until: null, taskId: null,
+        at: Date.now()
+      });
+      delete one.monthDay;
+      delete one.doneOn; delete one.skipOn;
+      list.push(one);
+      note = 'この回だけ直しました。';
+    } else if(scope === 'fwd' && origDay > (draft.__origDate || master.date)){
+      /* これ以降：もとのくり返しをこの日の前で終わりにして、新しく続きを作る */
+      const wasUntil = master.until || null;       /* もとの終わりは、続きのほうへ引き継ぐ */
+      master.until = keyOf(addDays(parseKey(origDay), -1));
+      master.at = Date.now();
+      const rest = Object.assign({}, body, {
+        id: uid(),
+        skips: (master.skips || []).filter(d => d >= origDay),
+        until: wasUntil,
+        taskId: null,
+        at: Date.now()
+      });
+      delete rest.doneOn; delete rest.skipOn;
+      list.push(rest);
+      note = 'これ以降を直しました。';
+    } else {
+      /* すべて：日付を動かしたぶんだけ、くり返し全体をずらす */
+      const next = Object.assign({}, master || {}, body);
+      if(rep && draft.__origDate){
+        const shift = daysApart(parseKey(origDay), parseKey(draft.date));
+        next.date = keyOf(addDays(parseKey(draft.__origDate), shift));
+        const span = daysApart(parseKey(draft.date), parseKey(draft.endDate || draft.date));
+        next.endDate = keyOf(addDays(parseKey(next.date), span));
+        /* 毎週のときは、曜日も同じぶんだけずらす */
+        if(shift && next.repeat === 'week' && Array.isArray(next.days) && next.days.length){
+          next.days = next.days.map(x => ((x + shift) % 7 + 7) % 7).sort((a, b) => a - b);
+        }
+        /* 毎月のときは、日にちもずらす */
+        if(shift && next.repeat === 'month' && !next.monthEnd){
+          next.monthDay = parseKey(next.date).getDate();
+        }
+      }
+      if(i >= 0) list[i] = next; else list.push(next);
+    }
+
     list.sort((a, b) => String(a.date).localeCompare(String(b.date)));
     cursor = draft.date;
-    editId = null; draft = null;
+    editId = null; draft = null; editDay = null; editScope = 'all';
     save();
     render();
   }
@@ -10250,9 +10355,24 @@ window.PAWTASK = (function(){
 
   function onDelete(){
     if(!draft) return;
-    addTombs([draft.id]);
-    data.events = events().filter(x => x.id !== draft.id);
-    editId = null; draft = null;
+    const rep = draft.repeat && draft.repeat !== 'none';
+    const origDay = draft.__origDay || draft.date;
+    const list = events();
+    const master = list.find(x => x.id === draft.id);
+    if(rep && master && editScope === 'one'){
+      master.skips = (master.skips || []).slice();
+      if(master.skips.indexOf(origDay) < 0) master.skips.push(origDay);
+      master.at = Date.now();
+      note = 'この回だけ消しました。';
+    } else if(rep && master && editScope === 'fwd' && origDay > master.date){
+      master.until = keyOf(addDays(parseKey(origDay), -1));
+      master.at = Date.now();
+      note = 'これ以降を消しました。';
+    } else {
+      addTombs([draft.id]);
+      data.events = events().filter(x => x.id !== draft.id);
+    }
+    editId = null; draft = null; editDay = null; editScope = 'all';
     save();
     render();
   }
@@ -10302,16 +10422,33 @@ window.PAWTASK = (function(){
   };
   /* HOME に並べるぶんは、完了した予定も肉球つきのまま残す */
   window.__planAll = function(dayKey){ return eventsOn(dayKey); };
-  window.__openPlan = function(id){
+  window.__openPlan = function(id, day){
     const e = events().find(x => x.id === id);
     if(!e) return false;
-    cursor = todayKey();
-    editId = e.id;
-    draft = Object.assign({}, e);
+    cursor = day || todayKey();
+    openDraft(e, cursor);
     scrollToEditor = true;
     render();
     return true;
   };
+
+  /* くり返しの予定は、開いた日ぶんとして見せる。
+     日付の欄には「その回の日」を出す（もとの初回の日ではなく） */
+  function openDraft(e, day){
+    editId = e.id;
+    editDay = day || e.date;
+    editScope = 'all';
+    draft = Object.assign({}, e);
+    const rep = e.repeat && e.repeat !== 'none';
+    draft.__origDate = e.date;
+    draft.__origEnd = e.endDate || e.date;
+    draft.__origDay = rep ? editDay : e.date;
+    if(rep && editDay && editDay !== e.date){
+      const span = spanOf(e);
+      draft.date = editDay;
+      draft.endDate = span ? keyOf(addDays(parseKey(editDay), span)) : editDay;
+    }
+  }
 
   PAWS.register('cal', {
     gistFile: 'schedule.json',
@@ -10823,7 +10960,7 @@ window.PAWTASK = (function(){
     /* Schedule と同じ行なので、開くのも完了にするのも同じ操作で */
     $qa('[data-edit]').forEach(b => b.addEventListener('click', ev => {
       ev.stopPropagation();
-      if(window.__openPlan) window.__openPlan(b.dataset.edit);
+      if(window.__openPlan) window.__openPlan(b.dataset.edit, b.dataset.eday);
       PAWS.setTab('cal');
     }));
     $qa('[data-done]').forEach(el => el.addEventListener('click', ev => {
