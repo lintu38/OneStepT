@@ -1155,6 +1155,9 @@
   .bgm-item button.x:hover{ color:#A9605E; }
   .bgm-auto{ display:flex; align-items:center; justify-content:space-between; gap:8px;
     font-family:'Zen Kaku Gothic New',sans-serif; font-size:11.5px; }
+  .bgm-mode{ display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+  .bgm-mode .mini-btn{ padding:4px 9px; font-size:9.5px; letter-spacing:.04em;
+    font-family:'Zen Kaku Gothic New',sans-serif; }
 
   .settings{
     display:flex; align-items:center; justify-content:space-between;
@@ -3529,12 +3532,66 @@ window.PAWBGM = (function(){
     return o;
   }
   const save = () => PAWS.save();
+  /* 手持ちの曲の流しかた：順番に／ばらばらに／いまの1曲をくり返す */
+  const MODES = ['seq', 'shuf', 'one'];
+  const MODE_LABEL = { seq:'順番に', shuf:'ランダム', one:'1曲をくり返す' };
+  function mode(){
+    const s = store();
+    if(MODES.indexOf(s.mode) < 0) s.mode = 'seq';
+    return s.mode;
+  }
+  function setMode(m){
+    if(MODES.indexOf(m) < 0) return;
+    store().mode = m;
+    if(el) el.loop = curIsFile && m === 'one';
+    save(); paintAll();
+    if(typeof window.__pawBgmPaint === 'function') window.__pawBgmPaint();
+  }
   const favOf = id => store().favs.find(f => f.id === id) || null;
   const newId = () => 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
 
   /* ---------------- 音そのもの ---------------- */
 
-  let el = null, active = null, busy = false, duckT = 0;
+  let el = null, active = null, busy = false, duckT = 0, objURL = null;
+
+  /* 手持ちの曲は、端末のなかにそのまま置いておく（同期はしない） */
+  const DB_NAME = 'pawBgm', STORE = 'files';
+  let dbP = null;
+  function db(){
+    if(dbP) return dbP;
+    dbP = new Promise((res, rej) => {
+      let r;
+      try{ r = indexedDB.open(DB_NAME, 1); }catch(e){ return rej(e); }
+      r.onupgradeneeded = () => { try{ r.result.createObjectStore(STORE); }catch(e){} };
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+    return dbP;
+  }
+  function idbPut(key, val){
+    return db().then(d => new Promise((res, rej) => {
+      const tx = d.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).put(val, key);
+      tx.oncomplete = () => res(true);
+      tx.onerror = () => rej(tx.error);
+    }));
+  }
+  function idbGet(key){
+    return db().then(d => new Promise((res, rej) => {
+      const tx = d.transaction(STORE, 'readonly');
+      const q = tx.objectStore(STORE).get(key);
+      q.onsuccess = () => res(q.result || null);
+      q.onerror = () => rej(q.error);
+    }));
+  }
+  function idbDel(key){
+    return db().then(d => new Promise(res => {
+      const tx = d.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).delete(key);
+      tx.oncomplete = () => res(true);
+      tx.onerror = () => res(false);
+    })).catch(() => false);
+  }
   /* いまどの窓で鳴っているかを、窓どうしで分け合うための覚え書き */
   const NOW_KEY = 'paw_bgm_now';
   let remote = null;
@@ -3588,25 +3645,70 @@ window.PAWBGM = (function(){
     el.addEventListener('error', () => {
       const k = active;
       active = null; busy = false;
-      if(k) say(k, 'この局にはつながりませんでした', true); else paintAll();
+      if(k) say(k, curIsFile ? 'この曲を鳴らせませんでした' : 'この局にはつながりませんでした', true);
+      else paintAll();
+    });
+    /* 曲は終わりがあるので、次の曲へ（1曲だけならくり返す） */
+    el.addEventListener('ended', () => {
+      const k = active;
+      if(!k) return;
+      const nx = nextFile(slot(k).cur);
+      if(nx) play(k, nx.id); else stop();
     });
     document.body.appendChild(el);
     return el;
   }
 
+  let curIsFile = false;
+  /* いま鳴らしているものの次の曲（手持ちの曲だけを回る） */
+  function nextFile(curId){
+    const files = store().favs.filter(f => f && f.file);
+    if(!files.length) return null;
+    const i = files.findIndex(f => f.id === curId);
+    const m = mode();
+    if(m === 'one') return i < 0 ? files[0] : files[i];
+    if(m === 'shuf'){
+      if(files.length === 1) return files[0];
+      let j = Math.floor(Math.random() * files.length);
+      if(j === i) j = (j + 1 + Math.floor(Math.random() * (files.length - 1))) % files.length;
+      return files[j];
+    }
+    if(i < 0) return files[0];
+    return files.length === 1 ? files[0] : files[(i + 1) % files.length];
+  }
+
   function play(k, id){
     const s = store(), o = slot(k);
-    const f = (id && favOf(id)) || favOf(o.cur) || s.favs[0];
-    if(!f){ say(k, '局がまだありません。「局」から選んでください', true); return; }
-    if(location.protocol === 'https:' && /^http:/i.test(f.url)){
+    let f = (id && favOf(id)) || favOf(o.cur) || s.favs[0];
+    /* ランダムのときは、押すたびにちがう曲から */
+    if(!id && f && f.file && mode() === 'shuf') f = nextFile(f.id) || f;
+    if(!f){ say(k, 'まだ何もありません。「局」から選ぶか、曲を入れてください', true); return; }
+    if(!f.file && location.protocol === 'https:' && /^http:/i.test(f.url)){
       say(k, 'この局は http なので、この画面からは鳴らせません', true); return;
     }
     o.cur = f.id; save();
+    if(f.file){
+      busy = true; msg[k] = null; paintAll();
+      idbGet(f.id).then(blob => {
+        if(!blob){ say(k, 'この曲が見つかりません。入れ直してください', true); busy = false; paintAll(); return; }
+        if(objURL){ try{ URL.revokeObjectURL(objURL); }catch(e){} }
+        objURL = URL.createObjectURL(blob);
+        startSrc(k, objURL, true);
+      }).catch(() => { busy = false; say(k, 'この曲を開けませんでした', true); });
+      return;
+    }
+    startSrc(k, f.url, false);
+  }
+
+  function startSrc(k, src, isFile){
+    const o = slot(k);
     const prev = active;
     active = k;
+    curIsFile = !!isFile;
     if(prev && prev !== k) msg[prev] = null;
     const a = media();
-    if(a.getAttribute('src') !== f.url) a.src = f.url;
+    if(a.getAttribute('src') !== src) a.src = src;
+    a.loop = !!isFile && mode() === 'one';
     a.volume = clamp(o.vol);
     busy = true; msg[k] = null;
     markNow();
@@ -3709,8 +3811,32 @@ window.PAWBGM = (function(){
     save(); paintAll();
     return f;
   }
+  /* 端末の音楽ファイルを入れる */
+  function addFiles(k, files){
+    const list = Array.prototype.slice.call(files || []);
+    if(!list.length) return;
+    const s = store();
+    let done = 0, ok = 0, firstId = null;
+    list.forEach(f => {
+      const id = newId();
+      idbPut(id, f).then(() => {
+        s.favs.push({ id:id, name:String(f.name || '音楽').replace(/\.[^.]+$/, '').slice(0, 40),
+                      file:true, at:Date.now() });
+        if(s.favs.length > MAX_FAV) s.favs = s.favs.slice(-MAX_FAV);
+        if(!firstId){ firstId = id; slot(k).cur = id; }
+        ok++;
+      }).catch(() => {}).then(() => {
+        if(++done !== list.length) return;
+        save();
+        say(k, ok ? (ok + ' 曲を入れました') : '曲を入れられませんでした', !ok);
+        paintAll();
+      });
+    });
+  }
   function delFav(id){
     const s = store();
+    const gone = s.favs.find(f => f.id === id);
+    if(gone && gone.file) idbDel(id);
     s.favs = s.favs.filter(f => f.id !== id);
     if(s.tombs.indexOf(id) < 0) s.tombs.push(id);
     if(s.tombs.length > TOMB_MAX) s.tombs = s.tombs.slice(-TOMB_MAX);
@@ -3745,7 +3871,7 @@ window.PAWBGM = (function(){
         </div>`).join('')}</div>` : ''}
       ${s.favs.length ? `<div class="bgm-sub">お気に入り${k === 'ss' ? '（Session に使う局を選びます）' : '（Home に使う局を選びます）'}</div>
         <div class="bgm-list">${s.favs.map(f => `<div class="bgm-item${f.id === o.cur ? ' on' : ''}">
-          <span class="nm">${esc(f.name)}</span>
+          <span class="nm">${f.file ? '♪ ' : ''}${esc(f.name)}</span>
           <button data-bgmuse="${esc(f.id)}">${f.id === o.cur ? '流す' : 'これに'}</button>
           <button class="x" data-bgmdel="${esc(f.id)}" title="消す">×</button>
         </div>`).join('')}</div>` : '<div class="bgm-sub">お気に入りはまだありません</div>'}
@@ -3753,6 +3879,14 @@ window.PAWBGM = (function(){
         <input type="text" class="bgm-url" placeholder="ストリームの URL を直接入れる" autocomplete="off">
         <button class="mini-btn" data-bgm="addurl">＋</button>
       </div>
+      <div class="bgm-find">
+        <button class="mini-btn solid" data-bgm="pickfile">＋ 手持ちの曲を入れる</button>
+        <span class="bgm-sub" style="margin:0">mp3 など。端末のなかに置かれます</span>
+        <input type="file" class="bgm-file" accept="audio/*,.mp3,.m4a,.wav,.ogg" multiple hidden>
+      </div>
+      ${s.favs.some(f => f && f.file) ? `<div class="bgm-sub">手持ちの曲の流しかた</div>
+        <div class="bgm-mode">${MODES.map(m => `<button class="mini-btn${mode() === m ? ' solid' : ''}"
+          data-bgm="mode" data-bgmmode="${m}">${MODE_LABEL[m]}</button>`).join('')}</div>` : ''}
       ${k === 'ss' ? `<div class="bgm-auto">
         <span>Session を始めたら流す</span>
         <button class="toggle ${o.auto === false ? '' : 'on'}" data-bgm="auto">${o.auto === false ? 'OFF' : 'ON'}</button>
@@ -3763,7 +3897,7 @@ window.PAWBGM = (function(){
       </div>
       ${o.brk ? `<div class="bgm-sub">休憩中に使う局</div>
         ${s.favs.length ? `<div class="bgm-list">${s.favs.map(f => `<div class="bgm-item${f.id === slot('break').cur ? ' on' : ''}">
-          <span class="nm">${esc(f.name)}</span>
+          <span class="nm">${f.file ? '♪ ' : ''}${esc(f.name)}</span>
           <button data-bgmbrk="${esc(f.id)}">${f.id === slot('break').cur ? '選択中' : 'これに'}</button>
         </div>`).join('')}</div>` : '<div class="bgm-sub">お気に入りを先に入れてください</div>'}
         <div class="bgm-auto">
@@ -3846,6 +3980,11 @@ window.PAWBGM = (function(){
           const i = root.querySelector('.bgm-url');
           if(i && addFav(k, i.value, i.value)) i.value = '';
         }
+        else if(what === 'pickfile'){
+          const i = root.querySelector('.bgm-file');
+          if(i) i.click();
+        }
+        else if(what === 'mode'){ setMode(elx.dataset.bgmmode); }
         else if(what === 'auto'){ const o = slot(k); o.auto = o.auto === false; save(); paint(k); }
         else if(what === 'brk'){ const o = slot(k); o.brk = !o.brk; save(); paint(k); }
       });
@@ -3886,6 +4025,8 @@ window.PAWBGM = (function(){
     if(qi) qi.addEventListener('keydown', ev => {
       if(ev.key === 'Enter' && !ev.isComposing) search(k, qi.value);
     });
+    const fi = root.querySelector('.bgm-file');
+    if(fi) fi.addEventListener('change', () => { addFiles(k, fi.files); fi.value = ''; });
     const ui = root.querySelector('.bgm-url');
     if(ui) ui.addEventListener('keydown', ev => {
       if(ev.key === 'Enter' && !ev.isComposing && addFav(k, ui.value, ui.value)) ui.value = '';
@@ -3897,7 +4038,8 @@ window.PAWBGM = (function(){
   function payload(){
     const s = store();
     return { app:'bgm', version:1, metaAt:s.metaAt || 0, savedAt:new Date().toISOString(),
-             favs:s.favs, tombs:s.tombs };
+             favs:s.favs.filter(f => f && !f.file),   /* 曲そのものは運べないので局だけ */
+             tombs:s.tombs };
   }
   function mergeRemote(r){
     if(!r || r.app !== 'bgm') return false;
