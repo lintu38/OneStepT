@@ -2185,19 +2185,29 @@
   }
   @media (prefers-reduced-motion: reduce){ .scene.fir .fir-star{ animation:none; } }
   .scene.grass, .scene.flower{ z-index:3; opacity:.85; }
-  /* 花は、ときどき風にゆれる */
+  /* 花は、ときどき ひと吹きの風にあおられる */
   .scene.flower svg, .scene.sunflower svg{ transform-origin:50% 100%;
-    animation:flowerSway 13s ease-in-out infinite; animation-delay:var(--sway, 0s); }
+    animation:flowerSway 9s ease-in-out infinite; animation-delay:var(--sway, 0s); }
   @keyframes flowerSway{
-    0%, 60%, 100%{ transform:rotate(0deg); }
-    66%{ transform:rotate(-5deg); }
-    72%{ transform:rotate(3.6deg); }
-    79%{ transform:rotate(-2.2deg); }
-    86%{ transform:rotate(1.1deg); }
-    93%{ transform:rotate(-.4deg); }
+    0%, 40%, 100%{ transform:rotate(0deg); }
+    48%{ transform:rotate(-10deg); }
+    56%{ transform:rotate(7deg); }
+    64%{ transform:rotate(-5deg); }
+    73%{ transform:rotate(3deg); }
+    83%{ transform:rotate(-1.5deg); }
+    92%{ transform:rotate(.5deg); }
+  }
+  /* 草は、いつもゆっくり ゆれている */
+  .scene.grass svg{ transform-origin:50% 100%;
+    animation:grassSway 6.4s ease-in-out infinite; animation-delay:var(--sway, 0s); }
+  @keyframes grassSway{
+    0%,100%{ transform:rotate(-3deg); }
+    28%{ transform:rotate(2.4deg); }
+    54%{ transform:rotate(-1.6deg); }
+    78%{ transform:rotate(1.2deg); }
   }
   @media (prefers-reduced-motion: reduce){
-    .scene.flower svg, .scene.sunflower svg{ animation:none; } }
+    .scene.flower svg, .scene.sunflower svg, .scene.grass svg{ animation:none; } }
   .home-stage .walker{ z-index:5; }
   /* 夜、ブレーメンが出来あがったときの、天からの光 */
   .hm-spot{ position:absolute; top:-8px; bottom:6px; width:136px; margin-left:-68px;
@@ -2210,6 +2220,27 @@
     width:108px; height:15px; margin-left:-54px; border-radius:50%;
     background:radial-gradient(ellipse at center, rgba(255,247,212,.5), rgba(255,247,212,0) 70%); }
   .hm-spot.on{ opacity:1; }
+  /* 昼のブレーメンは、まわりが きらきらする */
+  .hm-glit{ position:absolute; bottom:6px; width:104px; height:104px; margin-left:-52px;
+    z-index:6; pointer-events:none; opacity:0; transition:opacity .9s ease; }
+  .hm-glit.on{ opacity:1; }
+  .hm-glit i{ position:absolute; display:block; width:9px; height:9px; margin:-4.5px 0 0 -4.5px;
+    background:#FBEFA4;
+    clip-path:polygon(50% 0%, 59% 41%, 100% 50%, 59% 59%, 50% 100%, 41% 59%, 0% 50%, 41% 41%);
+    animation:glitTw 1.7s ease-in-out infinite; }
+  @keyframes glitTw{
+    0%,100%{ opacity:0; transform:scale(.25) rotate(-20deg); }
+    50%{ opacity:.95; transform:scale(1.1) rotate(20deg); }
+  }
+  @media (prefers-reduced-motion: reduce){ .hm-glit{ display:none; } }
+  /* UFO が降ろす光の柱 */
+  .ufo-beam{ position:absolute; width:58px; margin-left:-29px; z-index:3; pointer-events:none;
+    opacity:0; transition:opacity .5s ease; filter:blur(1.4px);
+    background:linear-gradient(180deg, rgba(186,235,244,.7) 0%, rgba(190,236,244,.34) 55%,
+      rgba(198,238,246,.12) 100%);
+    clip-path:polygon(36% 0, 64% 0, 100% 100%, 0 100%); }
+  .ufo-beam.on{ opacity:1; }
+  .hm-ufo.act{ transition:left .3s linear, top .3s linear; }
   /* 小屋に入っていくときは、すうっと見えなくなる */
   .home-stage #hmDog{ transition:transform .25s linear, opacity .55s ease; }
   /* on this stage a pup walks in from the side; it does not pop into place */
@@ -11837,7 +11868,7 @@ window.PAWTASK = (function(){
     <ellipse class="uf-flash" cx="24" cy="14.4" rx="24" ry="12"/>
   </svg>`;
   /* だれかがマントをなびかせて飛んでいく（このアプリのためのオリジナルの姿） */
-  const HERO_SVG = `<svg viewBox="0 0 64 30" width="52" height="24" aria-hidden="true">
+  const HERO_SVG = `<svg viewBox="0 0 64 30" width="42" height="19.7" aria-hidden="true">
     <path class="hr-cape" d="M35 10.6C26 6.4 14.4 8 2.8 14.2c3.8-.4 7.6-.4 11.2.1
       -4.2 1.4-8.4 3.4-12.4 6.2 4.8-1.8 9.6-2.9 14.2-3.2
       -3 2-5.9 4.4-8.6 7.3 6.4-4 12.6-6.3 18.4-7.2 3.6-.6 7-.7 10.2-.4Z"/>
@@ -11945,7 +11976,132 @@ window.PAWTASK = (function(){
   }
   /* ごくまれに、なにかが飛んでいく */
   const UFO_LINES = ['UFO 見た？'];
+  /* UFO のひと仕事。二回に一回くらい、途中で止まって光を降ろす */
+  let ufoAct = null;
+  let taken = null;        /* さらわれた子。次の UFO が返しに来る */
+  let backGuest = null;    /* 返してもらって、地面から歩いて帰る子 */
+
+  function pickVictim(){
+    const list = [];
+    pups.forEach(q => { if(q.el && !(rider && rider.ref === q)) list.push({ kind:'pup', ref:q }); });
+    if(visitor && visitor.el && visitor.phase === 'stay' && !(rider && rider.ref === visitor)){
+      list.push({ kind:'guest', ref:visitor });
+    }
+    if(!list.length) return null;
+    return list[Math.floor(Math.random() * list.length)];
+  }
+  function ufoActStart(st){
+    const W = st.clientWidth || 300, H = st.clientHeight || 150;
+    const pick = taken ? null : pickVictim();
+    if(!taken && !pick) return false;
+    const toRight = Math.random() < .5;
+    const beam = document.createElement('div');
+    beam.className = 'ufo-beam';
+    const el = document.createElement('div');
+    el.className = 'hm-ufo act';
+    el.innerHTML = '<span class="bw-in">' + UFO_SVG + '</span>';
+    st.appendChild(beam); st.appendChild(el);
+    let vel = null, base = 15, tp;
+    if(pick){
+      vel = pick.ref.el;
+      base = pick.kind === 'pup' ? 13 : (pick.ref.kind === 'bird' ? 14 : 15);
+      tp = pick.ref.p;
+      /* もとの群れからは、いったん外れてもらう */
+      if(pick.kind === 'pup') pups = pups.filter(q => q !== pick.ref);
+      else visitor = null;
+      taken = { cls: vel.className.replace(/ ?(still|lie|sit|sleep|flying|gait-walk)/g, ''),
+                html: vel.innerHTML, base: base };
+      taken.rec = keepAmbient(vel, 0, null);
+    } else {
+      tp = 0.24 + Math.random() * 0.52;
+      vel = document.createElement('div');
+      vel.className = taken.cls + ' still';
+      vel.innerHTML = taken.html;
+      vel.style.display = 'none';        /* 光が降りるまでは、まだ見えない */
+      base = taken.base;
+      st.appendChild(vel);
+      taken.rec = keepAmbient(vel, 0, null);
+    }
+    ufoAct = { el: el, beam: beam, vel: vel, base: base, back: !pick, vp: tp,
+               phase: 'in', p: toRight ? -0.16 : 1.16, tp: tp,
+               top: 8 + Math.random() * 10, lift: pick ? 0 : 999, until: 0,
+               rec: keepAmbient(el, 0, null), brec: keepAmbient(beam, 0, null) };
+    if(!pick) ufoAct.lift = null;      /* 返すときは、UFO の高さから降ろす */
+    return true;
+  }
+  function ufoTick(now, st){
+    if(!ufoAct) return;
+    const H = st.clientHeight || 150;
+    const a = ufoAct;
+    const ufoY = a.top + 20;                    /* 皿の下あたり */
+    const groundY = H - a.base;
+    if(a.lift === null) a.lift = Math.max(0, groundY - ufoY);
+    if(a.phase === 'in'){
+      const d = a.tp - a.p;
+      if(Math.abs(d) > 0.02){ a.p += Math.sign(d) * 0.022; }
+      else {
+        a.p = a.tp;
+        a.phase = 'work';
+        a.until = now + 700;
+        a.beam.classList.add('on');
+        if(a.back && a.vel) a.vel.style.display = '';
+      }
+      return;
+    }
+    if(a.phase === 'work'){
+      if(now < a.until) return;
+      const topLift = Math.max(0, groundY - ufoY);
+      if(a.back){
+        a.lift = Math.max(0, a.lift - 1.7);
+        if(a.lift <= 0){
+          a.lift = 0;
+          backGuest = { el: a.vel, cls: a.vel.className.replace(/ ?still/, ''), base: a.base,
+                        p: a.p, face: 1, until: now + 3500, rec: taken.rec };
+          a.vel = null;
+          taken = null;
+          a.phase = 'off';
+          a.until = now + 900;
+          a.beam.classList.remove('on');
+        }
+      } else {
+        a.lift = Math.min(topLift, a.lift + 1.7);
+        if(a.lift >= topLift - 0.5){
+          if(a.vel){ a.vel.style.display = 'none'; dropAmbient(taken.rec); taken.rec = null; }
+          a.vel = null;
+          a.phase = 'off';
+          a.until = now + 900;
+          a.beam.classList.remove('on');
+        }
+      }
+      return;
+    }
+    /* 帰っていく */
+    if(now < a.until) return;
+    const target = a.p > 0.5 ? 1.3 : -0.3;
+    const d = target - a.p;
+    a.p += Math.sign(d) * 0.017;
+    if(a.p >= 1.26 || a.p <= -0.26){
+      dropAmbient(a.rec); dropAmbient(a.brec);
+      ufoAct = null;
+    }
+  }
+  function backTick(now, st){
+    if(!backGuest) return;
+    const g = backGuest;
+    if(now < g.until) return;
+    const target = g.p > 0.5 ? 1.26 : -0.26;
+    const d = target - g.p;
+    g.face = d < 0 ? -1 : 1;
+    g.p += Math.sign(d) * 0.014;
+    if(g.p >= 1.22 || g.p <= -0.22){
+      dropAmbient(g.rec);
+      backGuest = null;
+    }
+  }
+
   function ufoBy(st){
+    /* さらった子がいるときは必ず返しに来る。ふだんは 二回に一回くらい止まる */
+    if(!ufoAct && !reduced() && (taken || Math.random() < .5) && ufoActStart(st)) return;
     const toRight = Math.random() < .5;
     const dur = 15 + Math.random() * 8;
     makeFlier(st, 'hm-ufo', UFO_SVG, {
@@ -12028,7 +12184,7 @@ window.PAWTASK = (function(){
     const toRight = Math.random() < .5;
     const dur = 6.5 + Math.random() * 3.5;
     makeFlier(st, 'hm-hero', HERO_SVG, {
-      toRight: toRight, w: 52, top: 10 + Math.random() * 20,
+      toRight: toRight, w: 42, top: 10 + Math.random() * 20,
       dy: -2 + Math.random() * 4, dur: dur });
     /* 飛んでいったあとに、ひとこと */
     setTimeout(() => dogSays(HERO_LINES[Math.floor(Math.random() * HERO_LINES.length)]),
@@ -12161,20 +12317,23 @@ window.PAWTASK = (function(){
   /* ときどき、みんなで重なって ブレーメンの音楽隊みたいになる */
   let tower = null;
   let nextTower = Date.now() + 5 * 60000 + Math.random() * 10 * 60000;
-  const TOWER_LINES = ['てっぺんは だれかな', 'いち・に・さん！'];
   function towerStart(st){
     if(!st || tower || !CAT_SVG || !RAB_SVG || !BIRD_SVG) return;
     const W = st.clientWidth || 300, H = st.clientHeight || 150;
     const at = 0.34 + Math.random() * 0.3;
     /* 下から 犬・ねこ・うさぎ・ことり。乗る高さは、それぞれの背の分だけ */
-    const kinds = [{ k:'cat', art:CAT_SVG, top:20 },
-                   { k:'rab', art:RAB_SVG, top:38 },
-                   { k:'bird', art:BIRD_SVG, top:54 }];
+    /* 乗る高さは、下の子の背中の線から割り出してある（浮かないように） */
+    const kinds = [{ k:'cat', art:CAT_SVG, top:15.2 },
+                   { k:'rab', art:RAB_SVG, top:26.3 },
+                   { k:'pup', art:(window.__DOG_SVG || ''), top:34.3,
+                     cls:'walker pup ' + COATS[Math.floor(Math.random() * COATS.length)] },
+                   { k:'bird', art:BIRD_SVG, top:43.3 }];
     const fromLeft = at > 0.5;
     const members = kinds.map((it, i) => {
       const fly = it.k === 'bird';           /* ことりは空から来る */
       const el = document.createElement('div');
-      el.className = 'walker guest ' + it.k + (fly ? ' flying' : '');
+      const base = it.cls || ('walker guest ' + it.k);
+      el.className = base + (fly ? ' flying' : '');
       el.innerHTML = fly
         ? '<span class="bd-stand">' + it.art + '</span>'
           + '<span class="bd-fly">' + BIRD_FLY_SVG + '</span>'
@@ -12184,11 +12343,12 @@ window.PAWTASK = (function(){
       const l0 = fly ? 78 : 0;
       el.style.transition = 'none';
       el.style.transform = 'translate(' + (26 + p0 * (W - 52)).toFixed(1) + 'px, '
-        + (H - 15 - l0).toFixed(1) + 'px)' + (fromLeft ? '' : ' scaleX(-1)');
+        + (H - 16.4 - l0).toFixed(1) + 'px)' + (fromLeft ? '' : ' scaleX(-1)');
       st.appendChild(el);
       void el.offsetWidth;
       el.style.transition = '';
-      return { el: el, kind: it.k, p: p0, lift: l0, top: it.top, fly: fly, flying: fly,
+      return { el: el, kind: it.k, cls: base, p: p0, lift: l0, top: it.top,
+               fly: fly, flying: fly,
                face: fromLeft ? 1 : -1, rec: keepAmbient(el, 0, null) };
     });
     tower = { at: at, phase: 'in', members: members, until: 0, said: false };
@@ -12203,6 +12363,34 @@ window.PAWTASK = (function(){
     tower.spot = { el: el, rec: keepAmbient(el, 0, null) };
     void el.offsetWidth;
     el.classList.add('on');
+  }
+  /* 昼は、光のかわりに きらきら */
+  function glitOn(st){
+    if(!st || !tower || tower.glit) return;
+    if(skyNow().cls === 'night') return;
+    const el = document.createElement('div');
+    el.className = 'hm-glit';
+    let h = '';
+    for(let i = 0; i < 12; i++){
+      const a = (i / 12) * Math.PI * 2 + Math.random() * .5;
+      const r = 27 + Math.random() * 22;
+      h += `<i style="left:${(52 + Math.cos(a) * r).toFixed(0)}px;`
+        + `top:${(56 - Math.sin(a) * r).toFixed(0)}px;`
+        + `animation-delay:${(Math.random() * 1.7).toFixed(2)}s;`
+        + `animation-duration:${(1.3 + Math.random() * 1.2).toFixed(2)}s"></i>`;
+    }
+    el.innerHTML = h;
+    st.appendChild(el);
+    tower.glit = { el: el, rec: keepAmbient(el, 0, null) };
+    void el.offsetWidth;
+    el.classList.add('on');
+  }
+  function glitOff(){
+    if(!tower || !tower.glit) return;
+    const g = tower.glit;
+    tower.glit = null;
+    if(g.el) g.el.classList.remove('on');
+    setTimeout(() => dropAmbient(g.rec), 1000);
   }
   function spotOff(){
     if(!tower || !tower.spot) return;
@@ -12220,9 +12408,9 @@ window.PAWTASK = (function(){
       m.forEach(g => {
         if(g.fly) return;                    /* ことりは空で待っている */
         const d = tower.at - g.p;
-        if(Math.abs(d) > 0.013){
+        if(Math.abs(d) > 0.03){
           g.face = d < 0 ? -1 : 1;
-          g.p += Math.sign(d) * 0.016;
+          g.p += Math.sign(d) * 0.048;
           ready = false;
         } else { g.p = tower.at; g.face = 1; }
       });
@@ -12237,33 +12425,30 @@ window.PAWTASK = (function(){
         if(g.fly){
           /* ことりは、ぱたぱた飛んできて、うさぎの背にとまる */
           const dp = tower.at - g.p, dl = g.top - g.lift;
-          if(Math.abs(dp) > 0.012 || Math.abs(dl) > 1.6){
+          if(Math.abs(dp) > 0.03 || Math.abs(dl) > 4){
             g.flying = true;
-            if(Math.abs(dp) > 0.006) g.face = dp < 0 ? -1 : 1;
-            g.p += Math.sign(dp) * Math.min(Math.abs(dp), 0.017);
-            g.lift += Math.sign(dl) * Math.min(Math.abs(dl), 2.4);
+            if(Math.abs(dp) > 0.012) g.face = dp < 0 ? -1 : 1;
+            g.p += Math.sign(dp) * Math.min(Math.abs(dp), 0.05);
+            g.lift += Math.sign(dl) * Math.min(Math.abs(dl), 8);
             done = false;
             break;
           }
           g.p = tower.at; g.lift = g.top; g.flying = false; g.face = 1;
           continue;
         }
-        if(g.lift < g.top - 1){ g.lift += 1.7; done = false; break; }
+        if(g.lift < g.top - 1.5){ g.lift += 6.7; done = false; break; }
         g.lift = g.top;
       }
       if(done){
         tower.phase = 'hold';
-        tower.until = now + 14000 + Math.random() * 10000;
+        tower.until = now + 34000 + Math.random() * 26000;
         spotOn(st);
+        glitOn(st);
       }
       return;
     }
     if(tower.phase === 'hold'){
-      if(!tower.said){
-        tower.said = true;
-        dogSays(TOWER_LINES[Math.floor(Math.random() * TOWER_LINES.length)]);
-      }
-      if(now > tower.until){ tower.phase = 'down'; spotOff(); }
+      if(now > tower.until){ tower.phase = 'down'; spotOff(); glitOff(); }
       return;
     }
     /* まず ことりが飛び立って、そのあと上の子からおりる */
@@ -12273,14 +12458,14 @@ window.PAWTASK = (function(){
       const t2 = bd.p > 0.5 ? 1.32 : -0.32;
       const d2 = t2 - bd.p;
       bd.face = d2 < 0 ? -1 : 1;
-      bd.p += Math.sign(d2) * 0.018;
-      bd.lift += 1.5;
+      bd.p += Math.sign(d2) * 0.028;
+      bd.lift += 2.4;
       if(bd.p >= 1.28 || bd.p <= -0.28) bd.away = true;
       return;
     }
     for(let i = m.length - 1; i >= 0; i--){
       if(m[i].fly) continue;
-      if(m[i].lift > 0){ m[i].lift = Math.max(0, m[i].lift - 2.4); return; }
+      if(m[i].lift > 0){ m[i].lift = Math.max(0, m[i].lift - 6.4); return; }
     }
     let gone = true;
     m.forEach(g => {
@@ -12292,7 +12477,7 @@ window.PAWTASK = (function(){
       if(g.p < 1.26 && g.p > -0.26) gone = false;
     });
     if(gone){
-      spotOff();
+      spotOff(); glitOff();
       m.forEach(g => dropAmbient(g.rec));
       tower = null;
       nextTower = now + 25 * 60000 + Math.random() * 35 * 60000;
@@ -12426,9 +12611,16 @@ window.PAWTASK = (function(){
     </svg>`;
   }
 
-  const GRASS_SVG = `<svg viewBox="0 0 18 12" aria-hidden="true">
-    <g stroke="#A9BE94" stroke-width="1.7" stroke-linecap="round" fill="none">
-      <path d="M4 12c0-4 1-6 2.5-7.5"/><path d="M9 12c0-5 .4-7.5.4-9"/><path d="M14 12c0-4-1-6-2.5-7.5"/>
+  /* 細くとがった葉が何本か、根もとから広がる */
+  const GRASS_SVG = `<svg viewBox="0 0 20 14" aria-hidden="true">
+    <g fill="#9DB489">
+      <path d="M6.4 14Q5.6 8.6 2.8 4.6Q6 8.8 7.6 14Z"/>
+      <path d="M13.6 14Q14.4 8.6 17.2 4.6Q14 8.8 12.4 14Z"/>
+    </g>
+    <g fill="#AFC498">
+      <path d="M9.2 14Q9.2 6.5 10.6 1.4Q11.6 7 10.8 14Z"/>
+      <path d="M7.8 14Q7.4 10 5.6 7Q8.2 10.4 8.8 14Z"/>
+      <path d="M12.2 14Q12.6 10 14.4 7Q11.8 10.4 11.2 14Z"/>
     </g>
   </svg>`;
 
@@ -12528,8 +12720,10 @@ window.PAWTASK = (function(){
                 : GRASS_SVG;
       const w = (kind === 'sunflower') ? o.w + 5 : o.w;
       /* 花ごとに、ゆれはじめる間をずらす */
-      const sway = (kind === 'flower' || kind === 'sunflower')
-        ? `; --sway:-${((o.x * 1.7) % 13).toFixed(1)}s` : '';
+      /* 描き直しても ゆれが途切れないよう、いまの時刻から位相を出す */
+      const swayDur = kind === 'grass' ? 6.4 : 9;
+      const sway = (kind === 'flower' || kind === 'sunflower' || kind === 'grass')
+        ? `; --sway:-${(((Date.now() / 1000) + o.x * 1.7) % swayDur).toFixed(2)}s` : '';
       return `<span class="scene ${kind}" style="left:${o.x}%; width:${w}px${sway}">${art}</span>`;
     }).join('');
   }
@@ -12786,16 +12980,41 @@ window.PAWTASK = (function(){
       owl.el.style.transform = 'translate(' + ox.toFixed(1) + 'px, '
         + ((H - 14) - owl.lift).toFixed(1) + 'px)' + (owl.face < 0 ? ' scaleX(-1)' : '');
     }
+    /* UFO のひと仕事 */
+    if(ufoAct){
+      const ux = 26 + ufoAct.p * (W - 52);
+      ufoAct.el.style.left = (ux - 20).toFixed(1) + 'px';
+      ufoAct.el.style.top = ufoAct.top.toFixed(1) + 'px';
+      const by = ufoAct.top + 20;
+      ufoAct.beam.style.left = ux.toFixed(1) + 'px';
+      ufoAct.beam.style.top = by.toFixed(1) + 'px';
+      ufoAct.beam.style.height = Math.max(0, (H - ufoAct.base + 4) - by).toFixed(1) + 'px';
+      if(ufoAct.vel){
+        /* さらわれる子は、自分がいた場所から まっすぐ上へ */
+        const vx = 26 + ufoAct.vp * (W - 52);
+        ufoAct.vel.style.transform = 'translate(' + vx.toFixed(1) + 'px, '
+          + ((H - ufoAct.base) - (ufoAct.lift || 0)).toFixed(1) + 'px)';
+      }
+    }
+    if(backGuest && backGuest.el){
+      const bx = 26 + backGuest.p * (W - 52);
+      backGuest.el.className = backGuest.cls + (Date.now() < backGuest.until ? ' still' : '');
+      backGuest.el.style.transform = 'translate(' + bx.toFixed(1) + 'px, '
+        + (H - backGuest.base).toFixed(1) + 'px)' + (backGuest.face < 0 ? ' scaleX(-1)' : '');
+    }
     /* ブレーメンの塔 */
     if(tower && tower.spot && tower.spot.el){
       tower.spot.el.style.left = (26 + tower.at * (W - 52)).toFixed(1) + 'px';
+    }
+    if(tower && tower.glit && tower.glit.el){
+      tower.glit.el.style.left = (26 + tower.at * (W - 52)).toFixed(1) + 'px';
     }
     if(tower){
       tower.members.forEach(g => {
         const moving = tower.phase === 'in' || tower.phase === 'down';
         const gx = 26 + g.p * (W - 52);
-        const gy = (H - 15) - g.lift;
-        g.el.className = 'walker guest ' + g.kind
+        const gy = (H - 16.4) - g.lift;    /* 足が地面の線にそろう高さ */
+        g.el.className = (g.cls || ('walker guest ' + g.kind))
           + (g.flying ? ' flying'
              : moving && g.lift <= 0 ? (g.kind === 'rab' ? ' gait-walk' : '') : ' still');
         g.el.style.transform = 'translate(' + gx.toFixed(1) + 'px, ' + gy.toFixed(1) + 'px)'
@@ -12835,10 +13054,19 @@ window.PAWTASK = (function(){
     }
   }
 
+  let dayMark = keyOf(new Date());
   function dogTick(){
     const st = stage();
     if(!st || app.hidden || (app.offsetParent === null)) return;
     const now = Date.now();
+
+    /* 日付が変わったら、まず そのことを */
+    const dk2 = keyOf(new Date());
+    if(dk2 !== dayMark){
+      dayMark = dk2;
+      const nd = new Date();
+      dogSays((nd.getMonth() + 1) + '月' + nd.getDate() + '日になったわん');
+    }
 
     // when it rains, everyone heads for the kennel and waits it out
     const wet = raining();
@@ -13050,6 +13278,8 @@ window.PAWTASK = (function(){
     }
     if(wet && rabbit){ rabbit.dir = rabbit.x > (st.clientWidth || 300) / 2 ? 1 : -1; }
     rabbitTick(now, st);
+    ufoTick(now, st);
+    backTick(now, st);
     /* ときどき、みんなで重なってみせる */
     if(!wet && !tower && !den && !reduced() && pose !== 'sleep' && now > nextTower) towerStart(st);
     towerTick(now, st);
@@ -13382,9 +13612,15 @@ window.PAWTASK = (function(){
     return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   }
 
+  let dogKeep = null;
   function startDog(){
     if(dogTimer) clearInterval(dogTimer);
-    const st = stage(), dog = $id('hmDog');
+    const st = stage();
+    /* 描き直すたびに犬を作りなおすと、歩みが一瞬途切れて「ピクッ」となる。
+       まえの子をそのまま新しい庭へ連れてきて、動きを続かせる */
+    let dog = $id('hmDog');
+    if(dogKeep && dog && dog !== dogKeep){ dog.replaceWith(dogKeep); dog = dogKeep; }
+    dogKeep = dog;
     // The stage is built afresh on every render. Place everyone first, with
     // the movement turned off, so nobody appears to fall in from the corner.
     if(st && dog){
