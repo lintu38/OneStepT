@@ -2001,8 +2001,9 @@
     font-family:'Space Mono',monospace; }
 
   /* a small dog trots along above the views */
-  .cal-walk{ position:relative; height:33px; margin:-8px 0 -14px; overflow:visible; }
-  .cal-walk .walker{ z-index:1; }
+  /* 犬のふきだしのぶん、上に空きをとってある */
+  .cal-walk{ position:relative; height:33px; margin:12px 0 -14px; overflow:visible; }
+  .cal-walk .walker{ z-index:1; pointer-events:auto; cursor:pointer; }
   .cal-editor .ed-field .toggle{ flex:0 0 auto; }
 
   .cal-editor .copy-field{ border-top:1px solid var(--line); padding-top:11px; margin-top:3px; }
@@ -2423,6 +2424,27 @@
   .hm-rainbow path{ stroke-dasharray:100; stroke-dashoffset:100;
     animation:rbDraw 150s cubic-bezier(.25,.5,.4,1) forwards; }
   @keyframes rbDraw{ to{ stroke-dashoffset:0; } }
+  /* さきに にじんだ光がのびて、そのあとから色がのる。先っぽの境目を消すため */
+  .hm-rainbow .rb-soft{ filter:blur(3.6px); opacity:.5; }
+  .hm-rainbow .rb-soft path{ animation-delay:-7s; }
+  .hm-rainbow .rb-haze{ filter:blur(7px); opacity:.26; }
+  .hm-rainbow .rb-haze path{ animation-delay:-14s; }
+  /* のびていく先で、かすかにきらきら */
+  .hm-rainbow .rb-sp{ offset-distance:0%; opacity:0;
+    animation:rbRide 150s cubic-bezier(.25,.5,.4,1) -3s forwards; }
+  .hm-rainbow .rb-spi{ transform-origin:center;
+    animation:rbTwinkle 1.7s ease-in-out infinite; }
+  @keyframes rbRide{
+    0%{ offset-distance:0%; opacity:0; }
+    4%{ opacity:.85; }
+    93%{ opacity:.85; }
+    100%{ offset-distance:100%; opacity:0; }
+  }
+  @keyframes rbTwinkle{
+    0%,100%{ opacity:.2; transform:scale(.5); }
+    50%{ opacity:1; transform:scale(1.3); }
+  }
+  @media (prefers-reduced-motion: reduce){ .hm-rainbow .rb-spi{ animation:none; } }
   @keyframes rbIn{ from{ opacity:0; } to{ opacity:.28; } }
   @keyframes rbOut{ from{ opacity:.28; } to{ opacity:0; } }
   /* 空をわたっていくもの：小鳥・カラスの群れ・UFO */
@@ -9311,20 +9333,22 @@ window.PAWTASK = (function(){
         const st = stateOf(t);
         t.at = Date.now();
         save();
-        const r = el.closest('.pt-task');
-        if(r){
-          r.classList.toggle('done', st === 'done');
-          r.classList.toggle('skip', st === 'skip');
-        }
-        el.classList.toggle('on', st === 'done');
-        el.classList.toggle('skip', st === 'skip');
-        el.title = pawTitle(st);
+        /* おなじ To Do が一つの画面に二か所出ていることがあるので、どちらも直す */
+        const same = scope.querySelectorAll('[data-tdone="' + t.id + '"]');
+        (same.length ? Array.prototype.slice.call(same) : [el]).forEach(paw => {
+          const r = paw.closest('.pt-task');
+          if(r){
+            r.classList.toggle('done', st === 'done');
+            r.classList.toggle('skip', st === 'skip');
+          }
+          paw.classList.toggle('on', st === 'done');
+          paw.classList.toggle('skip', st === 'skip');
+          paw.title = pawTitle(st);
+          if(st === 'done') paw.classList.add('stamp'); else paw.classList.remove('stamp');
+        });
         if(st === 'done'){
           stampId = t.id;
-          el.classList.add('stamp');
           setTimeout(() => { if(stampId === t.id) stampId = ''; }, 900);
-        } else {
-          el.classList.remove('stamp');
         }
         sync(scope);
       };
@@ -9689,6 +9713,8 @@ window.PAWTASK = (function(){
           cont: e.cont === false ? false : true,
           doneOn: e.doneOn || '',
           skipOn: e.skipOn || '',
+          doneDays: Array.isArray(e.doneDays) ? e.doneDays.slice() : [],
+          skipDays: Array.isArray(e.skipDays) ? e.skipDays.slice() : [],
           note: e.note || '',
           type: typeOf(e.type).label,
           color: typeOf(e.type).color,
@@ -9762,7 +9788,7 @@ window.PAWTASK = (function(){
     const joinL = run && onDay(e, keyOf(addDays(d, -1)));
     const joinR = run && onDay(e, keyOf(addDays(d, 1)));
     const head = !joinL || idxOf(d) === 0;          // the name shows again each week
-    const cDone = e.doneOn === k, cSkip = !cDone && e.skipOn === k;
+    const cDone = isDoneOn(e, k), cSkip = !cDone && isSkipOn(e, k);
     const cls = 'chip' + (joinL ? ' join-l' : '') + (joinR ? ' join-r' : '')
       + (cDone ? ' is-done' : '') + (cSkip ? ' is-skip' : '');
     return `<span class="${cls}" data-chip="${esc(e.id)}"
@@ -9868,11 +9894,41 @@ window.PAWTASK = (function(){
     </div>`;
   }
 
-  /* 肉球はひと押しごとに、完了 → やらなかった → まっさら と回る */
+  /* 完了・やらなかったは「その日ぶん」。くり返しの予定は、日ごとに覚えておく。
+     まえの版はひと組しか持てなかったので、そのぶんも読めるようにしてある */
+  const MARK_MAX = 800;
+  function markedOn(e, key, dk){
+    if(!e || !dk) return false;
+    const arr = e[key];
+    if(Array.isArray(arr) && arr.indexOf(dk) >= 0) return true;
+    return e[key === 'doneDays' ? 'doneOn' : 'skipOn'] === dk;
+  }
+  const isDoneOn = (e, dk) => markedOn(e, 'doneDays', dk);
+  const isSkipOn = (e, dk) => markedOn(e, 'skipDays', dk);
+  function setMark(e, key, dk, on){
+    let arr = (Array.isArray(e[key]) ? e[key] : []).filter(x => x !== dk);
+    if(on) arr.push(dk);
+    if(arr.length > MARK_MAX) arr = arr.slice(-MARK_MAX);
+    e[key] = arr;
+    /* まえの版の一件ぶんは、その日のぶんだけ引き取る */
+    const old = key === 'doneDays' ? 'doneOn' : 'skipOn';
+    if(e[old] === dk) delete e[old];
+  }
+  function clearMarks(e){
+    delete e.doneDays; delete e.skipDays; delete e.doneOn; delete e.skipOn;
+  }
+
+  /* 肉球はひと押しごとに、完了 → やらなかった → まっさら と回る（その日ぶんだけ） */
   function cyclePaw(e, dk){
-    if(e.doneOn === dk){ delete e.doneOn; e.skipOn = dk; return 'skip'; }
-    if(e.skipOn === dk){ delete e.skipOn; return 'none'; }
-    delete e.skipOn; e.doneOn = dk; return 'done';
+    if(isDoneOn(e, dk)){
+      setMark(e, 'doneDays', dk, false);
+      setMark(e, 'skipDays', dk, true);
+      return 'skip';
+    }
+    if(isSkipOn(e, dk)){ setMark(e, 'skipDays', dk, false); return 'none'; }
+    setMark(e, 'skipDays', dk, false);
+    setMark(e, 'doneDays', dk, true);
+    return 'done';
   }
 
   /* 押したばかりの肉球だけアニメーションさせるための目印 */
@@ -9884,8 +9940,8 @@ window.PAWTASK = (function(){
   }
   function eventRow(e, dayKey){
     const dk = dayKey || cursor;
-    const done = e.doneOn === dk;
-    const skip = !done && e.skipOn === dk;      /* やらなかった日 */
+    const done = isDoneOn(e, dk);
+    const skip = !done && isSkipOn(e, dk);      /* やらなかった日 */
     const stamp = done && stampKey === (e.id + '|' + dk);
     const rowHtml = `<button class="cal-ev${done ? ' is-done' : ''}${skip ? ' is-skip' : ''}" data-edit="${esc(e.id)}" data-eday="${dk}"
       style="--c:${typeColor(e.type)}; --cb:${tint(typeColor(e.type), 0.13)}">
@@ -9992,7 +10048,7 @@ window.PAWTASK = (function(){
               : `<span class="te-time">${time}</span>
                  <span class="te-title"><i></i>${esc(t.e.title)}</span>
                  ${t.e.note && h > 66 ? `<span class="te-note">${esc(t.e.note)}</span>` : ''}`;
-            return `<button class="tt-ev ${h < 44 ? 'short' : ''}${t.e.doneOn === k ? ' is-done' : ''}${t.e.doneOn !== k && t.e.skipOn === k ? ' is-skip' : ''}" data-edit="${esc(t.e.id)}" data-eday="${k}"
+            return `<button class="tt-ev ${h < 44 ? 'short' : ''}${isDoneOn(t.e, k) ? ' is-done' : ''}${!isDoneOn(t.e, k) && isSkipOn(t.e, k) ? ' is-skip' : ''}" data-edit="${esc(t.e.id)}" data-eday="${k}"
               style="top:${top.toFixed(1)}px; height:${h.toFixed(1)}px;
                      left:${(t.col * w).toFixed(2)}%; width:calc(${w.toFixed(2)}% - 4px);
                      --c:${typeColor(t.e.type)}; --cb:${tint(typeColor(t.e.type), 0.13)}">
@@ -10176,6 +10232,7 @@ window.PAWTASK = (function(){
 
       <div class="cal-walk" id="calWalk">
         <span class="walker" id="calDog">${window.__DOG_SVG || ''}</span>
+        <div class="dog-bubble sess hide" id="calBubble"></div>
       </div>
 
       <div class="cal-views">
@@ -10215,6 +10272,27 @@ window.PAWTASK = (function(){
   /* ---------------- the dog above the views ---------------- */
 
   let cdX = 0.35, cdDir = -1, cdStop = 0, cdPose = '', cdTimer = null;
+  /* HOME の子と同じことばで、ここでもしゃべる */
+  let cdSaid = '', cdSayUntil = 0, cdNextSay = 0, cdGreeted = false;
+
+  function calWords(kind, pose){
+    const T = window.__dogTalk;
+    if(!T) return '';
+    try{
+      return (kind === 'tap'   ? T.tap(pose || 'walk')
+            : kind === 'greet' ? T.greet()
+                               : T.idle()) || '';
+    }catch(err){ return ''; }
+  }
+  function calSay(text, ms){
+    const bub = $id('calBubble');
+    if(!bub || !text) return;
+    cdSaid = text;
+    bub.innerHTML = text + '<span class="bpaw"></span>';
+    bub.classList.remove('hide');
+    cdSayUntil = Date.now() + (ms || 4500);
+    paintCalDog();
+  }
 
   function paintCalDog(){
     const st = $id('calWalk'), dog = $id('calDog');
@@ -10225,6 +10303,13 @@ window.PAWTASK = (function(){
     // its paws land on the top edge of the view bar
     dog.style.transform = 'translate(' + x.toFixed(1) + 'px, 26px) scale(.8)'
                         + (cdDir < 0 ? ' scaleX(-1)' : '');
+    /* ふきだしは、その子の頭の上をついてまわる */
+    const bub = $id('calBubble');
+    if(bub){
+      bub.style.left = x.toFixed(1) + 'px';
+      bub.style.top  = '6px';
+      bub.classList.toggle('flip', x > W * 0.6);
+    }
   }
 
   function calDogTick(){
@@ -10254,7 +10339,28 @@ window.PAWTASK = (function(){
           : rr(12000, 35000));
       }
     }
+    calTalkTick(now);
     paintCalDog();
+  }
+
+  /* ひとりごと。あいさつから始まって、そのあとは三〜六分おきに */
+  function calTalkTick(now){
+    const bub = $id('calBubble');
+    if(!bub) return;
+    if(cdSayUntil){
+      if(now > cdSayUntil){
+        bub.classList.add('hide');
+        cdSaid = '';
+        cdSayUntil = 0;
+        cdNextSay = now + 180000 + Math.random() * 180000;
+      }
+      return;
+    }
+    if(!cdNextSay){ cdNextSay = now + 1400; return; }   /* 開いた直後は、ひと呼吸おく */
+    if(now < cdNextSay) return;
+    if(!cdGreeted){ cdGreeted = true; calSay(calWords('greet'), 5200); return; }
+    if(cdPose === 'sleep'){ cdNextSay = now + 60000; return; }   /* 寝ているあいだは、そっと */
+    calSay(calWords('idle'), 6500);
   }
 
   function startCalDog(){
@@ -10264,6 +10370,27 @@ window.PAWTASK = (function(){
       paintCalDog();
       void dog.offsetWidth;
       dog.style.transition = '';
+    }
+    /* 描き直したあとも、言いかけのひとことは消さない */
+    const bub = $id('calBubble');
+    if(bub && cdSaid && cdSayUntil > Date.now()){
+      bub.innerHTML = cdSaid + '<span class="bpaw"></span>';
+      bub.style.transition = 'none';
+      bub.classList.remove('hide');
+      void bub.offsetWidth;
+      bub.style.transition = '';
+    }
+    /* さわられたら、立ちどまってひとこと */
+    const walk = $id('calWalk');
+    if(walk && !walk.__dogTap){
+      walk.__dogTap = true;
+      walk.addEventListener('click', ev => {
+        const w = ev.target && ev.target.closest ? ev.target.closest('.walker') : null;
+        if(!w) return;
+        ev.stopPropagation();
+        if(!cdPose){ cdPose = 'still'; cdStop = Date.now() + 4500; }
+        calSay(calWords('tap', cdPose || 'walk'), 4500);
+      });
     }
     if(!cdTimer) cdTimer = setInterval(calDogTick, 250);
   }
@@ -10439,7 +10566,7 @@ window.PAWTASK = (function(){
         at: Date.now()
       });
       delete one.monthDay;
-      delete one.doneOn; delete one.skipOn;
+      clearMarks(one);
       list.push(one);
       note = 'この回だけ直しました。';
     } else if(scope === 'fwd' && origDay > (draft.__origDate || master.date)){
@@ -10454,7 +10581,7 @@ window.PAWTASK = (function(){
         taskId: null,
         at: Date.now()
       });
-      delete rest.doneOn; delete rest.skipOn;
+      clearMarks(rest);
       list.push(rest);
       note = 'これ以降を直しました。';
     } else {
@@ -10577,7 +10704,7 @@ window.PAWTASK = (function(){
   };
   window.__planOn = function(dayKey){
     /* 済んだ予定も、やらなかった予定も、もう言わない */
-    return eventsOn(dayKey).filter(e => e.doneOn !== dayKey && e.skipOn !== dayKey);
+    return eventsOn(dayKey).filter(e => !isDoneOn(e, dayKey) && !isSkipOn(e, dayKey));
   };
   /* HOME に並べるぶんは、完了した予定も肉球つきのまま残す */
   window.__planAll = function(dayKey){ return eventsOn(dayKey); };
@@ -10625,7 +10752,8 @@ window.PAWTASK = (function(){
     if(d.source === 'tasks-set-done' && d.id && d.day){
       const e2 = events().find(x => x.id === d.id);
       if(!e2) return;
-      if(e2.doneOn === d.day) delete e2.doneOn; else { e2.doneOn = d.day; delete e2.skipOn; }
+      if(isDoneOn(e2, d.day)) setMark(e2, 'doneDays', d.day, false);
+      else { setMark(e2, 'skipDays', d.day, false); setMark(e2, 'doneDays', d.day, true); }
       e2.at = Date.now();
       save();
       render();
@@ -11238,22 +11366,33 @@ window.PAWTASK = (function(){
   const TAP_PUP = ['わん！', 'あそぼ！', 'まってー', 'ぼく、ちいさい', 'わーい'];
   const TAP_CAT = ['にゃあ', 'ちょっと おじゃま', 'ここ あったかい', 'なでても いいよ', 'にゃ…'];
   const TAP_RAB = ['ぴょん', 'こんにちは', 'はっぱ ある？', 'もふもふ', 'そろそろ 帰ろうかな'];
+  const TAP_BIRD = ['ピチチ…', 'ちゅん', 'ピピッ', 'ちゅん ちゅん', 'いい枝 みつけた', 'ちちち…'];
+  const TAP_OWL  = ['ホー…', 'ホッホー', 'よい夜だね', 'そろそろ ねる時間だよ', 'ホ…'];
+  /* だれがしゃべっているか。'dog' / 'guest' / 'owl'、子犬はその子の要素そのもの */
   let bubbleFrom = 'dog';
-  function tapGuest(isCat){
+  function tapGuest(el){
     const bub = $id('hmBubble');
-    if(!bub) return;
-    const pool = isCat ? TAP_CAT : TAP_RAB;
+    if(!bub || !el) return;
+    const kind = el.classList.contains('cat')  ? 'cat'
+               : el.classList.contains('owl')  ? 'owl'
+               : el.classList.contains('bird') ? 'bird' : 'rab';
+    const pool = kind === 'cat'  ? TAP_CAT
+               : kind === 'owl'  ? TAP_OWL
+               : kind === 'bird' ? TAP_BIRD : TAP_RAB;
     bubbleText = pool[Math.floor(Math.random() * pool.length)];
-    bubbleFrom = 'guest';
+    bubbleFrom = kind === 'owl' ? 'owl' : 'guest';
     bub.innerHTML = bubbleText + PAW_TAG;
     bub.classList.remove('hide');
     bubbleUntil = Date.now() + 4500;
-    if(visitor && visitor.phase === 'stay'){ visitor.pose = 'still'; visitor.next = Date.now() + 5000; }
+    if(kind !== 'owl' && visitor && visitor.phase === 'stay'){
+      visitor.pose = 'still'; visitor.next = Date.now() + 5000;
+    }
     paintDog();
   }
-  function tapDog(isPup){
+  function tapDog(who){
     const bub = $id('hmBubble');
     if(!bub) return;
+    const isPup = !!(who && who.classList && who.classList.contains('pup'));
     const now = Date.now();
     let text;
     if(isPup){
@@ -11266,12 +11405,33 @@ window.PAWTASK = (function(){
       if(pose === 'walk'){ pose = 'still'; poseUntil = now + 4500; nextPose = poseUntil; }
     }
     bubbleText = text;
-    bubbleFrom = 'dog';
+    bubbleFrom = isPup ? who : 'dog';    /* 子犬なら、その子の上に出す */
     bub.innerHTML = bubbleText + PAW_TAG;
     bub.classList.remove('hide');
     bubbleUntil = now + 4500;
     paintDog();
   }
+
+  /* Schedule の犬にも、同じことばを分けてあげる */
+  window.__dogTalk = {
+    tap(pose){
+      const pool = TAP_LINES[pose] || TAP_LINES.walk;
+      let text = pool[Math.floor(Math.random() * pool.length)];
+      if(pose !== 'sleep' && Math.random() < .25) text = wxLine() || GREET();
+      return text;
+    },
+    idle(){
+      const tell = toTell();
+      let text = null;
+      if(tell.length && Math.random() < 0.35){
+        text = planLine(tell[Math.floor(Math.random() * tell.length)]);
+      }
+      if(!text && Math.random() < 0.4) text = todoLine();
+      if(!text && Math.random() < 0.4) text = wxLine();
+      return text || GREET();
+    },
+    greet(){ return GREET(); }
+  };
 
   let dogX = 0.5, dogDir = -1, dogTimer = null;
   // walk · still · sit · lie · sleep
@@ -11416,11 +11576,25 @@ window.PAWTASK = (function(){
      7本いっしょに、時間をかけて少しずつのびていく（pathLength で長さをそろえる） */
   const RAINBOW_SVG = (() => {
     const band = ['#D98E8E','#DFA97C','#DCC98A','#9FBE95','#8FB0C4','#9294BD','#B292BB'];
-    let p = '';
+    const arc = r => `M${120 - r} 124 A${r} ${r} 0 0 1 ${120 + r} 124`;
+    /* 同じ弧を三枚。いちばんぼやけたものが先に、色は最後に追いつく */
+    let haze = '', soft = '', p = '';
     band.forEach((c, i) => {
       const r = 110 - i * 7;
-      p += `<path pathLength="100" d="M${120 - r} 124 A${r} ${r} 0 0 1 ${120 + r} 124"
-        fill="none" stroke="${c}" stroke-width="6.4" stroke-linecap="butt"/>`;
+      haze += `<path class="rb-a" data-lead="14" pathLength="100" d="${arc(r)}"
+        fill="none" stroke="${c}" stroke-width="15" stroke-linecap="round"/>`;
+      soft += `<path class="rb-a" data-lead="7" pathLength="100" d="${arc(r)}"
+        fill="none" stroke="${c}" stroke-width="10" stroke-linecap="round"/>`;
+      p    += `<path class="rb-a" data-lead="0" pathLength="100" d="${arc(r)}"
+        fill="none" stroke="${c}" stroke-width="6.4" stroke-linecap="round"/>`;
+    });
+    /* 先っぽを行くひかりの粒。弧の上をおなじ速さでついていく */
+    let spark = '';
+    [[113.5, 1.1, 0], [110, 1.5, .45], [103.5, 1.15, .95],
+     [96.5, 1.35, 1.4], [90, 1, 1.85]].forEach(s => {
+      spark += `<g class="rb-a rb-sp" data-lead="3"
+        style="offset-path:path('${arc(s[0])}')"><circle class="rb-spi" r="${s[1]}"
+        fill="#FFFBF2" style="animation-delay:${s[2]}s"/></g>`;
     });
     return `<svg viewBox="0 0 240 130" aria-hidden="true">
       <defs>
@@ -11432,7 +11606,12 @@ window.PAWTASK = (function(){
         </linearGradient>
         <mask id="rbMask"><rect width="240" height="130" fill="url(#rbFade)"/></mask>
       </defs>
-      <g mask="url(#rbMask)">${p}</g>
+      <g mask="url(#rbMask)">
+        <g class="rb-haze">${haze}</g>
+        <g class="rb-soft">${soft}</g>
+        <g class="rb-band">${p}</g>
+        <g class="rb-sparks">${spark}</g>
+      </g>
     </svg>`;
   })();
 
@@ -11560,10 +11739,10 @@ window.PAWTASK = (function(){
   let curiousUntil = 0, curiousAt = 0, sniffSaid = false;
   let owl = null;
   let nextOwl = Date.now() + 2 * 60000 + Math.random() * 9 * 60000;
-  let nextHero = Date.now() + 3.5 * 3600000 + Math.random() * 7 * 3600000;
+  let nextHero = Date.now() + 25 * 60000 + Math.random() * 65 * 60000;
   let nextBirdFly = Date.now() + 4 * 60000 + Math.random() * 9 * 60000;
   let nextCrows   = Date.now() + 5 * 60000 + Math.random() * 14 * 60000;
-  let nextUfo     = Date.now() + 3 * 3600000 + Math.random() * 7 * 3600000;
+  let nextUfo     = Date.now() + 20 * 60000 + Math.random() * 65 * 60000;
 
   /* 空を横切るものを、ひとつ空に放つ */
   function makeFlier(st, cls, art, o){
@@ -11786,9 +11965,15 @@ window.PAWTASK = (function(){
     keepAmbient(el, 220000, (e2, off) => {
       e2.style.animationDelay = (-off).toFixed(2) + 's, '
         + Math.max(0, 200 - off).toFixed(2) + 's';
-      e2.querySelectorAll('path').forEach(p2 => {
-        if(off > 151){ p2.style.animation = 'none'; p2.style.strokeDashoffset = '0'; }
-        else p2.style.animationDelay = (-off).toFixed(2) + 's';
+      e2.querySelectorAll('.rb-a').forEach(p2 => {
+        const t2 = off + (+(p2.getAttribute('data-lead') || 0));
+        if(t2 > 151){
+          p2.style.animation = 'none';
+          if(p2.classList.contains('rb-sp')) p2.style.opacity = '0';
+          else p2.style.strokeDashoffset = '0';
+        } else {
+          p2.style.animationDelay = (-t2).toFixed(2) + 's';
+        }
       });
     });
     setTimeout(() => dogSays('にじ が でてる！'), 2200);
@@ -12001,16 +12186,16 @@ window.PAWTASK = (function(){
     const d = new Date();
     const t = d.getHours() + d.getMinutes() / 60;
     /* 東（右）から昇って、正午に真上、西（左）へしずむ */
-    if(t >= 6 && t < 18){
-      const k = (t - 6) / 12;                       // 6:00 → 18:00、まんなかが正午
+    if(t >= 6 && t < 17){
+      const k = (t - 6) / 11;                       // 6:00 → 17:00、まんなかが昼すぎ
       return { cls:'day', orb:'sun', x: 92 - k * 84, y: 56 - Math.sin(Math.PI * k) * 24 };
     }
     if(t >= 5 && t < 6){                            // 夜明け、東のひくいところ
       const k = t - 5;
       return { cls:'dusk', orb:'sun', x: 96 - k * 4, y: 74 - k * 18 };
     }
-    if(t >= 18 && t < 20){                          // 西の空にしずんでいく
-      const k = (t - 18) / 2;
+    if(t >= 17 && t < 19){                          // 西の空にしずんでいく
+      const k = (t - 17) / 2;                       /* 17時から夕方、19時にはもう夜 */
       return { cls:'dusk', orb:'sun', x: 8 - k * 4, y: 56 + k * 20 };
     }
     const k = ((t + 5) % 24) / 24;
@@ -12182,9 +12367,21 @@ window.PAWTASK = (function(){
     }
     const bub = $id('hmBubble');
     if(bub){
-      const bx = (bubbleFrom === 'guest' && visitor) ? (26 + visitor.p * (W - 52)) : x;
+      /* ふきだしは、しゃべった子の頭の上に。高いところにいる子なら、そこに */
+      let bp = null, by = y;
+      if(bubbleFrom === 'guest' && visitor){
+        bp = visitor.p;
+        by = (visitor.kind === 'bird' ? H - 14 : H - 15) - (visitor.lift || 0);
+      } else if(bubbleFrom === 'owl' && owl){
+        bp = owl.p;
+        by = (H - 14) - owl.lift;
+      } else if(bubbleFrom && bubbleFrom.nodeType === 1){
+        const pp = pups.filter(q => q.el === bubbleFrom)[0];
+        if(pp){ bp = pp.p; by = H - 13; }
+      }
+      const bx = bp == null ? x : (26 + bp * (W - 52));
       bub.style.left = bx.toFixed(1) + 'px';
-      bub.style.top  = (y - 20).toFixed(1) + 'px';
+      bub.style.top  = (by - 20).toFixed(1) + 'px';
       bub.classList.toggle('flip', bx > W * 0.6);
     }
     const z = $id('hmZzz');
@@ -12343,12 +12540,12 @@ window.PAWTASK = (function(){
     }
     /* ごくまれに、だれかが飛んでいく */
     if(now > nextHero){
-      nextHero = now + 4 * 3600000 + Math.random() * 6 * 3600000;
+      nextHero = now + 1.4 * 3600000 + Math.random() * 2.2 * 3600000;
       if(!wet) heroBy(st);
     }
     /* ごくまれに、UFO */
     if(now > nextUfo){
-      nextUfo = now + 4 * 3600000 + Math.random() * 6 * 3600000;
+      nextUfo = now + 1.4 * 3600000 + Math.random() * 2.2 * 3600000;
       if(!wet) ufoBy(st);
     }
 
@@ -12559,12 +12756,14 @@ window.PAWTASK = (function(){
         nextBubble = now + 180000 + Math.random() * 180000;   // three to six minutes
       } else if(!bubbleUntil && sayQueue.length && now > nextSay){
         greeted = true;
+        bubbleFrom = 'dog';
         bubbleText = sayQueue.shift();
         bub.innerHTML = bubbleText + PAW_TAG;
         bub.classList.remove('hide');
         bubbleUntil = now + (sayQueue.length ? 4200 : 5400);
       } else if(!bubbleUntil && now > nextBubble && pose !== 'sleep'){
         greeted = true;
+        bubbleFrom = 'dog';
         // a plan to pass on, a word about the weather, or simply hello
         const tell = toTell();
         let text = null;
@@ -12584,6 +12783,7 @@ window.PAWTASK = (function(){
       if(party.length && data.cheeredOn !== keyOf(new Date()) && pose !== 'sleep'){
         data.cheeredOn = keyOf(new Date());
         PAWS.save(false);
+        bubbleFrom = 'dog';
         bubbleText = Math.random() < 0.5 ? 'お誕生日おめでとう！' : 'Happy Birthday！';
         bub.innerHTML = bubbleText + PAW_TAG;
         bub.classList.remove('hide');
@@ -12663,9 +12863,8 @@ window.PAWTASK = (function(){
           const w = ev.target && ev.target.closest ? ev.target.closest('.walker') : null;
           if(!w) return;
           ev.stopPropagation();
-          if(w.classList.contains('guest')){ tapGuest(w.classList.contains('cat')); return; }
-          bubbleFrom = 'dog';
-          tapDog(w.classList.contains('pup'));
+          if(w.classList.contains('guest')){ tapGuest(w); return; }
+          tapDog(w);
         });
       }
       paintDog();
