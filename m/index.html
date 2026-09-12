@@ -2129,12 +2129,14 @@
     -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 16%, #000 84%, transparent 100%);
     mask-image:linear-gradient(90deg, transparent 0, #000 16%, #000 84%, transparent 100%); }
   .stars i{ position:absolute; display:block; border-radius:999px;
-    background:#E6C258; box-shadow:0 0 5px rgba(233,199,95,.9), 0 0 11px rgba(240,215,130,.5);
+    background:#FBF2CD;
+    box-shadow:0 0 3px 1px rgba(251,242,205,.96), 0 0 9px 2px rgba(250,239,193,.6),
+      0 0 3px rgba(122,124,152,.34);
     opacity:var(--o,.6); }
   .stars i.tw{ animation:starTw 3s ease-in-out infinite; }
   @keyframes starTw{
-    0%,100%{ opacity:calc(var(--o,.6) * .28); transform:scale(.7); }
-    50%{ opacity:var(--o,.6); transform:scale(1.15); }
+    0%,100%{ opacity:calc(var(--o,.6) * .22); transform:scale(.62); }
+    50%{ opacity:var(--o,.6); transform:scale(1.22); }
   }
   @media (prefers-reduced-motion: reduce){ .stars i.tw{ animation:none; } }
   .orb{ position:absolute; width:26px; height:26px; border-radius:999px; z-index:0;
@@ -2197,6 +2199,17 @@
   @media (prefers-reduced-motion: reduce){
     .scene.flower svg, .scene.sunflower svg{ animation:none; } }
   .home-stage .walker{ z-index:5; }
+  /* 夜、ブレーメンが出来あがったときの、天からの光 */
+  .hm-spot{ position:absolute; top:-8px; bottom:6px; width:136px; margin-left:-68px;
+    z-index:4; pointer-events:none; opacity:0; transition:opacity 1.3s ease;
+    background:linear-gradient(180deg, rgba(255,247,212,.5) 0%, rgba(255,247,212,.32) 42%,
+      rgba(255,247,212,.15) 78%, rgba(255,247,212,.04) 100%);
+    clip-path:polygon(44% 0, 56% 0, 100% 100%, 0 100%);
+    filter:blur(2px); }
+  .hm-spot::after{ content:''; position:absolute; left:50%; bottom:0;
+    width:108px; height:15px; margin-left:-54px; border-radius:50%;
+    background:radial-gradient(ellipse at center, rgba(255,247,212,.5), rgba(255,247,212,0) 70%); }
+  .hm-spot.on{ opacity:1; }
   /* 小屋に入っていくときは、すうっと見えなくなる */
   .home-stage #hmDog{ transition:transform .25s linear, opacity .55s ease; }
   /* on this stage a pup walks in from the side; it does not pop into place */
@@ -2456,6 +2469,8 @@
   /* ---------- たまに起きる、うれしいこと ---------- */
   .hm-fly{ position:absolute; z-index:2; pointer-events:none; will-change:transform; }
   .hm-fly .fly-in{ display:block; animation:flySway 4.6s ease-in-out infinite; }
+  /* 暗くなってからの犬の風船は、ほのかに明るく見える */
+  .hm-fly.lit{ filter:drop-shadow(0 0 8px rgba(250,238,196,.55)); }
   .hm-fly svg{ display:block; }
   @keyframes flyAcross{
     0%{ transform:translate(0,0); opacity:0; }
@@ -2562,9 +2577,11 @@
   @keyframes pudRip{ 0%{ transform:scale(.15); opacity:.75; }
     100%{ transform:scale(1); opacity:0; } }
   /* 晴れた日のうさぎ。かえると同じ進みかたで、跳ぶ高さはうさぎのぶんだけ高く */
-  .hm-rabbit{ position:absolute; bottom:5px; z-index:3; pointer-events:none;
+  .hm-rabbit{ position:absolute; bottom:2px; z-index:3; pointer-events:none;
     transition:left .46s ease-out, opacity .8s ease; }
   .hm-rabbit .rb-in{ display:block; }
+  /* 縮めるのは足もとを軸に。そうしないと地面から浮いてしまう */
+  .hm-rabbit .rb-in > span{ transform-origin:50% 100%; }
   .hm-rabbit svg, .hm-rabbit span{ display:block; }
   @keyframes rabBigHop{
     0%{ transform:translateY(0) scaleY(.84) scaleX(1.1); }
@@ -11504,6 +11521,9 @@ window.PAWTASK = (function(){
   };
 
   let dogX = 0.5, dogDir = -1, dogTimer = null;
+  /* ときどき、子犬が背中に乗ったり、小鳥がとまったりする */
+  let rider = null;                     /* { kind:'pup'|'bird', ref, until } */
+  let nextRider = Date.now() + 3 * 60000 + Math.random() * 6 * 60000;
   /* ときどき、小屋の中で ひとやすみ。雨の日は多め */
   const inDen = () => !!(den && den.phase === 'in');
   let den = null;                       /* { phase:'to'|'in', until } */
@@ -11641,7 +11661,7 @@ window.PAWTASK = (function(){
     <rect x="16" y="43" width="8" height="6.6" rx="1.6" fill="#C39F76"/>
   </svg>`;
   /* まるい柴犬のかたちの風船。ほかの風船より ずっと大きい */
-  const SHIBA_SVG = `<svg viewBox="0 0 64 82" width="44" height="57" aria-hidden="true">
+  const SHIBA_SVG = `<svg viewBox="0 0 64 82" width="36" height="46" aria-hidden="true">
     <defs>
       <radialGradient id="shGloss" cx="33%" cy="26%" r="76%">
         <stop offset="0" stop-color="#FFFFFF" stop-opacity=".42"/>
@@ -11876,6 +11896,10 @@ window.PAWTASK = (function(){
   let nextUfo     = Date.now() + 20 * 60000 + Math.random() * 65 * 60000;
 
   /* 空を横切るものを、ひとつ空に放つ */
+  /* 空を渡るものは、なるべく一度にひとつだけ。たまには重なってもいい */
+  function skyBusy(st){
+    return !!(st && st.querySelector('.hm-fly, .hm-hero, .hm-ufo'));
+  }
   function makeFlier(st, cls, art, o){
     if(!st) return null;
     const W = st.clientWidth || 300;
@@ -12026,13 +12050,15 @@ window.PAWTASK = (function(){
     if(!st || st.querySelector('.hm-fly')) return;
     const W = st.clientWidth || 300;
     const r0 = Math.random();
-    const shiba = r0 < .26;                 /* ときどき、まるい柴犬の風船 */
-    const party = !shiba && r0 < .63;
+    /* 時間に関わらず、おなじ割合で。まるい柴犬の風船は二回に一回くらい */
+    const dark = skyNow().cls !== 'day';
+    const shiba = r0 < .5;
+    const party = !shiba && r0 < .78;
     const toRight = Math.random() < .5;
     const dur = 26 + Math.random() * 16;
     const el = document.createElement('div');
-    el.className = 'hm-fly' + (shiba ? ' big' : '');
-    el.style.left = (toRight ? (shiba ? -70 : -56) : W + (shiba ? 28 : 22)) + 'px';
+    el.className = 'hm-fly' + (shiba ? ' big' : '') + (shiba && dark ? ' lit' : '');
+    el.style.left = (toRight ? (shiba ? -62 : -56) : W + (shiba ? 24 : 22)) + 'px';
     el.style.top = (shiba ? 7 + Math.random() * 13 : 8 + Math.random() * 26) + 'px';
     el.style.setProperty('--dx', ((toRight ? 1 : -1) * (W + (shiba ? 150 : 96))).toFixed(0) + 'px');
     el.style.setProperty('--dy', (shiba ? -4 - Math.random() * 10
@@ -12167,6 +12193,24 @@ window.PAWTASK = (function(){
     });
     tower = { at: at, phase: 'in', members: members, until: 0, said: false };
   }
+  /* 夜だけ、出来あがった塔に光が当たる */
+  function spotOn(st){
+    if(!st || !tower || tower.spot) return;
+    if(skyNow().cls !== 'night') return;
+    const el = document.createElement('div');
+    el.className = 'hm-spot';
+    st.appendChild(el);
+    tower.spot = { el: el, rec: keepAmbient(el, 0, null) };
+    void el.offsetWidth;
+    el.classList.add('on');
+  }
+  function spotOff(){
+    if(!tower || !tower.spot) return;
+    const sp = tower.spot;
+    tower.spot = null;
+    if(sp.el) sp.el.classList.remove('on');
+    setTimeout(() => dropAmbient(sp.rec), 1400);
+  }
   function towerTick(now, st){
     if(!tower) return;
     const m = tower.members;
@@ -12210,6 +12254,7 @@ window.PAWTASK = (function(){
       if(done){
         tower.phase = 'hold';
         tower.until = now + 14000 + Math.random() * 10000;
+        spotOn(st);
       }
       return;
     }
@@ -12218,7 +12263,7 @@ window.PAWTASK = (function(){
         tower.said = true;
         dogSays(TOWER_LINES[Math.floor(Math.random() * TOWER_LINES.length)]);
       }
-      if(now > tower.until) tower.phase = 'down';
+      if(now > tower.until){ tower.phase = 'down'; spotOff(); }
       return;
     }
     /* まず ことりが飛び立って、そのあと上の子からおりる */
@@ -12247,6 +12292,7 @@ window.PAWTASK = (function(){
       if(g.p < 1.26 && g.p > -0.26) gone = false;
     });
     if(gone){
+      spotOff();
       m.forEach(g => dropAmbient(g.rec));
       tower = null;
       nextTower = now + 25 * 60000 + Math.random() * 35 * 60000;
@@ -12625,7 +12671,7 @@ window.PAWTASK = (function(){
         y: 5 + rnd() * 54,
         r: 1.1 + big * big * 2.1,          /* ほとんどは小さく、たまに大きい星 */
         o: (0.5 + rnd() * 0.45).toFixed(2),
-        tw: rnd() < 0.45,
+        tw: rnd() < 0.62,
         dur: (2.6 + rnd() * 3.6).toFixed(1),
         del: (rnd() * 4.5).toFixed(1)
       });
@@ -12700,13 +12746,29 @@ window.PAWTASK = (function(){
     if(face) face.classList.toggle('hide', !inside);
     // the pups walk in the parent's wake, in from one edge and out the other
     pups.forEach(p => {
+      if(rider && rider.kind === 'pup' && rider.ref === p) return;   /* 乗っている子は別 */
       const px = 26 + p.p * (W - 52);
       p.el.style.transform = 'translate(' + px.toFixed(1) + 'px, ' + (H - 13).toFixed(1) + 'px)'
                            + (p.face < 0 ? ' scaleX(-1)' : '');
       p.el.classList.toggle('still', !!p.pause);
     });
+    /* 親犬の背中に乗っている子 */
+    if(rider && rider.ref && rider.ref.el){
+      /* 親犬の背中の線に、その子の足をぴたりと合わせる（子犬は大きさがまちまち） */
+      const rel = rider.ref.el;
+      const ph = rel.offsetHeight || 34;
+      /* 子犬は伏せの姿勢。伏せると おなかの位置がすこし下がる */
+      const feet = ph * (rider.kind === 'bird' ? 26.5 / 34 : 27.9 / 34) - ph / 2;
+      const ry = (y - 6.2) - feet;
+      const rx = x - dogDir * (rider.kind === 'bird' ? 1 : 2.5);   /* 背中のあたりに */
+      rel.className = rider.kind === 'bird'
+        ? 'walker guest bird still'
+        : rel.className.replace(/ ?(still|lie|sit|sleep)/g, '') + ' lie';
+      rel.style.transform = 'translate(' + rx.toFixed(1) + 'px, ' + ry.toFixed(1) + 'px)'
+                          + (dogDir < 0 ? ' scaleX(-1)' : '');
+    }
     /* 遊びに来ている子 */
-    if(visitor && visitor.el){
+    if(visitor && visitor.el && !(rider && rider.kind === 'bird' && rider.ref === visitor)){
       const vx = 26 + visitor.p * (W - 52);
       const base = visitor.kind === 'bird' ? H - 14 : H - 15;
       const vy = base - (visitor.lift || 0);
@@ -12725,6 +12787,9 @@ window.PAWTASK = (function(){
         + ((H - 14) - owl.lift).toFixed(1) + 'px)' + (owl.face < 0 ? ' scaleX(-1)' : '');
     }
     /* ブレーメンの塔 */
+    if(tower && tower.spot && tower.spot.el){
+      tower.spot.el.style.left = (26 + tower.at * (W - 52)).toFixed(1) + 'px';
+    }
     if(tower){
       tower.members.forEach(g => {
         const moving = tower.phase === 'in' || tower.phase === 'down';
@@ -12796,6 +12861,34 @@ window.PAWTASK = (function(){
       nextPose = now + 20000;
     }
 
+    /* 背中に乗せる子を、ときどき決める */
+    if(!rider && !tower && !den && !wet && now > nextRider && pose !== 'sleep'){
+      nextRider = now + 5 * 60000 + Math.random() * 9 * 60000;
+      const pup = pups.filter(q => q.el)[0] || null;
+      const bird = (visitor && visitor.kind === 'bird' && visitor.phase === 'stay')
+        ? visitor : null;
+      const pick = (bird && (!pup || Math.random() < .5)) ? { kind:'bird', ref:bird }
+                 : pup ? { kind:'pup', ref:pup } : null;
+      if(pick){
+        rider = { kind: pick.kind, ref: pick.ref, until: now + 13000 + Math.random() * 16000 };
+        if(pick.kind === 'bird'){ bird.flying = false; bird.pose = 'still'; }
+      }
+    }
+    if(rider){
+      const alive = rider.ref && rider.ref.el && rider.ref.el.isConnected
+        && (rider.kind === 'bird' ? visitor === rider.ref : pups.indexOf(rider.ref) >= 0);
+      if(!alive || now > rider.until || wet || tower || den){
+        if(alive && rider.kind === 'bird'){
+          /* とまっていた小鳥は、そのまま飛んでいく */
+          visitor.p = dogX; visitor.lift = 20; visitor.phase = 'out'; visitor.flying = true;
+        } else if(alive){
+          rider.ref.p = dogX;             /* 子犬は親のとなりに降りる */
+          rider.ref.el.classList.remove('lie');
+        }
+        rider = null;
+      }
+    }
+
     /* 小屋の中でひとやすみ。時間がきたら入口まで歩いて、そのまま中へ */
     if(!den && !tower && now > nextDen && !(visitor && now < curiousUntil)){
       den = { phase:'to', until:0 };
@@ -12811,8 +12904,7 @@ window.PAWTASK = (function(){
           pose = 'walk';
         } else {
           dogX = target;
-          dogDir = -1;
-          den.phase = 'in';
+          den.phase = 'in';    /* 向きはそのまま */
           den.until = now + (wet ? 100000 + Math.random() * 240000
                                  : 45000 + Math.random() * 120000);
           pose = 'sleep';
@@ -12842,8 +12934,7 @@ window.PAWTASK = (function(){
         pose = 'walk';
       } else {
         dogX = tower.at;
-        dogDir = 1;
-        pose = 'still';
+        pose = 'still';        /* 向きはそのまま。急にくるりと回らない */
       }
       poseUntil = now + 2000;
       nextPose = now + 2000;
@@ -12981,19 +13072,25 @@ window.PAWTASK = (function(){
     }
     /* ごくまれに、だれかが飛んでいく */
     if(now > nextHero){
-      nextHero = now + 1.4 * 3600000 + Math.random() * 2.2 * 3600000;
-      if(!wet) heroBy(st);
+      const go = !skyBusy(st) || Math.random() < .12;
+      nextHero = now + (go ? 1.4 * 3600000 + Math.random() * 2.2 * 3600000
+                           : 90000 + Math.random() * 120000);
+      if(!wet && go) heroBy(st);
     }
     /* ごくまれに、UFO */
     if(now > nextUfo){
-      nextUfo = now + 1.4 * 3600000 + Math.random() * 2.2 * 3600000;
-      if(!wet) ufoBy(st);
+      const go = !skyBusy(st) || Math.random() < .12;
+      nextUfo = now + (go ? 1.4 * 3600000 + Math.random() * 2.2 * 3600000
+                          : 90000 + Math.random() * 120000);
+      if(!wet && go) ufoBy(st);
     }
 
     /* ときどき、空を風船や気球がわたっていく */
     if(now > nextFly){
-      nextFly = now + 12 * 60000 + Math.random() * 16 * 60000;
-      if(!wet) flyBy(st);
+      const go = !skyBusy(st) || Math.random() < .12;
+      nextFly = now + (go ? 12 * 60000 + Math.random() * 16 * 60000
+                          : 80000 + Math.random() * 100000);
+      if(!wet && go) flyBy(st);
     }
 
     /* 1時間に一度くらい、ネコか小鳥が来て、ゆっくりして帰る */
