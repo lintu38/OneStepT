@@ -406,6 +406,9 @@
     z-index: 3;
   }
   .walker svg{ width:100%; height:100%; overflow: visible; }
+  /* 親犬だけ、ひとまわり大きく（足もとの位置はそのまま） */
+  #hmDog > svg, #calDog > svg, #walker > svg, #mWalker > svg, #fmWalker > svg{
+    transform:scale(1.09); transform-origin:50% 76%; }
   /* 念のため：犬の絵が大きく出てしまわないように */
   .walker, .pup{ max-width:40px; max-height:40px; }
   /* 庭の子たちは、さわると返事をする */
@@ -2111,15 +2114,29 @@
   .home-stage .sky{ position:absolute; inset:0; z-index:0; pointer-events:none;
     -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 18%, #000 82%, transparent 100%);
     mask-image:linear-gradient(90deg, transparent 0, #000 18%, #000 82%, transparent 100%); }
+  /* 濃いところは、上から下まで ゆったり幅をとる */
   .home-stage.day .sky{ background:linear-gradient(180deg,
-    rgba(150,199,224,0) 0%, rgba(150,199,224,.15) 30%, rgba(150,199,224,.055) 66%,
-    rgba(150,199,224,0) 100%); }
+    rgba(150,199,224,0) 0%, rgba(150,199,224,.13) 11%, rgba(150,199,224,.16) 34%,
+    rgba(150,199,224,.14) 56%, rgba(150,199,224,.07) 80%, rgba(150,199,224,0) 100%); }
   .home-stage.dusk .sky{ background:linear-gradient(180deg,
-    rgba(224,146,116,0) 0%, rgba(224,146,116,.16) 30%, rgba(230,172,140,.06) 66%,
-    rgba(230,172,140,0) 100%); }
+    rgba(224,146,116,0) 0%, rgba(224,146,116,.14) 11%, rgba(224,146,116,.17) 34%,
+    rgba(227,158,126,.14) 56%, rgba(230,172,140,.07) 80%, rgba(230,172,140,0) 100%); }
   .home-stage.night .sky{ background:linear-gradient(180deg,
-    rgba(64,84,126,0) 0%, rgba(64,84,126,.24) 30%, rgba(64,84,126,.09) 66%,
-    rgba(64,84,126,0) 100%); }
+    rgba(64,84,126,0) 0%, rgba(64,84,126,.21) 11%, rgba(64,84,126,.26) 34%,
+    rgba(64,84,126,.21) 56%, rgba(64,84,126,.10) 80%, rgba(64,84,126,0) 100%); }
+  /* 夜空の星。晴れた夜だけ、そっと出る */
+  .stars{ position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden;
+    -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 16%, #000 84%, transparent 100%);
+    mask-image:linear-gradient(90deg, transparent 0, #000 16%, #000 84%, transparent 100%); }
+  .stars i{ position:absolute; display:block; border-radius:999px;
+    background:#E6C258; box-shadow:0 0 5px rgba(233,199,95,.9), 0 0 11px rgba(240,215,130,.5);
+    opacity:var(--o,.6); }
+  .stars i.tw{ animation:starTw 3s ease-in-out infinite; }
+  @keyframes starTw{
+    0%,100%{ opacity:calc(var(--o,.6) * .28); transform:scale(.7); }
+    50%{ opacity:var(--o,.6); transform:scale(1.15); }
+  }
+  @media (prefers-reduced-motion: reduce){ .stars i.tw{ animation:none; } }
   .orb{ position:absolute; width:26px; height:26px; border-radius:999px; z-index:0;
     transform:translateX(-50%); pointer-events:none; }
   /* the sun burns: a white heart, a warm rim, and a soft round glow */
@@ -2141,8 +2158,13 @@
   @media (prefers-reduced-motion: reduce){
     .orb.sun, .orb.sun::before{ animation:none; } }
   /* the moon carries the phase it is really in */
-  .orb.moon{ width:26px; height:26px; background:none; box-shadow:none;
-    filter:drop-shadow(0 0 9px rgba(243,222,156,.45)); }
+  /* 月のまわりは、もとのとおり ぼんやりと光がひろがる。
+     月そのものは塗りをはっきりさせて、満ち欠けが読めるように */
+  .orb.moon{ width:30px; height:30px; background:none; box-shadow:none;
+    filter:drop-shadow(0 0 8px rgba(246,223,140,.5))
+           drop-shadow(0 0 20px rgba(246,223,140,.34)); }
+  /* 雲や雨の夜は、もう少しひかえめに */
+  .home-stage:has(.wx-scene) .orb.moon{ opacity:.82; }
   .orb.moon svg{ width:100%; height:100%; display:block; }
   /* the yard the dog walks in */
   .stage-ground{ position:absolute; left:0; right:0; bottom:7px; height:1px;
@@ -2151,8 +2173,32 @@
     z-index:1; opacity:.92; }
   .scene svg{ width:100%; height:auto; display:block; }
   .scene.house{ z-index:2; }
+  /* クリスマスの星。ゆっくり またたく */
+  .scene.fir .fir-star{ transform-box:fill-box; transform-origin:center;
+    filter:drop-shadow(0 0 4px rgba(242,207,98,.9));
+    animation:firStar 2.8s ease-in-out infinite; }
+  @keyframes firStar{
+    0%,100%{ opacity:.72; transform:scale(.88); }
+    50%{ opacity:1; transform:scale(1.14); }
+  }
+  @media (prefers-reduced-motion: reduce){ .scene.fir .fir-star{ animation:none; } }
   .scene.grass, .scene.flower{ z-index:3; opacity:.85; }
+  /* 花は、ときどき風にゆれる */
+  .scene.flower svg, .scene.sunflower svg{ transform-origin:50% 100%;
+    animation:flowerSway 13s ease-in-out infinite; animation-delay:var(--sway, 0s); }
+  @keyframes flowerSway{
+    0%, 60%, 100%{ transform:rotate(0deg); }
+    66%{ transform:rotate(-5deg); }
+    72%{ transform:rotate(3.6deg); }
+    79%{ transform:rotate(-2.2deg); }
+    86%{ transform:rotate(1.1deg); }
+    93%{ transform:rotate(-.4deg); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .scene.flower svg, .scene.sunflower svg{ animation:none; } }
   .home-stage .walker{ z-index:5; }
+  /* 小屋に入っていくときは、すうっと見えなくなる */
+  .home-stage #hmDog{ transition:transform .25s linear, opacity .55s ease; }
   /* on this stage a pup walks in from the side; it does not pop into place */
   .home-stage .pup{ animation:none; }
   .home-stage .dog-bubble.sess{ font-size:12px; }
@@ -2179,6 +2225,11 @@
   .home-stage .walker.sleep circle.dog-nose:last-of-type{ display:none; }
   .home-stage .walker.sleep .dog-shut{ display:block; }
 
+  /* 小屋の入口からのぞく、寝顔 */
+  .den-face{ position:absolute; bottom:7.4px; width:16px; z-index:4;
+    transform:translateX(-50%); pointer-events:none; transition:opacity .5s ease; }
+  .den-face svg{ width:100%; height:auto; display:block; }
+  .den-face.hide{ opacity:0; }
   .zzz{ position:absolute; z-index:6; display:flex; align-items:flex-end; gap:2px;
     pointer-events:none; font-family:'Comfortaa','Zen Kaku Gothic New',cursive;
     color:#A99274; transition:opacity .45s ease; }
@@ -2510,6 +2561,22 @@
   @keyframes pudOut{ from{ opacity:.9; } to{ opacity:0; } }
   @keyframes pudRip{ 0%{ transform:scale(.15); opacity:.75; }
     100%{ transform:scale(1); opacity:0; } }
+  /* 晴れた日のうさぎ。かえると同じ進みかたで、跳ぶ高さはうさぎのぶんだけ高く */
+  .hm-rabbit{ position:absolute; bottom:5px; z-index:3; pointer-events:none;
+    transition:left .46s ease-out, opacity .8s ease; }
+  .hm-rabbit .rb-in{ display:block; }
+  .hm-rabbit svg, .hm-rabbit span{ display:block; }
+  @keyframes rabBigHop{
+    0%{ transform:translateY(0) scaleY(.84) scaleX(1.1); }
+    26%{ transform:translateY(-27px) scaleY(1.12) scaleX(.92); }
+    58%{ transform:translateY(-13px) scaleY(1.03) scaleX(1); }
+    100%{ transform:translateY(0) scaleY(1) scaleX(1); }
+  }
+  @keyframes rabSmallHop{
+    0%{ transform:translateY(0) scaleY(.9) scaleX(1.06); }
+    32%{ transform:translateY(-12px) scaleY(1.07) scaleX(.97); }
+    100%{ transform:translateY(0) scaleY(1) scaleX(1); }
+  }
   /* 雨の日のかえる。ひと跳びずつ進む */
   .hm-frog{ position:absolute; bottom:7px; z-index:3; pointer-events:none;
     transition:left .42s ease-out, opacity .8s ease; }
@@ -11055,6 +11122,24 @@ window.PAWTASK = (function(){
     if(title.length > 12) title = title.slice(0, 12) + '…';
     return TODO_ASK[Math.floor(Math.random() * TODO_ASK.length)].replace('{}', title);
   }
+  /* 月が出ているあいだ、今夜の月のことを教えてくれる */
+  const MOON_SAY = {
+    '新月':     ['今夜は新月だよ', '新月。月はおやすみ中'],
+    '三日月':   ['今日は三日月だよ', '細い三日月が出てる'],
+    '上弦の月': ['今日は上弦の月だよ', '半分だけの、上弦の月'],
+    '十三夜':   ['今夜は十三夜。もうすぐ満月', '十三夜の月が出てるよ'],
+    '満月':     ['今日は満月だよ！', 'まんまるの満月だね'],
+    '寝待月':   ['今夜は寝待月。すこし欠けてきた', '寝待月が出てるよ'],
+    '下弦の月': ['今日は下弦の月だよ', '半分になった、下弦の月'],
+    '有明月':   ['今夜は有明月。朝まで残る月だよ', '細くなった有明月だよ']
+  };
+  function moonLine(){
+    const s = skyNow();
+    if(!s || s.orb !== 'moon') return null;         /* 月が出ている時間だけ */
+    const pool = MOON_SAY[moonName(moonPhase())];
+    return pool ? pool[Math.floor(Math.random() * pool.length)] : null;
+  }
+
   // What the dog makes of the weather outside.
   function wxLine(){
     const w = data.wx;
@@ -11153,6 +11238,7 @@ window.PAWTASK = (function(){
         </div>
         ${yardHtml()}
         <span class="walker" id="hmDog">${window.__DOG_SVG || ''}</span>
+        <span class="den-face hide" id="hmDen" style="left:${HOUSE_AT}%">${SLEEP_FACE_SVG}</span>
         <span class="zzz hide" id="hmZzz"><i>z</i><i>z</i><i>z</i></span>
         <div class="dog-bubble sess hide" id="hmBubble"></div>
         <button class="yard-btn snd-btn${bgmOn() ? '' : ' off'}" id="hmSnd" title="${bgmOn() ? 'BGM を止める' : 'BGM を流す'}" aria-label="${bgmOn() ? 'BGM を止める' : 'BGM を流す'}">${bgmOn() ? SND_ON : SND_OFF}</button>
@@ -11427,6 +11513,7 @@ window.PAWTASK = (function(){
         text = planLine(tell[Math.floor(Math.random() * tell.length)]);
       }
       if(!text && Math.random() < 0.4) text = todoLine();
+      if(!text && Math.random() < 0.5) text = moonLine();
       if(!text && Math.random() < 0.4) text = wxLine();
       return text || GREET();
     },
@@ -11434,6 +11521,10 @@ window.PAWTASK = (function(){
   };
 
   let dogX = 0.5, dogDir = -1, dogTimer = null;
+  /* ときどき、小屋の中で ひとやすみ。雨の日は多め */
+  const inDen = () => !!(den && den.phase === 'in');
+  let den = null;                       /* { phase:'to'|'in', until } */
+  let nextDen = Date.now() + 4 * 60000 + Math.random() * 10 * 60000;
   // walk · still · sit · lie · sleep
   let pose = 'walk', poseUntil = 0, nextPose = Date.now() + 15000 + Math.random() * 25000;
   let bubbleUntil = 0, nextBubble = 0, greeted = false, bubbleText = '';
@@ -11451,6 +11542,8 @@ window.PAWTASK = (function(){
       plans.slice(0, 6).forEach(e => { const t = planLine(e); if(t) q.push(t); });
       if(plans.length > 6) q.push('ほかに ' + (plans.length - 6) + ' 件 あるよ');
     }
+    const mn = moonLine();                 /* 夜なら、今夜の月のこともひとこと */
+    if(mn) q.push(mn);
     sayQueue = q;
     nextSay = Date.now() + 1500;
   }
@@ -11555,7 +11648,7 @@ window.PAWTASK = (function(){
   }
 
   /* ときどき空を横切るもの、雨あがりの虹 */
-  let nextFly = Date.now() + 6 * 60000 + Math.random() * 14 * 60000;
+  let nextFly = Date.now() + 3 * 60000 + Math.random() * 8 * 60000;
   let lastWx = null, lastRainbow = 0;
   const BALLOON_SVG = `<svg viewBox="0 0 40 54" width="34" height="46" aria-hidden="true">
     <path fill="#D8969F" d="M20 2c9 0 15 7.5 15 16 0 8-7 14-10.5 19h-9C12 32 5 26 5 18 5 9.5 11 2 20 2Z"/>
@@ -11563,6 +11656,41 @@ window.PAWTASK = (function(){
     <path fill="#9DB6A5" d="M20 2c2 0 3.2 7 3.2 16 0 8-1.6 15-3.2 19-1.6-4-3.2-11-3.2-19C16.8 9 18 2 20 2Z"/>
     <path stroke="#B9A78F" stroke-width="1" fill="none" d="M16.2 37.5 17.6 43.5M23.8 37.5 22.4 43.5"/>
     <rect x="16" y="43" width="8" height="6.6" rx="1.6" fill="#C39F76"/>
+  </svg>`;
+  /* まるい柴犬のかたちの風船。ほかの風船より ずっと大きい */
+  const SHIBA_SVG = `<svg viewBox="0 0 64 82" width="44" height="57" aria-hidden="true">
+    <defs>
+      <radialGradient id="shGloss" cx="33%" cy="26%" r="76%">
+        <stop offset="0" stop-color="#FFFFFF" stop-opacity=".42"/>
+        <stop offset=".38" stop-color="#FFFFFF" stop-opacity=".13"/>
+        <stop offset=".74" stop-color="#FFFFFF" stop-opacity="0"/>
+        <stop offset=".93" stop-color="#8C7457" stop-opacity=".10"/>
+        <stop offset="1" stop-color="#8C7457" stop-opacity=".2"/>
+      </radialGradient>
+    </defs>
+    <path d="M32 60c1.4 5-1.4 9 0 14" stroke="#C8BCAA" stroke-width="1" fill="none"/>
+    <path d="M15.4 6.4 25.6 13.6 18 22.6Z" fill="#C9A87C"/>
+    <path d="M48.6 6.4 38.4 13.6 46 22.6Z" fill="#C9A87C"/>
+    <path d="M17.4 10 23.2 14.1 19.2 19.2Z" fill="#E4D2B4"/>
+    <path d="M46.6 10 40.8 14.1 44.8 19.2Z" fill="#E4D2B4"/>
+    <ellipse cx="32" cy="36" rx="28.5" ry="27.5" fill="#EDE6D6"/>
+    <path d="M32 8.5c-15.7 0-28.5 12.3-28.5 27.5 0 1.6.1 3.2.4 4.7
+      6.4 2.6 12.6 3.4 18.5 2.5 4.2-.7 7.4-2.8 9.6-6.3 2.2 3.5 5.4 5.6 9.6 6.3
+      5.9.9 12.1.1 18.5-2.5.3-1.5.4-3.1.4-4.7C60.5 20.8 47.7 8.5 32 8.5z"
+      fill="#C9A87C"/>
+    <ellipse cx="21.6" cy="21.6" rx="4.6" ry="2.9" fill="#EFE6D2"/>
+    <ellipse cx="42.4" cy="21.6" rx="4.6" ry="2.9" fill="#EFE6D2"/>
+    <ellipse cx="20.4" cy="33.4" rx="3.5" ry="4" fill="#372C22"/>
+    <ellipse cx="43.6" cy="33.4" rx="3.5" ry="4" fill="#372C22"/>
+    <ellipse cx="32" cy="39.4" rx="9.6" ry="8.6" fill="#F5F0E4"/>
+    <ellipse cx="32" cy="35" rx="4.2" ry="3.3" fill="#372C22"/>
+    <path d="M32 38.4v2.2" stroke="#372C22" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+    <path d="M32 40.6c-1 2.4-4.6 2.4-5.6 0M32 40.6c1 2.4 4.6 2.4 5.6 0"
+      stroke="#372C22" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+    <path d="M32 48.6v14" stroke="#DED5C2" stroke-width="1" stroke-linecap="round" fill="none"/>
+    <ellipse cx="32" cy="36" rx="28.5" ry="27.5" fill="url(#shGloss)"/>
+    <ellipse cx="16.6" cy="22.4" rx="3.6" ry="6" fill="#FFFFFF" opacity=".4"
+      transform="rotate(32 16.6 22.4)"/>
   </svg>`;
   /* 風船はひとつだけ。色はそのときどきで */
   const BAL_COLORS = ['#DDA0A8', '#E7CE9B', '#9EBAC6', '#A6C0A2', '#C4A6C6', '#E0AE8E'];
@@ -11615,6 +11743,20 @@ window.PAWTASK = (function(){
     </svg>`;
   })();
 
+  /* 小屋の中で寝ている顔。入口からのぞいている */
+  const SLEEP_FACE_SVG = `<svg viewBox="0 0 26 22" aria-hidden="true">
+    <path class="dog-dark" d="M5.8 3 10.9 6.2 7.3 10.4Z"/>
+    <path class="dog-dark" d="M20.2 3 15.1 6.2 18.7 10.4Z"/>
+    <path class="dog-light" d="M6.9 5.1 9.7 6.9 7.7 9.2Z" opacity=".7"/>
+    <path class="dog-light" d="M19.1 5.1 16.3 6.9 18.3 9.2Z" opacity=".7"/>
+    <ellipse class="dog-body" cx="13" cy="12.9" rx="8.4" ry="8.1"/>
+    <ellipse class="dog-light" cx="13" cy="16.3" rx="5" ry="3.6"/>
+    <ellipse class="dog-nose" cx="13" cy="14.1" rx="2" ry="1.45"/>
+    <path d="M13 15.5v1.6" stroke="#5C4632" stroke-width=".85" stroke-linecap="round" fill="none"/>
+    <path d="M7 11.6c.7 1.5 2.6 1.5 3.3 0M15.7 11.6c.7 1.5 2.6 1.5 3.3 0"
+      stroke="#5C4632" stroke-width="1.1" stroke-linecap="round" fill="none"/>
+  </svg>`;
+
   const PUDDLE_SVG = `<svg viewBox="0 0 46 14" width="46" height="14" aria-hidden="true">
     <ellipse cx="23" cy="9" rx="21" ry="4.4" fill="#B7C7CD" opacity=".5"/>
     <ellipse cx="23" cy="8.3" rx="17.5" ry="3.3" fill="#D2DEE2" opacity=".75"/>
@@ -11637,6 +11779,8 @@ window.PAWTASK = (function(){
   </svg>`;
   let nextFrog = Date.now() + 3 * 60000;
   let frog = null;
+  let nextRabbit = Date.now() + 4 * 60000 + Math.random() * 8 * 60000;
+  let rabbit = null;
   let pudRecs = [];
 
   /* HOME は一分ごとに描き直されるので、飛んでいる途中のものは持っておいて
@@ -11894,18 +12038,22 @@ window.PAWTASK = (function(){
   function flyBy(st){
     if(!st || st.querySelector('.hm-fly')) return;
     const W = st.clientWidth || 300;
-    const party = Math.random() < .5;
+    const r0 = Math.random();
+    const shiba = r0 < .26;                 /* ときどき、まるい柴犬の風船 */
+    const party = !shiba && r0 < .63;
     const toRight = Math.random() < .5;
     const dur = 26 + Math.random() * 16;
     const el = document.createElement('div');
-    el.className = 'hm-fly';
-    el.style.left = (toRight ? -56 : W + 22) + 'px';
-    el.style.top = (8 + Math.random() * 26) + 'px';
-    el.style.setProperty('--dx', ((toRight ? 1 : -1) * (W + 96)).toFixed(0) + 'px');
-    el.style.setProperty('--dy', (-10 - Math.random() * 24).toFixed(0) + 'px');
+    el.className = 'hm-fly' + (shiba ? ' big' : '');
+    el.style.left = (toRight ? (shiba ? -70 : -56) : W + (shiba ? 28 : 22)) + 'px';
+    el.style.top = (shiba ? 7 + Math.random() * 13 : 8 + Math.random() * 26) + 'px';
+    el.style.setProperty('--dx', ((toRight ? 1 : -1) * (W + (shiba ? 150 : 96))).toFixed(0) + 'px');
+    el.style.setProperty('--dy', (shiba ? -4 - Math.random() * 10
+                                        : -10 - Math.random() * 24).toFixed(0) + 'px');
     el.style.animation = 'flyAcross ' + dur.toFixed(1) + 's linear forwards';
     if(party) el.style.setProperty('--bal', BAL_COLORS[Math.floor(Math.random() * BAL_COLORS.length)]);
-    el.innerHTML = '<span class="fly-in">' + (party ? PARTY_SVG : BALLOON_SVG) + '</span>';
+    el.innerHTML = '<span class="fly-in">'
+      + (shiba ? SHIBA_SVG : party ? PARTY_SVG : BALLOON_SVG) + '</span>';
     st.appendChild(el);
     keepAmbient(el, dur * 1000 + 600, (e2, off) => {
       e2.style.animationDelay = (-off).toFixed(2) + 's';
@@ -11929,6 +12077,48 @@ window.PAWTASK = (function(){
     frog.rec = keepAmbient(el, 0, null);
     requestAnimationFrame(() => { el.style.opacity = '1'; });
     setTimeout(() => dogSays('かえる だ'), 4000 + Math.random() * 7000);
+  }
+  /* 晴れた日、ぴょーんと大きく跳んで庭を横切るうさぎ */
+  function rabbitBy(st){
+    if(!st || rabbit || !RAB_SVG) return;
+    const W = st.clientWidth || 300;
+    const toRight = Math.random() < .5;
+    const el = document.createElement('div');
+    el.className = 'hm-rabbit';
+    el.style.opacity = '0';
+    el.style.left = (toRight ? -30 : W + 8) + 'px';
+    el.innerHTML = '<span class="rb-in"><span style="display:block;transform:scale(.8)'
+      + (toRight ? '' : ' scaleX(-1)') + '">' + RAB_SVG + '</span></span>';
+    st.appendChild(el);
+    rabbit = { el: el, x: toRight ? -30 : W + 8, dir: toRight ? 1 : -1,
+               next: Date.now() + 300, rec: null };
+    rabbit.rec = keepAmbient(el, 0, null);
+    requestAnimationFrame(() => { el.style.opacity = '1'; });
+  }
+  function rabbitTick(now, st){
+    if(!rabbit) return;
+    if(now < rabbit.next) return;
+    const W = st.clientWidth || 300;
+    /* 大きく跳んだり、ちょこんと跳ねたり。どちらも かえるより高く、遠くへ */
+    const bigHop = Math.random() < .5;
+    rabbit.x += rabbit.dir * (bigHop ? 34 + Math.random() * 18 : 12 + Math.random() * 9);
+    rabbit.el.style.transitionDuration = bigHop ? '.52s' : '.32s';
+    rabbit.el.style.left = rabbit.x.toFixed(0) + 'px';
+    const inner = rabbit.el.querySelector('.rb-in');
+    if(inner){
+      inner.style.animation = 'none';
+      void inner.offsetWidth;
+      inner.style.animation = (bigHop ? 'rabBigHop .56s' : 'rabSmallHop .36s') + ' ease-out';
+    }
+    /* ときどき、耳を立てて ひと休み */
+    rabbit.next = now + (Math.random() < .3 ? 2600 + Math.random() * 3800
+                                            : 850 + Math.random() * 800);
+    if(rabbit.x > W + 24 || rabbit.x < -34){
+      const r = rabbit;
+      rabbit = null;
+      r.el.style.opacity = '0';
+      setTimeout(() => dropAmbient(r.rec), 900);
+    }
   }
   function frogTick(now, st){
     if(!frog) return;
@@ -11955,6 +12145,127 @@ window.PAWTASK = (function(){
       setTimeout(() => dropAmbient(f.rec), 900);
     }
   }
+  /* ときどき、みんなで重なって ブレーメンの音楽隊みたいになる */
+  let tower = null;
+  let nextTower = Date.now() + 5 * 60000 + Math.random() * 10 * 60000;
+  const TOWER_LINES = ['てっぺんは だれかな', 'いち・に・さん！'];
+  function towerStart(st){
+    if(!st || tower || !CAT_SVG || !RAB_SVG || !BIRD_SVG) return;
+    const W = st.clientWidth || 300, H = st.clientHeight || 150;
+    const at = 0.34 + Math.random() * 0.3;
+    /* 下から 犬・ねこ・うさぎ・ことり。乗る高さは、それぞれの背の分だけ */
+    const kinds = [{ k:'cat', art:CAT_SVG, top:20 },
+                   { k:'rab', art:RAB_SVG, top:38 },
+                   { k:'bird', art:BIRD_SVG, top:54 }];
+    const fromLeft = at > 0.5;
+    const members = kinds.map((it, i) => {
+      const fly = it.k === 'bird';           /* ことりは空から来る */
+      const el = document.createElement('div');
+      el.className = 'walker guest ' + it.k + (fly ? ' flying' : '');
+      el.innerHTML = fly
+        ? '<span class="bd-stand">' + it.art + '</span>'
+          + '<span class="bd-fly">' + BIRD_FLY_SVG + '</span>'
+        : it.art;
+      const p0 = fly ? (fromLeft ? -0.28 : 1.28)
+                     : (fromLeft ? -0.2 : 1.2) + (fromLeft ? -1 : 1) * i * 0.1;
+      const l0 = fly ? 78 : 0;
+      el.style.transition = 'none';
+      el.style.transform = 'translate(' + (26 + p0 * (W - 52)).toFixed(1) + 'px, '
+        + (H - 15 - l0).toFixed(1) + 'px)' + (fromLeft ? '' : ' scaleX(-1)');
+      st.appendChild(el);
+      void el.offsetWidth;
+      el.style.transition = '';
+      return { el: el, kind: it.k, p: p0, lift: l0, top: it.top, fly: fly, flying: fly,
+               face: fromLeft ? 1 : -1, rec: keepAmbient(el, 0, null) };
+    });
+    tower = { at: at, phase: 'in', members: members, until: 0, said: false };
+  }
+  function towerTick(now, st){
+    if(!tower) return;
+    const m = tower.members;
+    if(tower.phase === 'in'){
+      /* 犬がその場に着くまで待って、それから順に乗っていく */
+      let ready = Math.abs(dogX - tower.at) < 0.025;
+      m.forEach(g => {
+        if(g.fly) return;                    /* ことりは空で待っている */
+        const d = tower.at - g.p;
+        if(Math.abs(d) > 0.013){
+          g.face = d < 0 ? -1 : 1;
+          g.p += Math.sign(d) * 0.016;
+          ready = false;
+        } else { g.p = tower.at; g.face = 1; }
+      });
+      if(ready) tower.phase = 'up';
+      return;
+    }
+    if(tower.phase === 'up'){
+      let done = true;
+      for(let i = 0; i < m.length; i++){
+        const g = m[i];
+        if(i > 0 && m[i - 1].lift < m[i - 1].top - 1){ done = false; break; }
+        if(g.fly){
+          /* ことりは、ぱたぱた飛んできて、うさぎの背にとまる */
+          const dp = tower.at - g.p, dl = g.top - g.lift;
+          if(Math.abs(dp) > 0.012 || Math.abs(dl) > 1.6){
+            g.flying = true;
+            if(Math.abs(dp) > 0.006) g.face = dp < 0 ? -1 : 1;
+            g.p += Math.sign(dp) * Math.min(Math.abs(dp), 0.017);
+            g.lift += Math.sign(dl) * Math.min(Math.abs(dl), 2.4);
+            done = false;
+            break;
+          }
+          g.p = tower.at; g.lift = g.top; g.flying = false; g.face = 1;
+          continue;
+        }
+        if(g.lift < g.top - 1){ g.lift += 1.7; done = false; break; }
+        g.lift = g.top;
+      }
+      if(done){
+        tower.phase = 'hold';
+        tower.until = now + 14000 + Math.random() * 10000;
+      }
+      return;
+    }
+    if(tower.phase === 'hold'){
+      if(!tower.said){
+        tower.said = true;
+        dogSays(TOWER_LINES[Math.floor(Math.random() * TOWER_LINES.length)]);
+      }
+      if(now > tower.until) tower.phase = 'down';
+      return;
+    }
+    /* まず ことりが飛び立って、そのあと上の子からおりる */
+    const bd = m.filter(g => g.fly)[0];
+    if(bd && !bd.away){
+      bd.flying = true;
+      const t2 = bd.p > 0.5 ? 1.32 : -0.32;
+      const d2 = t2 - bd.p;
+      bd.face = d2 < 0 ? -1 : 1;
+      bd.p += Math.sign(d2) * 0.018;
+      bd.lift += 1.5;
+      if(bd.p >= 1.28 || bd.p <= -0.28) bd.away = true;
+      return;
+    }
+    for(let i = m.length - 1; i >= 0; i--){
+      if(m[i].fly) continue;
+      if(m[i].lift > 0){ m[i].lift = Math.max(0, m[i].lift - 2.4); return; }
+    }
+    let gone = true;
+    m.forEach(g => {
+      if(g.fly){ if(!g.away) gone = false; return; }
+      const target = g.p > 0.5 ? 1.3 : -0.3;
+      const d = target - g.p;
+      g.face = d < 0 ? -1 : 1;
+      g.p += Math.sign(d) * 0.016;
+      if(g.p < 1.26 && g.p > -0.26) gone = false;
+    });
+    if(gone){
+      m.forEach(g => dropAmbient(g.rec));
+      tower = null;
+      nextTower = now + 25 * 60000 + Math.random() * 35 * 60000;
+    }
+  }
+
   /* 雨があがったら、虹 */
   function showRainbow(st){
     if(!st || st.querySelector('.hm-rainbow')) return;
@@ -12031,12 +12342,18 @@ window.PAWTASK = (function(){
     const cap = tone.snow ? `
       <path d="M20 ${y(6)} 26 ${y(17)}H14z" fill="#F2F4F0" opacity=".9"/>
       <path d="M20 ${y(20)} 27 ${y(30)}H13z" fill="#F2F4F0" opacity=".75"/>` : '';
+    /* クリスマスのあいだは、てっぺんに星 */
+    const star = (PAWS.xmas && PAWS.xmas()) ? `
+      <g transform="translate(20 ${y(2)})"><g class="fir-star">
+        <path d="M0 -5.6 1.6 -1.8 5.6 -1.6 2.4 1.1 3.4 5 0 2.8 -3.4 5 -2.4 1.1 -5.6 -1.6 -1.6 -1.8Z"
+          fill="#F2CF62"/>
+      </g></g>` : '';
     return `<svg viewBox="0 0 40 ${h}" aria-hidden="true">
       <rect x="18.5" y="${y(44)}" width="3.5" height="${y(14)}" rx="1.8" fill="#B79A73"/>
       <path d="M20 ${y(3)} 32 ${y(24)}H8z" fill="#9BB584"/>
       <path d="M20 ${y(16)} 35 ${y(37)}H5z" fill="#8AA773"/>
       <path d="M20 ${y(28)} 37 ${y(48)}H3z" fill="#9BB584"/>
-      ${cap}
+      ${cap}${star}
     </svg>`;
   }
 
@@ -12177,7 +12494,10 @@ window.PAWTASK = (function(){
                 : kind === 'flower'    ? flowerSvg(o.c)
                 : GRASS_SVG;
       const w = (kind === 'sunflower') ? o.w + 5 : o.w;
-      return `<span class="scene ${kind}" style="left:${o.x}%; width:${w}px">${art}</span>`;
+      /* 花ごとに、ゆれはじめる間をずらす */
+      const sway = (kind === 'flower' || kind === 'sunflower')
+        ? `; --sway:-${((o.x * 1.7) % 13).toFixed(1)}s` : '';
+      return `<span class="scene ${kind}" style="left:${o.x}%; width:${w}px${sway}">${art}</span>`;
     }).join('');
   }
 
@@ -12224,16 +12544,31 @@ window.PAWTASK = (function(){
     const p = moonPhase();
     const R = 11, C = 13;
     const a = 2 * Math.PI * p;
-    const rx = Math.abs(Math.cos(a)) * R;
     const waxing = p < 0.5;
     const gibbous = Math.cos(a) < 0;
+    const isNew = moonName(p) === '新月';
+    let rx = Math.abs(Math.cos(a)) * R;
+    /* 細い日でも、糸のようにならずに三日月として見えるところで止める。
+       ただし新月の日は、光っているところなし（犬の言うことと合わせる） */
+    if(!gibbous && !isNew) rx = Math.min(rx, R - 2.6);
     const so = waxing ? 1 : 0;
     const si = gibbous ? so : 1 - so;
     const d = `M${C},${C - R} A${R},${R} 0 0 ${so} ${C},${C + R} `
             + `A${rx.toFixed(2)},${R} 0 0 ${si} ${C},${C - R} Z`;
+    /* 新月は、うっすら円が浮かぶだけ */
+    if(isNew) return `<svg viewBox="0 0 26 26" aria-hidden="true">
+      <circle cx="13" cy="13" r="11" fill="#E8DEB0" opacity=".32"/>
+    </svg>`;
     return `<svg viewBox="0 0 26 26" aria-hidden="true">
-      <circle cx="13" cy="13" r="11" fill="#F3DE9C" opacity=".15"/>
-      <path d="${d}" fill="#F3DE9C"/>
+      <defs><clipPath id="mnLit"><path d="${d}"/></clipPath></defs>
+      <circle cx="13" cy="13" r="11" fill="#E8DEB0" opacity=".22"/>
+      <path d="${d}" fill="#F6DB63"/>
+      <g clip-path="url(#mnLit)" fill="#E7C63F" opacity=".38">
+        <circle cx="10.3" cy="9.4" r="1.7"/>
+        <circle cx="15.2" cy="15.8" r="2.1"/>
+        <circle cx="9.4" cy="16.2" r="1.05"/>
+        <circle cx="16.6" cy="8.8" r=".8"/>
+      </g>
     </svg>`;
   }
 
@@ -12291,6 +12626,36 @@ window.PAWTASK = (function(){
     return `<div class="wx-scene ${kind}">${clouds}${haze}${fall}${flash}</div>`;
   }
 
+  /* 星の並びは毎晩おなじ。描き直すたびに散らばらないよう、決まった数から作る */
+  const STARS = (() => {
+    let seed = 20260912;
+    const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
+    const out = [];
+    for(let i = 0; i < 22; i++){
+      const big = rnd();
+      out.push({
+        x: 3 + rnd() * 94,
+        y: 5 + rnd() * 54,
+        r: 1.1 + big * big * 2.1,          /* ほとんどは小さく、たまに大きい星 */
+        o: (0.5 + rnd() * 0.45).toFixed(2),
+        tw: rnd() < 0.45,
+        dur: (2.6 + rnd() * 3.6).toFixed(1),
+        del: (rnd() * 4.5).toFixed(1)
+      });
+    }
+    return out;
+  })();
+  function starsHtml(s, kind){
+    if(s.cls !== 'night' || kind) return '';        /* 曇りや雨の夜は見えない */
+    return '<div class="stars">' + STARS.map(t => {
+      /* 月のそばは光にまぎれるので、置かない */
+      if(Math.abs(t.x - s.x) < 9 && Math.abs(t.y - s.y) < 26) return '';
+      return `<i class="${t.tw ? 'tw' : ''}" style="left:${t.x.toFixed(1)}%;top:${t.y.toFixed(0)}px;`
+        + `width:${t.r.toFixed(1)}px;height:${t.r.toFixed(1)}px;--o:${t.o}`
+        + (t.tw ? `;animation-duration:${t.dur}s;animation-delay:${t.del}s` : '') + '"></i>';
+    }).join('') + '</div>';
+  }
+
   function skyHtml(){
     const s = skyNow();
     const kind = wxScene();
@@ -12298,7 +12663,7 @@ window.PAWTASK = (function(){
       ? ' dim' : '';
     const art = s.orb === 'moon' ? moonSvg() : '';
     const title = s.orb === 'moon' ? ' title="' + moonName(moonPhase()) + '"' : '';
-    return `<div class="sky"></div>
+    return `<div class="sky"></div>${starsHtml(s, kind)}
       <span class="orb ${s.orb}${dim}"${title} style="left:${s.x.toFixed(1)}%; top:${s.y.toFixed(0)}px">${art}</span>`;
   }
 
@@ -12339,6 +12704,13 @@ window.PAWTASK = (function(){
     }
     dog.style.transform = 'translate(' + x.toFixed(1) + 'px, ' + y.toFixed(1) + 'px)'
                         + (dogDir < 0 ? ' scaleX(-1)' : '');
+    /* 小屋の中にいるあいだは姿が見えない。zzz だけ屋根の上に出る */
+    const inside = !!(den && den.phase === 'in');
+    dog.style.opacity = inside ? '0' : '';
+    dog.style.pointerEvents = inside ? 'none' : '';
+    /* かわりに、入口から寝顔がのぞく */
+    const face = $id('hmDen');
+    if(face) face.classList.toggle('hide', !inside);
     // the pups walk in the parent's wake, in from one edge and out the other
     pups.forEach(p => {
       const px = 26 + p.p * (W - 52);
@@ -12365,6 +12737,19 @@ window.PAWTASK = (function(){
       owl.el.style.transform = 'translate(' + ox.toFixed(1) + 'px, '
         + ((H - 14) - owl.lift).toFixed(1) + 'px)' + (owl.face < 0 ? ' scaleX(-1)' : '');
     }
+    /* ブレーメンの塔 */
+    if(tower){
+      tower.members.forEach(g => {
+        const moving = tower.phase === 'in' || tower.phase === 'down';
+        const gx = 26 + g.p * (W - 52);
+        const gy = (H - 15) - g.lift;
+        g.el.className = 'walker guest ' + g.kind
+          + (g.flying ? ' flying'
+             : moving && g.lift <= 0 ? (g.kind === 'rab' ? ' gait-walk' : '') : ' still');
+        g.el.style.transform = 'translate(' + gx.toFixed(1) + 'px, ' + gy.toFixed(1) + 'px)'
+                             + (g.face < 0 ? ' scaleX(-1)' : '');
+      });
+    }
     const bub = $id('hmBubble');
     if(bub){
       /* ふきだしは、しゃべった子の頭の上に。高いところにいる子なら、そこに */
@@ -12387,8 +12772,14 @@ window.PAWTASK = (function(){
     const z = $id('hmZzz');
     if(z){
       z.classList.toggle('hide', pose !== 'sleep');
-      z.style.left = (x + (dogDir < 0 ? -20 : 8)).toFixed(1) + 'px';
-      z.style.top  = (y - 22).toFixed(1) + 'px';
+      if(inside){
+        /* 小屋の中で寝ているときは、屋根の上に */
+        z.style.left = ((HOUSE_AT / 100) * W + 13).toFixed(1) + 'px';
+        z.style.top  = (H - 54).toFixed(1) + 'px';
+      } else {
+        z.style.left = (x + (dogDir < 0 ? -20 : 8)).toFixed(1) + 'px';
+        z.style.top  = (y - 22).toFixed(1) + 'px';
+      }
     }
   }
 
@@ -12418,15 +12809,68 @@ window.PAWTASK = (function(){
       nextPose = now + 20000;
     }
 
+    /* 小屋の中でひとやすみ。時間がきたら入口まで歩いて、そのまま中へ */
+    if(!den && !tower && now > nextDen && !(visitor && now < curiousUntil)){
+      den = { phase:'to', until:0 };
+    }
+    const denning = !!den;
+    if(denning){
+      const target = shelterX(st.clientWidth || 300);
+      if(den.phase === 'to'){
+        const d = target - dogX;
+        if(Math.abs(d) > 0.015){
+          dogDir = d < 0 ? -1 : 1;
+          dogX += Math.sign(d) * 0.019;
+          pose = 'walk';
+        } else {
+          dogX = target;
+          dogDir = -1;
+          den.phase = 'in';
+          den.until = now + (wet ? 100000 + Math.random() * 240000
+                                 : 45000 + Math.random() * 120000);
+          pose = 'sleep';
+        }
+      } else if(now > den.until && !wet){
+        den = null;
+        pose = 'still';
+        poseUntil = now + 5000;
+        nextDen = now + 18 * 60000 + Math.random() * 30 * 60000;
+      } else if(now > den.until && wet){
+        /* 雨のあいだは、しばらくしてまた中へ */
+        den.until = now + 100000 + Math.random() * 240000;
+        pose = 'sleep';
+      } else {
+        pose = 'sleep';
+      }
+      if(den){ poseUntil = now + 3000; nextPose = now + 3000; }
+    }
+
+    /* ブレーメン：みんなが集まってくるあいだ、犬はその場で待っている */
+    const towering = !wet && !denning && !!tower;
+    if(towering){
+      const d = tower.at - dogX;
+      if(Math.abs(d) > 0.017){
+        dogDir = d < 0 ? -1 : 1;
+        dogX += Math.sign(d) * 0.018;
+        pose = 'walk';
+      } else {
+        dogX = tower.at;
+        dogDir = 1;
+        pose = 'still';
+      }
+      poseUntil = now + 2000;
+      nextPose = now + 2000;
+    }
+
     /* お客さんが庭にいると、ときどき気になって近づいていく */
-    if(!wet && visitor && now > curiousAt && now > curiousUntil
+    if(!wet && !tower && !denning && visitor && now > curiousAt && now > curiousUntil
        && (visitor.phase === 'stay' || visitor.phase === 'in' || visitor.phase === 'move')
        && Math.random() < 0.02){
       curiousUntil = now + 13000 + Math.random() * 12000;
       curiousAt = now + 70000 + Math.random() * 110000;
       sniffSaid = false;
     }
-    const curious = !wet && visitor && now < curiousUntil;
+    const curious = !wet && !tower && !denning && visitor && now < curiousUntil;
     if(curious){
       const gap = 0.075;
       const target = visitor.p + (dogX < visitor.p ? -gap : gap);
@@ -12448,7 +12892,7 @@ window.PAWTASK = (function(){
     }
 
     // walking most of the time, with a sit, a lie-down or a nap in between
-    if(!wet && !curious && pose !== 'walk'){
+    if(!wet && !curious && !towering && !denning && pose !== 'walk'){
       if(now > poseUntil){
         pose = 'walk';
         const h2 = new Date().getHours();
@@ -12457,7 +12901,7 @@ window.PAWTASK = (function(){
                         : quiet2 ? 5000 + Math.random() * 10000
                         : 9000 + Math.random() * 18000);
       }
-    } else if(!wet && !curious){
+    } else if(!wet && !curious && !towering && !denning){
       dogX += dogDir * 0.018;
       if(dogX <= 0){ dogX = 0; dogDir = 1; }
       if(dogX >= 1){ dogX = 1; dogDir = -1; }
@@ -12521,6 +12965,16 @@ window.PAWTASK = (function(){
     }
     if(!wet && frog){ frog.dir = frog.x > (st.clientWidth || 300) / 2 ? 1 : -1; }
     frogTick(now, st);
+    /* 晴れた日は、ときどき うさぎが跳んでいく */
+    if(!wet && !rabbit && now > nextRabbit){
+      nextRabbit = now + 14 * 60000 + Math.random() * 18 * 60000;
+      rabbitBy(st);
+    }
+    if(wet && rabbit){ rabbit.dir = rabbit.x > (st.clientWidth || 300) / 2 ? 1 : -1; }
+    rabbitTick(now, st);
+    /* ときどき、みんなで重なってみせる */
+    if(!wet && !tower && !den && !reduced() && pose !== 'sleep' && now > nextTower) towerStart(st);
+    towerTick(now, st);
 
     /* 夜だけ、フクロウが屋根にとまりに来る */
     const hOwl = new Date().getHours();
@@ -12551,7 +13005,7 @@ window.PAWTASK = (function(){
 
     /* ときどき、空を風船や気球がわたっていく */
     if(now > nextFly){
-      nextFly = now + 22 * 60000 + Math.random() * 26 * 60000;
+      nextFly = now + 12 * 60000 + Math.random() * 16 * 60000;
       if(!wet) flyBy(st);
     }
 
@@ -12754,14 +13208,14 @@ window.PAWTASK = (function(){
         bubbleUntil = 0;
         nextSay = now + 900;                                  // 次のひと言まで、ひと呼吸
         nextBubble = now + 180000 + Math.random() * 180000;   // three to six minutes
-      } else if(!bubbleUntil && sayQueue.length && now > nextSay){
+      } else if(!bubbleUntil && sayQueue.length && now > nextSay && !inDen()){
         greeted = true;
         bubbleFrom = 'dog';
         bubbleText = sayQueue.shift();
         bub.innerHTML = bubbleText + PAW_TAG;
         bub.classList.remove('hide');
         bubbleUntil = now + (sayQueue.length ? 4200 : 5400);
-      } else if(!bubbleUntil && now > nextBubble && pose !== 'sleep'){
+      } else if(!bubbleUntil && now > nextBubble && pose !== 'sleep' && !inDen()){
         greeted = true;
         bubbleFrom = 'dog';
         // a plan to pass on, a word about the weather, or simply hello
@@ -12771,6 +13225,7 @@ window.PAWTASK = (function(){
           text = planLine(tell[Math.floor(Math.random() * tell.length)]);
         }
         if(!text && Math.random() < 0.4) text = todoLine();
+        if(!text && Math.random() < 0.5) text = moonLine();
         if(!text && Math.random() < 0.4) text = wxLine();
         bubbleText = text || GREET();
         bub.innerHTML = bubbleText + PAW_TAG;
