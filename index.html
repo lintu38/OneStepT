@@ -14464,6 +14464,52 @@ window.PAWTASK = (function(){
     cv.addEventListener('wheel', e => {
       panY = Math.max(0, panY + e.deltaY * 0.9 / scale); panIdle = 0; e.preventDefault();
     }, { passive:false });
+
+    /* さわると ぴょこんと跳ねる。
+       なでるように動かすと、触れた子から順に ひとつずつ跳ねていく */
+    cv.addEventListener('mousemove', e => {
+      const b = bodyAt(toWorld(e));
+      if(b === hovered) return;
+      hovered = b;
+      if(b) poke(b, 1.4);
+    });
+    cv.addEventListener('mouseleave', () => { hovered = null; });
+    cv.addEventListener('mousedown', e => { const b = bodyAt(toWorld(e)); if(b) poke(b, 2.4); });
+    /* 指はスクロールの邪魔をしないよう、そのまま通す */
+    cv.addEventListener('touchstart', e => {
+      const b = bodyAt(toWorld(e)); if(b) poke(b, 2.4);
+    }, { passive:true });
+  }
+
+  /* ---------------- さわる ---------------- */
+  let hovered = null;
+  function toWorld(e){
+    const rc = cv.getBoundingClientRect();
+    const t = e.touches && e.touches[0];
+    const cx = (t ? t.clientX : e.clientX) - rc.left;
+    const cy = (t ? t.clientY : e.clientY) - rc.top;
+    const ox = VW / 2 - (WW / 2) * scale, oy = VH - PAD - camBottom * scale;
+    return { x: (cx - ox) / scale, y: (cy - oy) / scale };
+  }
+  /* 重なっているときは、いちばん手前（上にいる子）を選ぶ */
+  function bodyAt(p){
+    let hit = null;
+    for(let i = 0; i < bodies.length; i++){
+      const b = bodies[i];
+      if(b.fly) continue;
+      const dx = b.x - p.x, dy = b.y - p.y;
+      if(dx * dx + dy * dy > b.r * b.r) continue;
+      if(!hit || b.y < hit.y) hit = b;
+    }
+    return hit;
+  }
+  function poke(b, up){
+    b.asleep = false; b.still = 0; b.sleep = 0;
+    b.py = b.y + up;                              // 上へ ぴょこん
+    b.px = b.x + (Math.random() - .5) * up * .4;  // すこし よろける
+    b.rot += (Math.random() - .5) * 0.2;
+    b.prot = b.rot;
+    touch();
   }
 
   function hud(){
