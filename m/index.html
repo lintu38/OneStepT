@@ -2723,6 +2723,95 @@
   .walker.guest.v2 .rab-body{ fill:url(#gRab2B) #C8B096; }
   .walker.guest.v2 .rab-dark{ fill:url(#gRab2D) #AF977B; }
   @media (prefers-reduced-motion: reduce){ .wx-scene{ display:none; } }
+  /* ---------- Pile — かごに溜まっていく犬たち ---------- */
+  #panePile .pl-top{
+    background:var(--bg-card); border:1px solid var(--line); border-radius:16px;
+    padding:13px 16px; display:flex; align-items:flex-start; gap:10px; margin-bottom:10px;
+  }
+  #panePile .pl-big{ font-family:'Space Mono',monospace; font-size:26px; font-weight:700;
+    letter-spacing:.02em; line-height:1; }
+  #panePile .pl-unit{ font-size:12px; color:var(--text-muted); margin-left:6px; }
+  #panePile .pl-next{ font-size:11px; color:var(--text-faint); margin-top:4px; }
+  #panePile .pl-next b{ font-family:'Space Mono',monospace; color:var(--beige-deep); }
+  #panePile .pl-now{ margin-left:auto; text-align:right; font-size:11px; color:var(--text-muted); }
+  #panePile .pl-chip{ display:inline-block; font-family:'Space Mono',monospace; font-size:10px;
+    letter-spacing:.08em; color:#fff; border-radius:99px; padding:3px 9px; margin-top:4px; }
+
+  #panePile .pl-stage{
+    position:relative; background:var(--bg-card);
+    border:1px solid var(--line); border-radius:18px;
+    height:340px; overflow:hidden;
+  }
+  #panePile .pl-stage canvas{ display:block; width:100%; height:100%; }
+  #panePile .pl-tag{
+    position:absolute; right:10px; top:9px; font-family:'Space Mono',monospace;
+    font-size:10px; letter-spacing:.08em; color:var(--text-faint);
+    background:rgba(255,255,255,.72); border-radius:99px; padding:3px 8px;
+  }
+  #panePile .pl-fullbox{
+    position:absolute; left:0; right:0; top:14px; display:flex; justify-content:center;
+    opacity:0; transform:translateY(-8px); pointer-events:none;
+    transition:opacity .45s ease, transform .45s cubic-bezier(.2,1.6,.4,1);
+  }
+  #panePile .pl-fullbox.on{ opacity:1; transform:translateY(0); }
+  #panePile .pl-bubble{
+    position:relative; background:#fff; border:1px solid var(--line); border-radius:13px;
+    padding:5px 12px; font-family:'Comfortaa','Zen Kaku Gothic New',cursive;
+    font-size:11.5px; color:#7C6247; white-space:nowrap; line-height:1.5;
+    box-shadow:0 4px 12px rgba(120,96,60,.08);
+  }
+  #panePile .pl-bubble::after{
+    content:''; position:absolute; left:50%; bottom:-5px; margin-left:-5px;
+    width:9px; height:9px; background:#fff;
+    border-right:1px solid var(--line); border-bottom:1px solid var(--line);
+    transform:rotate(45deg);
+  }
+
+  #panePile .pl-flyrow{ display:none; justify-content:center; }
+  #panePile .pl-flyrow.on{ display:flex; margin-top:13px; }
+  #panePile .pl-flywrap{ position:relative; display:inline-flex; }
+  #panePile .pl-flybtn{
+    appearance:none; border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:7px;
+    padding:8px 16px; border-radius:99px;
+    font-family:'Comfortaa','Zen Kaku Gothic New',cursive;
+    font-size:14px; font-weight:700; letter-spacing:.04em; line-height:1; color:#A8875C;
+    text-shadow:0 1px 0 rgba(255,255,255,.9);
+    background:radial-gradient(circle at 34% 28%, #FFFFFF, #FDFAF4 58%, #F1E7D6 100%);
+    transition:transform .12s ease;
+    animation:plGlow 2.6s ease-in-out infinite;
+  }
+  #panePile .pl-flybtn:active{ transform:scale(.94); }
+  #panePile .pl-fi{ display:block; line-height:0; animation:plBob 2.6s ease-in-out infinite; }
+  /* まわりが ぼうっと明るくなる。輪郭は出さず、淡く にじませる */
+  @keyframes plGlow{
+    0%,100%{ box-shadow:0 10px 24px -10px rgba(170,142,105,.45),
+                        inset 0 -3px 8px rgba(150,124,90,.08),
+                        inset 0 0 0 1px rgba(199,172,135,.55),
+                        0 0 12px 2px rgba(201,138,18,.05); }
+    50%    { box-shadow:0 10px 24px -10px rgba(170,142,105,.45),
+                        inset 0 -3px 8px rgba(150,124,90,.08),
+                        inset 0 0 0 1px rgba(199,172,135,.55),
+                        0 0 30px 10px rgba(201,138,18,.15); }
+  }
+  @keyframes plBob{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-2.5px); } }
+  @media (prefers-reduced-motion: reduce){
+    #panePile .pl-flybtn, #panePile .pl-fi{ animation:none; }
+  }
+
+  #panePile .pl-foot{
+    margin-top:10px; background:var(--bg-soft); border-radius:14px; padding:10px 14px;
+    font-size:12px; color:var(--text-muted);
+  }
+  #panePile .pl-line{ display:flex; align-items:center; gap:7px; flex-wrap:wrap; row-gap:3px; }
+  #panePile .pl-sub{ margin-top:5px; padding-top:6px;
+    border-top:1px solid rgba(199,172,135,.28); }
+  #panePile .pl-ic{ line-height:0; flex:none; }
+  #panePile .pl-foot b{ font-family:'Space Mono',monospace; font-size:17px; color:var(--text); }
+  #panePile .pl-sub b{ font-size:14px; }
+  #panePile .pl-nm{ color:var(--text-faint); }
+  #panePile .pl-bd{ margin-left:auto; font-family:'Space Mono',monospace;
+    font-size:11px; color:var(--text-faint); letter-spacing:.04em; }
 </style>
 </head>
 <body>
@@ -2773,6 +2862,7 @@
     <button class="tabbtn glyph" data-tab="cal" title="Schedule" aria-label="Schedule"><svg viewBox="0 0 16 16" aria-hidden="true" class="cal-ico"><rect x="1.7" y="3" width="12.6" height="11.3" rx="2.1"/><path d="M1.7 6.4h12.6"/><path d="M5.1 1.7v2.6"/><path d="M10.9 1.7v2.6"/><circle cx="5.2" cy="9.6" r="0.85" class="dot"/><circle cx="8" cy="9.6" r="0.85" class="dot"/></svg></button>
     <button class="tabbtn glyph on" data-tab="home" title="Today" aria-label="Today"><svg viewBox="0 0 40 34" aria-hidden="true"><ellipse cx="20" cy="25" rx="8.6" ry="7"/><ellipse cx="9.5" cy="14.5" rx="4" ry="5.2" transform="rotate(-18 9.5 14.5)"/><ellipse cx="16.5" cy="8" rx="3.7" ry="5"/><ellipse cx="24.5" cy="8" rx="3.7" ry="5"/><ellipse cx="31" cy="14.5" rx="4" ry="5.2" transform="rotate(18 31 14.5)"/></svg></button>
     <button class="tabbtn glyph" data-tab="ss" title="Session" aria-label="Session"><svg viewBox="0 0 16 16" aria-hidden="true" class="cal-ico"><circle cx="8" cy="9.2" r="5.6"/><path d="M8 9.2V6.2"/><path d="M6.2 1.8h3.6"/><path d="M12.6 4.4l1-1"/></svg></button>
+    <button class="tabbtn glyph" data-tab="pile" title="Pile" aria-label="Pile"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.1 2.2 5.6 4l-1.9 2.2Z"/><path d="M8.9 2.2 6.4 4l1.9 2.2Z"/><ellipse cx="6" cy="8.4" rx="5" ry="4.8"/><ellipse cx="12.2" cy="11.4" rx="3.4" ry="3.3"/></svg></button>
     <button class="tabbtn glyph" data-tab="set" title="Settings" aria-label="Settings"><svg viewBox="0 0 16 16" aria-hidden="true" class="cal-ico"><path d="M6.75 1.6h2.5l.3 1.62 1.05.61 1.55-.56 1.25 2.16-1.25 1.06v1.02l1.25 1.06-1.25 2.16-1.55-.56-1.05.61-.3 1.62h-2.5l-.3-1.62-1.05-.61-1.55.56-1.25-2.16 1.25-1.06V6.49L2.6 5.43l1.25-2.16 1.55.56 1.05-.61z"/><circle cx="8" cy="8" r="2.1"/></svg></button>
   </div>
 
@@ -2784,6 +2874,7 @@
   </div>
   <div class="pane" id="paneCal" hidden><div class="loading">Loading…</div></div>
   <div class="pane" id="paneSs" hidden><div class="loading">Loading…</div></div>
+  <div class="pane" id="panePile" hidden><div class="loading">Loading…</div></div>
   <div class="pane" id="paneSet" hidden><div id="paneShared"></div></div>
 
 </div>
@@ -3576,7 +3667,7 @@ window.PAWS = (function(){
   /* ---------------- tabs ---------------- */
 
   let currentTab = 'fm';
-  const PANES = { home:'paneHome', cal:'paneCal', ss:'paneSs', set:'paneSet' };
+  const PANES = { home:'paneHome', cal:'paneCal', ss:'paneSs', pile:'panePile', set:'paneSet' };
   const ALIAS = { fm:'home' };          // Ready lives inside Home
 
   function setTab(id){
@@ -11775,9 +11866,20 @@ window.PAWTASK = (function(){
       stroke="#372C22" stroke-width="1.2" stroke-linecap="round" fill="none"/>
     <path d="M32 48.6v14" stroke="#DED5C2" stroke-width="1" stroke-linecap="round" fill="none"/>
     <ellipse cx="32" cy="36" rx="28.5" ry="27.5" fill="url(#shGloss)"/>
-    <ellipse cx="16.6" cy="22.4" rx="3.6" ry="6" fill="#FFFFFF" opacity=".4"
-      transform="rotate(32 16.6 22.4)"/>
+    <ellipse cx="9.6" cy="29.5" rx="2.4" ry="4.9" fill="#FFFFFF" opacity=".44"
+      transform="rotate(20 9.6 29.5)"/>
+    <g transform="translate(13,-34.6) rotate(24 32 47.6)">
+      <path d="M32 47.6c-3.6-3.4-8-2.7-8 .7 0 3.1 4.7 3.8 8 .9 3.3 2.9 8 2.2 8-.9
+        0-3.4-4.4-4.1-8-.7Z" fill="var(--sbow, #799837)"/>
+      <circle cx="32" cy="48.5" r="1.9" fill="var(--sbow, #799837)"
+        stroke="rgba(255,255,255,.5)" stroke-width=".7"/>
+    </g>
   </svg>`;
+  /* 右のみみのリボンは、その日の曜日の色。週の肉球スタンプと同じ並び（月→日）を、
+     毛色に負けないよう ひとつ濃くしたもの */
+  const BOW_DAYS = ['#799837', '#875b1b', '#3e8299', '#ad465f',
+                    '#a4891e', '#36517d', '#743034'];
+  function bowToday(){ return BOW_DAYS[(new Date().getDay() + 6) % 7]; }
   /* 風船はひとつだけ。色はそのときどきで */
   const BAL_COLORS = ['#DDA0A8', '#E7CE9B', '#9EBAC6', '#A6C0A2', '#C4A6C6', '#E0AE8E'];
   const PARTY_SVG = `<svg viewBox="0 0 26 40" width="21" height="32" aria-hidden="true">
@@ -12275,6 +12377,7 @@ window.PAWTASK = (function(){
                                         : -10 - Math.random() * 24).toFixed(0) + 'px');
     el.style.animation = 'flyAcross ' + dur.toFixed(1) + 's linear forwards';
     if(party) el.style.setProperty('--bal', BAL_COLORS[Math.floor(Math.random() * BAL_COLORS.length)]);
+    if(shiba) el.style.setProperty('--sbow', bowToday());
     el.innerHTML = '<span class="fly-in">'
       + (shiba ? SHIBA_SVG : party ? PARTY_SVG : BALLOON_SVG) + '</span>';
     st.appendChild(el);
@@ -13743,6 +13846,749 @@ window.PAWTASK = (function(){
   setInterval(() => { if(data.place) loadWeather(false); }, 15 * 60 * 1000);
 })();
 
+</script>
+
+<script>
+/* =====================================================================
+   Pile — かごに溜まっていく犬たち。
+   その日の合計時間が節目にとどくたび、ひとり 上から落ちてくる。
+   10分ごとに小さい子、30分・1時間・2時間・3時間・4時間 の節目で
+   ひとつ大きい子がボーナスで重なる。日付は朝5時で変わる。
+   かごが画面いっぱいになったら、みんな風船になって巣立っていく。
+   ===================================================================== */
+(function(){
+  'use strict';
+
+  const app = document.getElementById('panePile');
+  if(!app) return;
+  if(/[?&]mini=1/.test(location.search)) return;
+
+  /* ---------------- その日の合計 ---------------- */
+  const DAY_FLIP = 5;
+  function dayStart5(when){
+    const x = new Date(when == null ? Date.now() : when);
+    if(x.getHours() < DAY_FLIP) x.setDate(x.getDate() - 1);
+    x.setHours(DAY_FLIP, 0, 0, 0);
+    return x;
+  }
+  const pad2 = n => (n < 10 ? '0' : '') + n;
+  function dayKey5(when){
+    const d = dayStart5(when);
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+  /* Session が持っている記録から、きょう働いた合計を数える。
+     数えかたは Session の dayTotalWork() と同じ */
+  function dayTotalWork(){
+    const ss = (PAWS.root() || {}).ss || {};
+    const from = dayStart5().getTime();
+    let total = 0;
+    (ss.sessions || []).forEach(s => { if(s.ts >= from) total += (s.work || 0); });
+    if(ss.phase === 'working' || ss.phase === 'break'){
+      let t = ss.workAccum || 0;
+      if(ss.phase === 'working' && ss.workStart) t += (Date.now() - ss.workStart) / 1000;
+      total += t;
+    }
+    return total;
+  }
+
+  /* ---------------- 犬 ---------------- */
+  const COATS = [
+    { coat:'#C9A87C', earIn:'#E4D2B4', face:'#EDE6D6', muz:'#F5F0E4' }, /* 柴 */
+    { coat:'#E0C8A2', earIn:'#F0E3CB', face:'#F6F0E2', muz:'#FBF7EC' }, /* クリーム */
+    { coat:'#A97F55', earIn:'#D6BE9C', face:'#E8DECA', muz:'#F2EADA' }, /* 赤茶 */
+    { coat:'#B3ACA0', earIn:'#DCD6CB', face:'#EDEAE3', muz:'#F5F3EE' }, /* ごま */
+    { coat:'#7A6B5B', earIn:'#B8A995', face:'#E6DFD2', muz:'#F1EBDF' }  /* 黒柴 */
+  ];
+  /* 右耳のリボンは、その子をもらった日の曜日の色。
+     週の肉球スタンプと同じ並び（月→日）を、毛色に負けないよう ひとつ濃くしたもの */
+  const BOW  = ['#799837', '#875b1b', '#3e8299', '#ad465f', '#a4891e', '#36517d', '#743034'];
+  const BOW_SOFT = ['#A8C075', '#C9913F', '#7FAEBE', '#C7929F', '#D3BA55', '#6B84AE', '#AB5F63'];
+  const DAY_JP = ['月', '火', '水', '木', '金', '土', '日'];
+  function bowIdxNow(){ return (dayStart5().getDay() + 6) % 7; }
+
+  /* 10分 S / 30分 M / 1時間 L / 2時間 XL / 3時間 XXL / 4時間 3XL */
+  const TIERS = [
+    { id:'S',   r:7,    every:600   },
+    { id:'M',   r:9.5,  every:1800  },
+    { id:'L',   r:12,   every:3600  },
+    { id:'XL',  r:15,   every:7200  },
+    { id:'XXL', r:18.5, every:10800 },
+    { id:'3XL', r:22,   every:14400 }
+  ];
+  const MAXR = TIERS[TIERS.length - 1].r;
+
+  const SVG_R = 28, SVG_W = 64, SVG_H = 70, SVG_CX = 32, SVG_CY = 36;
+
+  function dogSVG(c, bow){
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 70" width="64" height="70">'
+      + '<defs><radialGradient id="g" cx="33%" cy="26%" r="76%">'
+      +   '<stop offset="0" stop-color="#fff" stop-opacity=".34"/>'
+      +   '<stop offset=".4" stop-color="#fff" stop-opacity=".10"/>'
+      +   '<stop offset=".76" stop-color="#fff" stop-opacity="0"/>'
+      +   '<stop offset="1" stop-color="#8C7457" stop-opacity=".2"/>'
+      + '</radialGradient></defs>'
+      + '<path d="M15.4 6.4 25.6 13.6 18 22.6Z" fill="' + c.coat + '"/>'
+      + '<path d="M48.6 6.4 38.4 13.6 46 22.6Z" fill="' + c.coat + '"/>'
+      + '<path d="M17.4 10 23.2 14.1 19.2 19.2Z" fill="' + c.earIn + '"/>'
+      + '<path d="M46.6 10 40.8 14.1 44.8 19.2Z" fill="' + c.earIn + '"/>'
+      + '<ellipse cx="32" cy="36" rx="28.5" ry="27.5" fill="' + c.face + '"/>'
+      + '<path d="M32 8.5c-15.7 0-28.5 12.3-28.5 27.5 0 1.6.1 3.2.4 4.7 '
+      +   '6.4 2.6 12.6 3.4 18.5 2.5 4.2-.7 7.4-2.8 9.6-6.3 2.2 3.5 5.4 5.6 9.6 6.3 '
+      +   '5.9.9 12.1.1 18.5-2.5.3-1.5.4-3.1.4-4.7C60.5 20.8 47.7 8.5 32 8.5z" fill="' + c.coat + '"/>'
+      + '<ellipse cx="21.6" cy="21.6" rx="4.6" ry="2.9" fill="' + c.face + '"/>'
+      + '<ellipse cx="42.4" cy="21.6" rx="4.6" ry="2.9" fill="' + c.face + '"/>'
+      + '<ellipse cx="20.4" cy="33.4" rx="3.5" ry="4" fill="#372C22"/>'
+      + '<ellipse cx="43.6" cy="33.4" rx="3.5" ry="4" fill="#372C22"/>'
+      + '<ellipse cx="22" cy="31.6" rx="1.1" ry="1.3" fill="#fff" opacity=".85"/>'
+      + '<ellipse cx="45.2" cy="31.6" rx="1.1" ry="1.3" fill="#fff" opacity=".85"/>'
+      + '<ellipse cx="32" cy="39.4" rx="9.6" ry="8.6" fill="' + c.muz + '"/>'
+      + '<ellipse cx="32" cy="35" rx="4.2" ry="3.3" fill="#372C22"/>'
+      + '<path d="M32 38.4v2.2" stroke="#372C22" stroke-width="1.2" stroke-linecap="round" fill="none"/>'
+      + '<path d="M32 40.6c-1 2.4-4.6 2.4-5.6 0M32 40.6c1 2.4 4.6 2.4 5.6 0" '
+      +   'stroke="#372C22" stroke-width="1.2" stroke-linecap="round" fill="none"/>'
+      + '<ellipse cx="32" cy="36" rx="28.5" ry="27.5" fill="url(#g)"/>'
+      /* つや。まゆ毛にかからず、目の高さのふちに */
+      + '<ellipse cx="9.6" cy="29.5" rx="2.4" ry="4.9" fill="#fff" opacity=".44" '
+      +   'transform="rotate(20 9.6 29.5)"/>'
+      /* リボンは 右のみみのところに、ななめに */
+      + (bow ? '<g transform="translate(13,-34.6) rotate(24 32 47.6)">'
+      +   '<path d="M32 47.6c-3.6-3.4-8-2.7-8 .7 0 3.1 4.7 3.8 8 .9 3.3 2.9 8 2.2 8-.9 '
+      +     '0-3.4-4.4-4.1-8-.7Z" fill="' + bow + '"/>'
+      +   '<circle cx="32" cy="48.5" r="1.9" fill="' + bow + '" '
+      +     'stroke="rgba(255,255,255,.5)" stroke-width=".7"/></g>' : '')
+      + '</svg>';
+  }
+  /* 空へ帰るときだけ、ひもが付いて「風船」になる */
+  function dogBalloonIcon(px){
+    const w = Math.round(px * SVG_W / (SVG_R * 2)), h = Math.round(w * 84 / SVG_W);
+    return dogSVG(COATS[0], BOW[6])
+      .replace('viewBox="0 0 64 70"', 'viewBox="0 0 64 84"')
+      .replace('width="64" height="70"', 'width="' + w + '" height="' + h + '"')
+      .replace('</svg>', '<path d="M32 63.4c1.4 5-1.4 9 0 13.8" stroke="#B8AC9A" '
+        + 'stroke-width="2" stroke-linecap="round" fill="none"/></svg>');
+  }
+  function dogBallIcon(px){
+    const w = Math.round(px * SVG_W / (SVG_R * 2)), h = Math.round(w * SVG_H / SVG_W);
+    return dogSVG(COATS[0], null)
+      .replace('width="64" height="70"', 'width="' + w + '" height="' + h + '"');
+  }
+
+  const sprites = {};
+  const keyOf = (ci, bi) => ci + '|' + bi;
+  let spritesReady = false;
+  function makeSprites(done){
+    let pending = 0, fired = false;
+    for(let bi = 0; bi < BOW.length; bi++){
+      for(let ci = 0; ci < COATS.length; ci++){
+        const k = keyOf(ci, bi);
+        if(sprites[k]) continue;
+        const img = new Image(); pending++;
+        img.onload = img.onerror = () => { if(--pending === 0 && !fired){ fired = true; done(); } };
+        img.src = 'data:image/svg+xml;charset=utf-8,'
+          + encodeURIComponent(dogSVG(COATS[ci], BOW[bi]));
+        sprites[k] = img;
+      }
+    }
+    if(pending === 0) done();
+  }
+
+  /* ---------------- しまっておくもの ---------------- */
+  const DEFAULT_DATA = {
+    dogs: [],        // [tier, bow, coat, x, y, rot]
+    queue: [],       // [tier, bow] … まだ落ちてきていない子
+    flown: 0,
+    flownBy: [0, 0, 0, 0, 0, 0],
+    marks:  [0, 0, 0, 0, 0, 0],
+    markKey: '',
+    at: 0,
+    metaAt: 0,
+    tombs: []
+  };
+  let data = PAWS.section('pile', DEFAULT_DATA);
+  function fix(){
+    if(!Array.isArray(data.dogs)) data.dogs = [];
+    if(!Array.isArray(data.queue)) data.queue = [];
+    if(!Array.isArray(data.marks) || data.marks.length !== TIERS.length)
+      data.marks = TIERS.map(() => 0);
+    if(!Array.isArray(data.flownBy) || data.flownBy.length !== TIERS.length)
+      data.flownBy = TIERS.map(() => 0);
+    if(typeof data.flown !== 'number') data.flown = 0;
+    if(typeof data.markKey !== 'string') data.markKey = '';
+    if(typeof data.at !== 'number') data.at = 0;
+  }
+  fix();
+
+  let dirty = false;
+  function touch(){ dirty = true; data.at = Date.now(); }
+  /* いまの山を、しまえるかたちに写しとる */
+  function snapshot(){
+    data.dogs = bodies.filter(b => !b.fly).map(b =>
+      [b.t, b.bi, b.ci, Math.round(b.x * 10) / 10,
+       Math.round(b.y * 10) / 10, Math.round(b.rot * 100) / 100]);
+    data.queue = queue.slice();
+  }
+  function flush(){
+    if(!dirty) return;
+    snapshot();
+    dirty = false;
+    PAWS.save();
+  }
+
+  /* ---------------- かごの中の物理 ---------------- */
+  const WW = 250;
+  const FLOOR = 40000;
+  const GRAV = 0.22;
+  const DAMP = 0.972;
+  const ITER = 6;
+  const REST = 0.36;
+  const BOUNCE = 0.34;
+  const CELL = MAXR * 2 + 4;
+
+  let bodies = [];
+  let queue = data.queue.slice();
+  let dropTimer = 0;
+
+  function makeBody(t, bi, ci){
+    return {
+      t: t, bi: bi, ci: ci, r: TIERS[t].r, key: keyOf(ci, bi),
+      x: 0, y: 0, px: 0, py: 0,
+      rot: 0, prot: 0, tilt: (Math.random() - .5) * .22,
+      sleep: 0, still: 0, asleep: false, ax: 0, ay: 0,
+      landed: false, fly: null, born: performance.now()
+    };
+  }
+  function addFalling(t, bi){
+    const b = makeBody(t, bi, Math.floor(Math.random() * COATS.length));
+    const top = camBottom - viewWorldH();
+    b.x = WW * 0.5 + (Math.random() - 0.5) * (WW - b.r * 2 - 40);
+    b.y = top - b.r - 14 - Math.random() * 30;
+    b.px = b.x; b.py = b.y;
+    b.rot = (Math.random() - .5) * .5;
+    bodies.push(b);
+    touch();
+  }
+  /* frozen … しまってあった山をそのまま戻すとき。動かさず、その場に置く。
+     まとめて積むときは frozen を立てないので、置いたあと ぎゅっと落ち着く */
+  function addPlaced(t, bi, ci, x, y, rot, frozen){
+    const b = makeBody(t, bi, ci);
+    b.x = x; b.y = y; b.px = x; b.py = y;
+    b.rot = rot; b.prot = rot; b.tilt = rot;
+    b.landed = true;
+    if(frozen){ b.asleep = true; b.sleep = 30; b.still = 40; }
+    else { b.sleep = 8; }
+    bodies.push(b);
+  }
+  /* まとめて置くとき — 左から右へ、いっぱいになったら一段上へ */
+  function stackIn(list){
+    let ry = FLOOR;
+    for(let i = 0; i < bodies.length; i++){
+      const o = bodies[i];
+      if(!o.fly && o.y - o.r < ry) ry = o.y - o.r;
+    }
+    for(let i = list.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = list[i]; list[i] = list[j]; list[j] = tmp;
+    }
+    let rx = 2, rowH = 0;
+    list.forEach(e => {
+      const r = TIERS[e[0]].r;
+      if(rx + r * 2 > WW - 2){ ry -= rowH + 1.5; rx = 2; rowH = 0; }
+      addPlaced(e[0], e[1], Math.floor(Math.random() * COATS.length),
+                rx + r + (Math.random() - .5) * 1.5, ry - r, (Math.random() - .5) * .22);
+      rx += r * 2 + 1;
+      if(r * 2 > rowH) rowH = r * 2;
+    });
+    touch();
+  }
+
+  const grid = new Map();
+  function rebuildGrid(){
+    grid.clear();
+    for(let i = 0; i < bodies.length; i++){
+      const b = bodies[i];
+      if(b.fly) continue;
+      const key = Math.floor(b.x / CELL) + ',' + Math.floor(b.y / CELL);
+      let a = grid.get(key);
+      if(!a){ a = []; grid.set(key, a); }
+      a.push(i);
+    }
+  }
+
+  function step(){
+    /* 空へ帰る子たち — 横には動かず、みんな並んだまま */
+    for(let i = bodies.length - 1; i >= 0; i--){
+      const b = bodies[i];
+      if(!b.fly) continue;
+      const f = b.fly;
+      if(f.delay > 0){ f.delay -= 16; continue; }
+      f.v = Math.min(1.9, f.v + 0.032);
+      b.y -= f.v;
+      b.rot += (0 - b.rot) * 0.09;
+      b.prot = b.rot;
+      if(b.y < camBottom - viewWorldH() - 140) bodies.splice(i, 1);
+    }
+
+    for(let i = 0; i < bodies.length; i++){ bodies[i].ax = bodies[i].x; bodies[i].ay = bodies[i].y; }
+    for(let i = 0; i < bodies.length; i++){
+      const b = bodies[i];
+      if(b.fly || b.asleep) continue;
+      let vx = (b.x - b.px) * DAMP;
+      let vy = (b.y - b.py) * DAMP;
+      const sp = Math.hypot(vx, vy), CAP = 14;
+      if(sp > CAP){ vx = vx / sp * CAP; vy = vy / sp * CAP; }
+      if(vy > 1.0) vx += Math.sin((performance.now() - b.born) / 420 + b.tilt * 9) * 0.05;
+      b.px = b.x; b.py = b.y;
+      b.x += vx; b.y += vy + GRAV;
+      const rv = (b.rot - b.prot) * 0.9;
+      b.prot = b.rot; b.rot += rv;
+    }
+
+    rebuildGrid();
+    for(let it = 0; it < ITER; it++){
+      for(let i = 0; i < bodies.length; i++){
+        const b = bodies[i];
+        if(b.fly) continue;
+        const cx = Math.floor(b.x / CELL), cy = Math.floor(b.y / CELL);
+        for(let gx = cx - 1; gx <= cx + 1; gx++){
+          for(let gy = cy - 1; gy <= cy + 1; gy++){
+            const a = grid.get(gx + ',' + gy);
+            if(!a) continue;
+            for(let n = 0; n < a.length; n++){
+              const j = a[n];
+              if(j <= i) continue;
+              const o = bodies[j];
+              if(o.fly) continue;
+              const dx = o.x - b.x, dy = o.y - b.y, min = b.r + o.r;
+              const d2 = dx * dx + dy * dy;
+              if(d2 >= min * min || d2 === 0) continue;
+              const d = Math.sqrt(d2);
+              const over = min - d;
+              if(over > 0.7){
+                if(b.asleep && !o.asleep){ b.asleep = false; b.still = 0; b.px = b.x; b.py = b.y; }
+                else if(o.asleep && !b.asleep){ o.asleep = false; o.still = 0; o.px = o.x; o.py = o.y; }
+              }
+              if(b.asleep && o.asleep) continue;
+              /* 落ちてきた子が、もう座っている子に当たって ぽんと跳ねる */
+              if(it === 0 && b.landed !== o.landed){
+                const fall = b.landed ? o : b;
+                const nx = dx / d, ny = dy / d;
+                const sgn = (fall === b) ? 1 : -1;
+                const rel = ((o.x - o.px) - (b.x - b.px)) * nx
+                          + ((o.y - o.py) - (b.y - b.py)) * ny;
+                if(rel < -1.4){
+                  const imp = -(1 + BOUNCE) * rel;
+                  fall.px += nx * imp * sgn;
+                  fall.py += ny * imp * sgn;
+                  fall.rot -= nx * sgn * 0.06;
+                }
+              }
+              const m1 = o.r * o.r, m2 = b.r * b.r, mt = m1 + m2;
+              const w1 = b.asleep ? 0 : o.asleep ? 1 : m1 / mt;
+              const w2 = o.asleep ? 0 : b.asleep ? 1 : m2 / mt;
+              const push = over / d * 0.5;
+              b.x -= dx * push * 2 * w1; b.y -= dy * push * 2 * w1;
+              o.x += dx * push * 2 * w2; o.y += dy * push * 2 * w2;
+              const tq = dx * 0.0008;
+              b.rot -= tq; o.rot += tq;
+              if(b.landed !== o.landed){
+                const f = b.landed ? o : b;
+                if(Math.abs(f.y - f.py) < 1.1 && Math.abs(f.x - f.px) < 1.4) f.landed = true;
+              }
+              if(over > 0.3){ b.sleep = 0; o.sleep = 0; }
+            }
+          }
+        }
+        if(b.x < b.r){ b.x = b.r; b.px = b.x + (b.x - b.px) * 0.4; }
+        if(b.x > WW - b.r){ b.x = WW - b.r; b.px = b.x + (b.x - b.px) * 0.4; }
+        if(b.y > FLOOR - b.r){
+          const v = b.y - b.py;
+          b.y = FLOOR - b.r;
+          b.py = b.y + v * REST;
+          b.px += (b.x - b.px) * 0.16;
+          b.landed = true;
+        }
+      }
+    }
+
+    for(let i = 0; i < bodies.length; i++){
+      const b = bodies[i];
+      if(b.fly || b.asleep) continue;
+      const vx = b.x - b.px, vy = b.y - b.py, sp = vx * vx + vy * vy;
+      if(sp < 0.02){ b.sleep++; if(b.sleep > 3) b.landed = true; } else { b.sleep = 0; }
+      if(sp < 1.2){
+        b.rot += (b.tilt - b.rot) * (sp < 0.05 ? 0.14 : 0.05);
+        b.prot = b.rot;
+      }
+      /* 座ったあとは、小さな跳ね返りと左右のゆれを その場で消す */
+      if(b.landed){
+        const vy2 = b.y - b.py, vx2 = b.x - b.px;
+        if(vy2 < 0 && vy2 > -1.3) b.py = b.y;
+        if(vx2 < 0.9 && vx2 > -0.9) b.px = b.x;
+      }
+      if(b.rot > 0.9) b.rot = 0.9;
+      if(b.rot < -0.9) b.rot = -0.9;
+      /* ほんとうに止まったら眠らせる。山ぜんたいが じわじわ動くのを断ち切る */
+      if(b.landed && Math.hypot(b.x - b.ax, b.y - b.ay) < 0.012){
+        if(++b.still > 30){
+          b.asleep = true;
+          b.px = b.x; b.py = b.y;
+          b.rot = b.tilt; b.prot = b.tilt;
+          touch();
+        }
+      } else b.still = 0;
+    }
+  }
+
+  /* ---------------- 時間 → 犬 ---------------- */
+  function grantNow(){
+    const key = dayKey5();
+    if(data.markKey !== key){          // 日が変わった。節目は 0 から
+      data.markKey = key;
+      data.marks = TIERS.map(() => 0);
+      touch();
+    }
+    const sec = dayTotalWork();
+    const bi = bowIdxNow();
+    let got = 0;
+    TIERS.forEach((t, i) => {
+      const n = Math.floor(sec / t.every);
+      while(data.marks[i] < n){ data.marks[i]++; queue.push([i, bi]); got++; }
+    });
+    if(got){ touch(); flush(); }
+    return got;
+  }
+
+  /* ---------------- えがく ---------------- */
+  let cv = null, ctx = null, stage = null;
+  let VW = 0, VH = 0, dpr = 1, scale = 1;
+  const PAD = 12;
+  const viewWorldH = () => (VH - PAD * 2) / scale;
+  let camBottom = FLOOR, panY = 0, panIdle = 0, pileTop = FLOOR;
+
+  function measure(){
+    if(!stage) return false;
+    const w = stage.clientWidth, h = stage.clientHeight;
+    if(!w || !h) return false;
+    if(w !== VW || h !== VH || dpr !== Math.min(2, window.devicePixelRatio || 1)){
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      VW = w; VH = h;
+      cv.width = Math.round(VW * dpr); cv.height = Math.round(VH * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      scale = (VW - PAD * 2) / WW;
+    }
+    return true;
+  }
+
+  function trueTop(){
+    let t = FLOOR;
+    for(let i = 0; i < bodies.length; i++){
+      const b = bodies[i];
+      if(!b.fly && b.y - b.r < t) t = b.y - b.r;
+    }
+    return t;
+  }
+  /* «見た目がいっぱい» … 山のてっぺんが画面の上まで届いて、
+     カメラが上へのぼりはじめるところ。ここから先は、どれだけ積んでも同じ絵になる */
+  const isFull = () => (FLOOR - pileTop) >= viewWorldH() - 62;
+
+  function updateCamera(dt){
+    let top = FLOOR;
+    for(let i = 0; i < bodies.length; i++){
+      const b = bodies[i];
+      if(!b.landed || b.fly) continue;
+      if(b.y - b.r < top) top = b.y - b.r;
+    }
+    pileTop += (top - pileTop) * 0.08;
+    if(Math.abs(top - pileTop) < 0.05) pileTop = top;
+    const auto = Math.min(FLOOR, pileTop + viewWorldH() - 60);
+    if(panY !== 0){
+      panIdle += dt;
+      if(panIdle > 2600) panY += (0 - panY) * 0.06;
+      if(Math.abs(panY) < 0.6) panY = 0;
+    }
+    const want = Math.max(auto, Math.min(FLOOR, auto + panY));
+    camBottom += (want - camBottom) * 0.12;
+    if(Math.abs(want - camBottom) < 0.04) camBottom = want;
+  }
+
+  function draw(){
+    ctx.clearRect(0, 0, VW, VH);
+    const s = scale;
+    const ox = VW / 2 - (WW / 2) * s;
+    const oy = VH - PAD - camBottom * s;
+    const top = camBottom - viewWorldH();
+
+    ctx.save();
+    ctx.translate(ox, oy); ctx.scale(s, s);
+
+    const R = 26, hi = top - 200;
+    ctx.beginPath();
+    ctx.moveTo(0, hi);
+    ctx.lineTo(0, FLOOR - R);
+    ctx.quadraticCurveTo(0, FLOOR, R, FLOOR);
+    ctx.lineTo(WW - R, FLOOR);
+    ctx.quadraticCurveTo(WW, FLOOR, WW, FLOOR - R);
+    ctx.lineTo(WW, hi);
+    ctx.closePath();
+    const sky = ctx.createLinearGradient(0, top, 0, FLOOR);
+    sky.addColorStop(0, '#F6F7F4');
+    sky.addColorStop(.62, '#F7F3EA');
+    sky.addColorStop(1, '#F0E7D8');
+    ctx.fillStyle = sky; ctx.fill();
+
+    ctx.save(); ctx.clip();
+    const order = bodies.slice().sort((a, b) => b.y - a.y);
+    for(let i = 0; i < order.length; i++){
+      const b = order[i];
+      if(b.y < top - 120 || b.y > camBottom + 120) continue;
+      const img = sprites[b.key];
+      if(!img || !img.complete) continue;
+      const k = b.r / SVG_R;
+      ctx.save();
+      ctx.translate(b.x, b.y);
+      ctx.rotate(b.rot);
+      if(b.fly && b.fly.delay <= 0){
+        ctx.beginPath();
+        ctx.moveTo(0, b.r * .93);
+        ctx.bezierCurveTo(b.r * .14, b.r * 1.08, -b.r * .14, b.r * 1.28, 0, b.r * 1.43);
+        ctx.strokeStyle = 'rgba(184,172,154,.9)';
+        ctx.lineWidth = Math.max(.55, b.r * .085);
+        ctx.stroke();
+      }
+      ctx.scale(k, k);
+      ctx.drawImage(img, -SVG_CX, -SVG_CY, SVG_W, SVG_H);
+      ctx.restore();
+    }
+    ctx.restore();
+
+    ctx.lineWidth = 1.6 / s;
+    ctx.strokeStyle = 'rgba(199,172,135,.6)';
+    ctx.stroke();
+    ctx.restore();
+
+    const fade = ctx.createLinearGradient(0, 0, 0, 40);
+    fade.addColorStop(0, '#FFFFFF'); fade.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = fade; ctx.fillRect(0, 0, VW, 40);
+  }
+
+  /* ---------------- 巣立ち ---------------- */
+  function releaseAll(){
+    let n = 0;
+    for(let i = 0; i < bodies.length; i++){
+      const b = bodies[i];
+      if(b.fly) continue;
+      b.fly = { delay: Math.random() * 260, v: -0.55 };
+      b.landed = false; b.asleep = false;
+      data.flownBy[b.t] = (data.flownBy[b.t] || 0) + 1;
+      n++;
+    }
+    if(!n) return;
+    data.flown += n;
+    touch(); flush();
+  }
+
+  /* ---------------- 画面 ---------------- */
+  const fmt = sec => Math.floor(sec / 3600) + ':' + pad2(Math.floor(sec % 3600 / 60));
+
+  function shell(){
+    const bi = bowIdxNow();
+    return ''
+    + '<div class="pl-top">'
+    +   '<div><span class="pl-big" id="plTot">0:00</span>'
+    +   '<span class="pl-unit">きょうの合計</span>'
+    +   '<div class="pl-next" id="plNext"></div></div>'
+    +   '<div class="pl-now">いま計測中<br>'
+    +     '<span class="pl-chip" id="plDay" style="background:' + BOW_SOFT[bi] + '">'
+    +     DAY_JP[bi] + '曜日</span></div>'
+    + '</div>'
+    + '<div class="pl-stage" id="plStage"><canvas id="plCv"></canvas>'
+    +   '<div class="pl-tag" id="plTag">かごの底</div>'
+    +   '<div class="pl-fullbox" id="plFull"><div class="pl-bubble">かごがいっぱいです</div></div>'
+    + '</div>'
+    + '<div class="pl-flyrow" id="plFlyrow"><div class="pl-flywrap">'
+    +   '<button class="pl-flybtn" id="plRelease">Fly the nest'
+    +   '<span class="pl-fi">' + dogBalloonIcon(18) + '</span></button>'
+    + '</div></div>'
+    + '<div class="pl-foot">'
+    +   '<div class="pl-line"><span>かごの中の</span><span class="pl-ic">' + dogBallIcon(19) + '</span>'
+    +     '<b id="plIn">0</b><span class="pl-nm">' + esc(PAWS.dogName()) + '</span>'
+    +     '<span class="pl-bd" id="plInBd"></span></div>'
+    +   '<div class="pl-line pl-sub"><span>巣立った</span><span class="pl-ic">' + dogBalloonIcon(16) + '</span>'
+    +     '<b id="plOut">0</b><span class="pl-nm">' + esc(PAWS.dogName()) + '</span>'
+    +     '<span class="pl-bd" id="plOutBd"></span></div>'
+    + '</div>';
+  }
+  function esc(t){
+    return String(t == null ? '' : t).replace(/[&<>"']/g, c =>
+      ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  let relBtn = null, fullBox = null, flyRow = null, tagEl = null;
+  let totEl = null, nextEl = null, inEl = null, outEl = null,
+      inBd = null, outBd = null, dayChip = null;
+
+  function mount(){
+    app.innerHTML = shell();
+    stage   = app.querySelector('#plStage');
+    cv      = app.querySelector('#plCv');
+    ctx     = cv.getContext('2d');
+    relBtn  = app.querySelector('#plRelease');
+    fullBox = app.querySelector('#plFull');
+    flyRow  = app.querySelector('#plFlyrow');
+    tagEl   = app.querySelector('#plTag');
+    totEl   = app.querySelector('#plTot');
+    nextEl  = app.querySelector('#plNext');
+    inEl    = app.querySelector('#plIn');
+    outEl   = app.querySelector('#plOut');
+    inBd    = app.querySelector('#plInBd');
+    outBd   = app.querySelector('#plOutBd');
+    dayChip = app.querySelector('#plDay');
+    relBtn.addEventListener('click', releaseAll);
+    cv.addEventListener('wheel', e => {
+      panY = Math.max(0, panY + e.deltaY * 0.9 / scale); panIdle = 0; e.preventDefault();
+    }, { passive:false });
+  }
+
+  function hud(){
+    const sec = dayTotalWork();
+    totEl.textContent = fmt(sec);
+    const stepSec = TIERS[0].every;
+    nextEl.innerHTML = 'つぎの子まで <b>'
+      + Math.ceil((stepSec - (sec % stepSec)) / 60) + '</b> 分';
+    const bi = bowIdxNow();
+    dayChip.textContent = DAY_JP[bi] + '曜日';
+    dayChip.style.background = BOW_SOFT[bi];
+
+    const inBox = TIERS.map(() => 0);
+    let nIn = 0, below = 0;
+    for(let i = 0; i < bodies.length; i++){
+      const b = bodies[i];
+      if(b.fly) continue;
+      inBox[b.t]++; nIn++;
+      if(b.y > camBottom) below++;
+    }
+    nIn += queue.length;
+    const tally = arr => TIERS
+      .map((t, i) => arr[i] ? t.id + ' ' + arr[i] : null)
+      .filter(Boolean).join(' · ');
+    inEl.textContent = nIn;
+    inBd.textContent = tally(inBox);
+    outEl.textContent = data.flown;
+    outBd.textContent = tally(data.flownBy);
+
+    tagEl.textContent = below ? '↓ 下に あと ' + below : 'かごの底';
+    tagEl.style.opacity = below ? '1' : '.55';
+
+    const full = isFull() && bodies.some(b => !b.fly);
+    fullBox.classList.toggle('on', full);
+    flyRow.classList.toggle('on', full);
+  }
+
+  /* ---------------- まわす ---------------- */
+  let last = performance.now(), raf = 0, started = false;
+  const visible = () => app.offsetParent !== null && !document.hidden;
+
+  function drain(){
+    if(!queue.length) return;
+    /* ためこみすぎていたら、落とさずに もう積んである形で置く */
+    if(queue.length > 12){
+      stackIn(queue.splice(0, queue.length));
+      return;
+    }
+  }
+
+  function frame(now){
+    raf = requestAnimationFrame(frame);
+    const dt = Math.min(64, now - last); last = now;
+    if(!visible() || !spritesReady) return;
+    if(!measure()) return;
+
+    if(queue.length){
+      dropTimer -= dt;
+      if(dropTimer <= 0){
+        const e = queue.shift();
+        addFalling(e[0], e[1]);
+        dropTimer = 240;
+      }
+    }
+    step(); updateCamera(dt); draw(); hud();
+  }
+
+  function restore(){
+    bodies = [];
+    (data.dogs || []).forEach(d => {
+      const t = Math.max(0, Math.min(TIERS.length - 1, d[0] | 0));
+      const bi = Math.max(0, Math.min(BOW.length - 1, d[1] | 0));
+      const ci = Math.max(0, Math.min(COATS.length - 1, d[2] | 0));
+      addPlaced(t, bi, ci, +d[3] || WW / 2, +d[4] || FLOOR - 10, +d[5] || 0, true);
+    });
+    pileTop = trueTop(); camBottom = FLOOR; panY = 0;
+  }
+
+  mount();
+  makeSprites(() => { spritesReady = true; });
+  restore();
+  grantNow();
+  drain();
+  last = performance.now();
+  raf = requestAnimationFrame(frame);
+
+  /* 開いていなくても、節目は数えておく。ためこんだぶんは開いたときに積む */
+  setInterval(() => {
+    grantNow();
+    if(!visible()) drain();
+  }, 5000);
+  /* 落ちついたら、そっとしまう */
+  setInterval(flush, 4000);
+  window.addEventListener('pagehide', flush);
+  document.addEventListener('visibilitychange', () => { if(document.hidden) flush(); });
+
+  /* ---------------- 端末のあいだで そろえる ----------------
+     かごの中身は «最後に触ったほう» をまるごと採る。
+     どちらの端末も同じ記録から数えているので、匹数は自然とそろう。
+     ちがうのは並びかただけなので、片方の並びをそのまま持ってくればいい */
+  function payload(){
+    snapshot();
+    return { at: data.at || 0, dogs: data.dogs, queue: data.queue,
+             marks: data.marks, markKey: data.markKey,
+             flown: data.flown, flownBy: data.flownBy };
+  }
+  let wantRestore = false;
+  function mergeRemote(r){
+    if(!r || r.app !== 'pile') return false;
+    if(!((r.at || 0) > (data.at || 0))) return false;
+    data.at      = r.at;
+    data.dogs    = Array.isArray(r.dogs) ? r.dogs : [];
+    data.queue   = Array.isArray(r.queue) ? r.queue : [];
+    data.marks   = Array.isArray(r.marks) ? r.marks : null;
+    data.flownBy = Array.isArray(r.flownBy) ? r.flownBy : null;
+    data.markKey = typeof r.markKey === 'string' ? r.markKey : '';
+    data.flown   = +r.flown || 0;
+    fix();
+    wantRestore = true;
+    return true;
+  }
+
+  PAWS.register('pile', {
+    gistFile: 'pile.json',
+    appId: 'pile',
+    payload: payload,
+    merge: mergeRemote,
+    rerender: () => {
+      if(wantRestore){
+        wantRestore = false;
+        queue = data.queue.slice();
+        restore();
+        grantNow();
+        /* 取り込んだ山を、この端末にも書きとめておく。
+           at は相手のままなので、押し返して取り合いになることはない */
+        dirty = true;
+      }
+      const nm = app.querySelectorAll('.pl-nm');
+      for(let i = 0; i < nm.length; i++) nm[i].textContent = PAWS.dogName();
+    }
+  });
+})();
 </script>
 
 <script>
