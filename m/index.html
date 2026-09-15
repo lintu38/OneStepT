@@ -14090,6 +14090,9 @@ window.PAWTASK = (function(){
 
   let dirty = false;
   function touch(){ dirty = true; data.at = Date.now(); }
+  /* 中身は変わっていないけれど しまい直したいとき。
+     at を進めると «こちらのほうが新しい» と誤解されるので、そこは触らない */
+  function touchOnly(){ dirty = true; }
   /* いまの山を、しまえるかたちに写しとる */
   function snapshot(){
     data.dogs = bodies.filter(b => !b.fly).map(b =>
@@ -14315,7 +14318,7 @@ window.PAWTASK = (function(){
     if(data.markKey !== key){          // 日が変わった。節目は 0 から
       data.markKey = key;
       data.marks = TIERS.map(() => 0);
-      touch();
+      touchOnly();          /* 日が変わっただけ。犬は 一匹も動いていない */
     }
     const sec = dayTotalWork();
     const bi = bowIdxNow();
@@ -14805,10 +14808,21 @@ window.PAWTASK = (function(){
              flown: data.flown, flownBy: data.flownBy };
   }
   let wantRestore = false;
+  /* その端末が これまでに «何匹 見てきたか»。
+     犬は増えるか巣立つかのどちらかで、巣立っても合計は減らない。
+     だから この数は決して小さくならず、進んでいるほうを見分けられる */
+  function seen(o){
+    return (+o.flown || 0) + (Array.isArray(o.dogs) ? o.dogs.length : 0);
+  }
   function mergeRemote(r){
     if(!r || r.app !== 'pile') return false;
-    if(!((r.at || 0) > (data.at || 0))) return false;
-    data.at      = r.at;
+    const mine = seen(data), theirs = seen(r);
+    /* 相手のほうが たくさん見ていれば もらう。
+       同じところまで見ていれば、新しく触ったほうを採る。
+       相手のほうが少ないときは こちらを残す（あとで こちらが押し返す） */
+    if(theirs < mine) return false;
+    if(theirs === mine && !((r.at || 0) > (data.at || 0))) return false;
+    data.at      = Math.max(r.at || 0, data.at || 0);
     data.dogs    = Array.isArray(r.dogs) ? r.dogs : [];
     data.queue   = Array.isArray(r.queue) ? r.queue : [];
     data.marks   = Array.isArray(r.marks) ? r.marks : null;
