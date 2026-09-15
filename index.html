@@ -2742,7 +2742,11 @@
     border:1px solid var(--line); border-radius:18px;
     height:340px; overflow:hidden;
   }
-  #panePile .pl-stage canvas{ display:block; width:100%; height:100%; }
+  /* かごの中をさわるのは «犬にさわる» ためなので、指の動きを画面のスクロールに
+     渡さない。ここから下へスクロールしたいときは、かごの外に指を置いてもらう */
+  #panePile .pl-stage canvas{ display:block; width:100%; height:100%;
+    touch-action:none; -webkit-user-select:none; user-select:none;
+    -webkit-touch-callout:none; }
   #panePile .pl-tag{
     position:absolute; right:10px; top:9px; font-family:'Space Mono',monospace;
     font-size:10px; letter-spacing:.08em; color:var(--text-faint);
@@ -14434,7 +14438,8 @@ window.PAWTASK = (function(){
   }
   /* «見た目がいっぱい» … 山のてっぺんが画面の上まで届いて、
      カメラが上へのぼりはじめるところ。ここから先は、どれだけ積んでも同じ絵になる */
-  const isFull = () => (FLOOR - pileTop) >= viewWorldH() - 62;
+  let showFly = false;                 /* デモから «いっぱい» を そのまま出すとき */
+  const isFull = () => showFly || (FLOOR - pileTop) >= viewWorldH() - 62;
 
   function updateCamera(dt){
     let top = FLOOR;
@@ -14867,6 +14872,8 @@ window.PAWTASK = (function(){
       }
     },
     release: function(){ releaseAll(); },
+    /* «かごがいっぱいです» と巣立ちボタンを、溜まっていなくても出す */
+    showFly: function(on){ showFly = !!on; },
     clear: function(){
       bodies = []; queue = [];
       camBottom = FLOOR; pileTop = FLOOR; panY = 0;
@@ -14875,7 +14882,7 @@ window.PAWTASK = (function(){
     },
     state: function(){
       return { n: bodies.filter(b => !b.fly).length, queued: queue.length,
-               full: isFull(), flown: data.flown };
+               full: isFull(), forced: showFly, flown: data.flown };
     }
   };
 
