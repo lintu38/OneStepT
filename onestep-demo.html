@@ -2868,6 +2868,8 @@
   #panePile .pl-nm{ color:var(--text-faint); }
   #panePile .pl-en{ font-family:'Space Mono',monospace; font-size:11px;
     letter-spacing:.06em; color:var(--text-faint); }
+  #panePile .pl-eq{ font-family:'Space Mono',monospace; font-size:12px;
+    color:var(--text-faint); margin:0 -2px; }
   #panePile .pl-bd{ margin-left:auto; font-family:'Space Mono',monospace;
     font-size:11px; color:var(--text-faint); letter-spacing:.04em; }
 
@@ -2917,8 +2919,49 @@
   .ball-row .ball-eq{ font-family:'Space Mono',monospace; font-size:12px;
     color:var(--text-faint); margin:0 -1px; }
 
-  /* タイマーの右下のかご。押すと 風船アクションのページへ */
-  .ss-basket{ position:absolute; right:-34px; bottom:2px; width:42px; z-index:5;
+  /* Finish のあと、Well done の下に出る «入れる» と かご */
+  .ss-putrow{ display:flex; flex-direction:column; align-items:center; gap:11px;
+    margin:2px 0 14px; }
+  .ss-putbtn{
+    appearance:none; border:none; cursor:pointer;
+    display:flex; align-items:center; gap:7px;
+    padding:7px 13px 7px 10px; border-radius:99px;
+    font-family:'Comfortaa','Zen Kaku Gothic New',cursive;
+    font-size:13px; font-weight:700; letter-spacing:.03em; line-height:1; color:#A8875C;
+    text-shadow:0 1px 0 rgba(255,255,255,.9);
+    background:radial-gradient(circle at 34% 28%, #FFFFFF, #FDFAF4 58%, #F1E7D6 100%);
+    transition:transform .12s ease;
+    animation:ssPutGlow 2.8s ease-in-out infinite;
+  }
+  @keyframes ssPutGlow{
+    0%,100%{ box-shadow:0 8px 20px -11px rgba(170,142,105,.5),
+                        inset 0 -3px 8px rgba(150,124,90,.07),
+                        inset 0 0 0 1px rgba(199,172,135,.5),
+                        0 0 12px 2px rgba(201,138,18,.05); }
+    50%    { box-shadow:0 8px 20px -11px rgba(170,142,105,.5),
+                        inset 0 -3px 8px rgba(150,124,90,.07),
+                        inset 0 0 0 1px rgba(199,172,135,.5),
+                        0 0 28px 9px rgba(201,138,18,.15); }
+  }
+  .ss-putbtn:active{ transform:scale(.95); }
+  .ss-putbtn[disabled]{ animation:none; opacity:.45; cursor:default; }
+  .ss-pi{ display:block; line-height:0; width:17px; flex:none; }
+  .ss-pi svg{ width:100%; height:auto; display:block; }
+  .ss-ar{ width:11px; height:15px; display:block; flex:none;
+    fill:none; stroke:#B08A58; stroke-width:2.4;
+    stroke-linecap:round; stroke-linejoin:round;
+    transition:stroke .9s ease;
+    animation:ssArrow 1.9s ease-in-out infinite; }
+  @keyframes ssArrow{
+    0%,100%{ opacity:.3; transform:translateY(-1px); }
+    50%    { opacity:1;  transform:translateY(3px); }
+  }
+  .ss-putn{ font-family:'Space Mono',monospace; font-size:11px; font-weight:700;
+    color:#fff; background:var(--beige-deep); border-radius:99px;
+    padding:2px 7px; text-shadow:none; }
+
+  /* かご。押すと 風船アクションのページへ */
+  .ss-basket{ position:relative; width:52px; z-index:5;
     border:none; padding:0; background:none; cursor:pointer; line-height:0;
     filter:drop-shadow(0 4px 8px rgba(150,124,90,.22));
     transition:transform .16s ease; }
@@ -2937,7 +2980,8 @@
     filter:drop-shadow(0 1px 1.5px rgba(150,124,90,.2)); }
   .ss-pk svg{ width:100%; height:auto; display:block; }
   /* さわると «拾う» と出る */
-  .ss-tip{ position:absolute; right:2px; bottom:calc(100% + 8px);
+  .ss-tip{ position:absolute; left:50%; transform:translate(-50%,3px);
+    bottom:calc(100% + 8px);
     display:flex; align-items:center; gap:4px; white-space:nowrap;
     background:#fff; border:1px solid var(--line); border-radius:11px;
     padding:4px 9px 4px 7px; font-family:'Zen Kaku Gothic New',sans-serif;
@@ -2946,7 +2990,7 @@
     opacity:0; transform:translateY(3px); pointer-events:none;
     transition:opacity .16s ease, transform .16s ease; z-index:8; }
   .ss-basket:hover .ss-tip, .ss-basket:focus-visible .ss-tip{
-    opacity:1; transform:translateY(0); }
+    opacity:1; transform:translate(-50%,0); }
   .ss-tip .ss-tipic{ display:block; line-height:0; width:15px; flex:none; }
   .ss-tip svg{ width:100%; height:auto; display:block; }
 
@@ -2954,6 +2998,8 @@
   .ss-spill{ position:absolute; left:0; top:0; right:0; bottom:0;
     pointer-events:none; z-index:4; }
   .ss-sp{ position:absolute; line-height:0; pointer-events:auto; cursor:default;
+    touch-action:none; -webkit-user-select:none; user-select:none;
+    -webkit-touch-callout:none;
     filter:drop-shadow(0 2px 3px rgba(150,124,90,.18)); }
   .ss-sp.toss{ pointer-events:none; }
   /* 目標をこえてから生まれた子は、内がわから ふわふわ光る */
@@ -2963,22 +3009,27 @@
     border-radius:50%; pointer-events:none;
     background:radial-gradient(circle, rgba(255,205,96,.5),
       rgba(255,209,110,.26) 30%, rgba(255,214,126,.1) 58%, rgba(255,216,134,0) 78%);
-    animation:ssHalo 4.4s ease-in-out infinite;
+    animation:ssHalo 4.2s ease-in-out infinite;
     animation-delay:var(--gd, 0s); }
   .ss-sp.ss-lit::after, .ss-pk.ss-lit::after{
     content:''; position:absolute; inset:-5%;
-    border-radius:50%; pointer-events:none; mix-blend-mode:screen;
+    border-radius:50%; pointer-events:none; mix-blend-mode:plus-lighter;
     background:radial-gradient(circle at 50% 46%, rgba(255,238,188,.95),
       rgba(255,226,146,.5) 40%, rgba(255,215,122,.18) 70%, rgba(255,212,114,0) 100%);
-    animation:ssSheen 4.4s ease-in-out infinite;
+    animation:ssSheen 4.2s ease-in-out infinite;
     animation-delay:var(--gd, 0s); }
+  /* 谷は長く、山は やわらかく — かごのページと同じ息づかい */
   @keyframes ssHalo{
-    0%,100%{ opacity:.3; transform:scale(.93); }
-    50%    { opacity:1;  transform:scale(1.1); }
+    0%,100%{ opacity:.26; transform:scale(.9); }
+    28%    { opacity:.38; transform:scale(.95); }
+    50%    { opacity:.94; transform:scale(1.12); }
+    72%    { opacity:.38; transform:scale(.95); }
   }
   @keyframes ssSheen{
-    0%,100%{ opacity:.1; transform:scale(.97); }
-    50%    { opacity:.6; transform:scale(1.05); }
+    0%,100%{ opacity:.07; transform:scale(.96); }
+    28%    { opacity:.15; transform:scale(.99); }
+    50%    { opacity:.55; transform:scale(1.07); }
+    72%    { opacity:.15; transform:scale(.99); }
   }
   @media (prefers-reduced-motion: reduce){
     .ss-sp.ss-lit::before, .ss-pk.ss-lit::before,
@@ -5498,19 +5549,50 @@ PAWS.load();
   const MAX_PUPS = 5;
   const PUP_TRAIL = 15;         // degrees each puppy trails the one ahead
 
+  /* 休みはじめを 0、決めた時間で ちょうど一周。そのあとも まわりつづける */
+  const PUP_LEAD = 0.055;          /* 親の すこし前から */
+  function pupFrac(){
+    const lim = breakLimit();
+    if(!(lim > 0)) return 0;
+    return thisBreak() / lim;
+  }
+  /* 一周するたびに ひとり増える */
   function pupCount(){
-    if(data.phase !== 'working' && data.phase !== 'break') return 0;
-    return Math.min(Math.floor(workElapsed() / 3600), MAX_PUPS);
+    if(data.phase !== 'break') return 0;
+    return Math.min(MAX_PUPS, 1 + Math.floor(pupFrac()));
+  }
+  /* 描き直しを待たずに、増えたぶんを その場で足す */
+  function syncPups(){
+    const wrap = $q('.dial-wrap');
+    if(!wrap) return;
+    const want = pupCount();
+    const els = $qa('[data-pup]');
+    if(els.length === want) return;
+    if(els.length > want){
+      for(let i = want; i < els.length; i++) els[i].remove();
+      return;
+    }
+    for(let i = els.length; i < want; i++){
+      const el = document.createElement('div');
+      el.className = 'walker pup ' + coatFor(i);
+      el.dataset.pup = i;
+      el.innerHTML = DOG_SVG;
+      if(PAWS.collarNth) el.style.setProperty('--collar', PAWS.collarNth(i + 1));
+      wrap.appendChild(el);
+    }
   }
 
   const COATS = ['coat-beige', 'coat-black', 'coat-brown'];
   let pupCoats = [];
   function coatFor(i){
+    /* 親犬とは ちがう色で。増えるたびに 順ぐりに変えていく */
+    const pool = COATS.filter(c => c !== 'coat-beige');
     while(pupCoats.length <= i){
-      pupCoats.push(COATS[Math.floor(Math.random() * COATS.length)]);
+      pupCoats.push(pool[(pupCoats.length + coatSeed) % pool.length]);
     }
     return pupCoats[i];
   }
+  const coatSeed = Math.floor(Math.random() * 3);
   /* たまに、子犬の列にネコが紛れこむ */
   let pupKinds = [];
   function kindFor(i){
@@ -5525,10 +5607,7 @@ PAWS.load();
     let out = '';
     for(let i = 0; i < pupCount(); i++){
       const size = i >= 4 ? 'p3' : i >= 2 ? 'p2' : '';
-      const g = kindFor(i);
-      const art = g.k === 'cat' ? CAT_SVG : g.k === 'rab' ? RAB_SVG : DOG_SVG;
-      const coat = g.k === 'dog' ? coatFor(i) : 'guest ' + g.k + (g.v2 ? ' v2' : '');
-      out += `<div class="walker pup ${size} ${coat} ${dogClass}" data-pup="${i}">${art}</div>`;
+      out += `<div class="walker pup ${size} ${coatFor(i)}" data-pup="${i}">${DOG_SVG}</div>`;
     }
     return out;
   }
@@ -5538,10 +5617,10 @@ PAWS.load();
     positionWalker(p);
     placeZzz(p);
     placePoint($id('bfOrbit'), p);
-    const trail = PUP_TRAIL / 360;
+    const f = pupFrac();
     $qa('[data-pup]').forEach(el => {
       const i = parseInt(el.dataset.pup, 10);
-      placeOnRing(el, p - trail * (i + 1));
+      placeOnRing(el, p + PUP_LEAD + (f - i));
     });
   }
 
@@ -6284,10 +6363,26 @@ PAWS.load();
     const k = dayStart5(new Date()).getDay();
     return k === 0 ? 6 : k - 1;
   }
+  /* 毛色。かごのページと同じ五色 */
+  const BALL_COATS = [
+    { coat:'#C9A87C', earIn:'#E4D2B4', face:'#EDE6D6', muz:'#F5F0E4' },
+    { coat:'#E0C8A2', earIn:'#F0E3CB', face:'#F6F0E2', muz:'#FBF7EC' },
+    { coat:'#A97F55', earIn:'#D6BE9C', face:'#E8DECA', muz:'#F2EADA' },
+    { coat:'#B3ACA0', earIn:'#DCD6CB', face:'#EDEAE3', muz:'#F5F3EE' },
+    { coat:'#7A6B5B', earIn:'#B8A995', face:'#E6DFD2', muz:'#F1EBDF' }
+  ];
+  function coatArt(ci){
+    const c = BALL_COATS[Math.max(0, Math.min(BALL_COATS.length - 1, ci | 0))];
+    if(!ci) return BALL_ART;
+    return BALL_ART.split('#C9A87C').join(c.coat)
+                   .split('#E4D2B4').join(c.earIn)
+                   .split('#EDE6D6').join(c.face)
+                   .split('#F5F0E4').join(c.muz);
+  }
   /* 生まれたときのリボンを結んだ ボール犬 */
-  function ballArt(bi, pi){
+  function ballArt(bi, pi, ci){
     const c = BOW[Math.max(0, Math.min(6, bi | 0))];
-    return BALL_ART.replace('</svg>',
+    return coatArt(ci).replace('</svg>',
       '<g transform="' + BOWPOS[pi ? 1 : 0] + '">'
       + '<path d="M32 47.6c-3.6-3.4-8-2.7-8 .7 0 3.1 4.7 3.8 8 .9 3.3 2.9 8 2.2 8-.9'
       + ' 0-3.4-4.4-4.1-8-.7Z" fill="' + c + '"/>'
@@ -6298,15 +6393,18 @@ PAWS.load();
   /* ---- かごに入っている子。ふちから のぞかせる ---- */
   /* かごの口は だ円。どこに置くかで «隠れはじめる高さ» が違うので、
      その子の真ん中の x から 口の線をもとめて、そこに沈める */
-  const MO_CX = 21, MO_RX = 14.07, MO_CY = 11.97, MO_RY = 5.3;
+  const BK_W = 52, BK_S = BK_W / 40;
+  const MO_CX = 20 * BK_S, MO_RX = 13.4 * BK_S,
+        MO_CY = 11.4 * BK_S, MO_RY = 5.05 * BK_S;
   /* かごの «手前のふち» の高さ。ここから下は かごに隠れる */
   function mouthY(cx){
     const d = Math.min(1, Math.abs(cx - MO_CX) / MO_RX);
     return MO_CY + MO_RY * Math.sqrt(1 - d * d);
   }
-  const PEEK_R1 = [{ c:13.5, w:10.5 }, { c:21, w:12 }, { c:28.5, w:10.5 }];
-  const PEEK_R2 = [{ c:16.8, w:10.5 }, { c:25.2, w:10.5 }];
-  const PEEK_R3 = [{ c:21, w:10 }];
+  const U = BK_S;
+  const PEEK_R1 = [{ c:13 * U, w:8.1 * U }, { c:20 * U, w:9.2 * U }, { c:27 * U, w:8.1 * U }];
+  const PEEK_R2 = [{ c:16.2 * U, w:8.1 * U }, { c:23.8 * U, w:8.1 * U }];
+  const PEEK_R3 = [{ c:20 * U, w:7.7 * U }];
   const PEEK_ROT = [-10, 5, 12, 7, -8, -3];
   /* 飛び出した子は みんな かごの外へ。かごの中身は
      風船アクションページの かごを そのまま写したもの（数はざっくり） */
@@ -6324,8 +6422,14 @@ PAWS.load();
     const q = pileRoot();
     return (q && Array.isArray(q.queue)) ? q.queue : [];
   }
+  function heldList(){
+    const q = pileRoot();
+    return (q && Array.isArray(q.held)) ? q.held : [];
+  }
+  /* 小さなかごの中身。Session で «Put in» した子たち */
   function inBasket(){
-    return pileDogs().map(d => [d[1], d[7], d[6]]);
+    return heldList().map((e, i) =>
+      [e[1], e[3], e[2], (i * 3 + (e[1] | 0)) - Math.floor((i * 3 + (e[1] | 0)) / 5) * 5]);
   }
   function spillWaiting(){ return queueList(); }
 
@@ -6378,22 +6482,28 @@ PAWS.load();
     const list = peekList(tier);
     const last = mine.slice(-list.length);
     box.innerHTML = list.map((q, i) => {
-      const w = last[i] || [bowIdxNow(), 0, 0];
+      const w = last[i] || [bowIdxNow(), 0, 0, 0];
       return `<span class="ss-pk${w[2] ? ' ss-lit' : ''}" style="left:${q.l}px;`
         + `top:${q.t.toFixed(1)}px;width:${q.w}px;transform:rotate(${q.r}deg);`
-        + `--gd:-${(i * 0.9).toFixed(2)}s">${ballArt(w[0], w[1])}</span>`;
+        + `--gd:-${(i * 0.9).toFixed(2)}s">${ballArt(w[0], w[1], w[3])}</span>`;
     }).join('');
   }
 
   /* ---- かごのまわりに ころんと落ちている子 ---- */
+  /* リングの下、はしからはしまで。落ちる順は ばらばらに見えるように */
   const SPILL = [
-    { l:226, t:242, w:14, r:-12 },
+    { l:148, t:243, w:13, r:-12 },
     { l:300, t:243, w:13, r:9   },
-    { l:210, t:244, w:12, r:-6  },
-    { l:316, t:241, w:14, r:13  },
-    { l:296, t:231, w:11, r:-9  },
-    { l:196, t:242, w:12, r:6   }
+    { l:52,  t:246, w:11, r:-6  },
+    { l:212, t:243, w:14, r:13  },
+    { l:326, t:245, w:12, r:-9  },
+    { l:116, t:245, w:12, r:6   },
+    { l:244, t:246, w:11, r:-14 },
+    { l:20,  t:244, w:13, r:11  },
+    { l:180, t:245, w:12, r:-8  },
+    { l:84,  t:243, w:14, r:7   }
   ];
+
   function makeSpill(i, e, animate){
     const s = SPILL[i];
     const t = (e && e[0]) | 0;
@@ -6424,12 +6534,13 @@ PAWS.load();
       }, 2050);
     }
     el.dataset.rot0 = s.r;
+    /* 待っている子の毛色は、その子ごとに決まる（並びが変わっても おなじ子は おなじ色） */
+    const ci = (((e && e[1]) | 0) * 2 + i * 3 + 1) - Math.floor((((e && e[1]) | 0) * 2 + i * 3 + 1) / BALL_COATS.length) * BALL_COATS.length;
     el.innerHTML = '<span class="sp-y"><span class="sp-r" style="transform:rotate('
-      + s.r + 'deg)">' + ballArt(e && e[1], e && e[3]) + '</span></span>';
+      + s.r + 'deg)">' + ballArt(e && e[1], e && e[3], ci) + '</span></span>';
     return el;
   }
 
-  const BK_MOUTH_X = 273, BK_MOUTH_Y = 234;
   let spillN = -1;
   function syncSpill(force){
     const box = $id('ssSpill');
@@ -6442,14 +6553,17 @@ PAWS.load();
       box.innerHTML = '';
       for(let i = 0; i < want; i++) box.appendChild(makeSpill(i, out[i], false));
     } else if(want < spillN){
-      /* «Into the basket» を押したとき。外の子は かごへ 吸い込まれていく */
+      /* «Put in» を押したとき。外の子は かごへ 吸い込まれていく */
       const kids = box.querySelectorAll('.ss-sp');
+      const bk = $id('ssBasket');
+      const bkr = bk ? bk.getBoundingClientRect() : null;
       for(let i = want; i < kids.length; i++){
         const el = kids[i];
-        const r = { l: parseFloat(el.style.left), t: parseFloat(el.style.top),
-                    w: parseFloat(el.style.width) };
-        el.style.setProperty('--gx', (BK_MOUTH_X - (r.l + r.w / 2)).toFixed(1) + 'px');
-        el.style.setProperty('--gy', (BK_MOUTH_Y - (r.t + r.w * 0.55)).toFixed(1) + 'px');
+        const er = el.getBoundingClientRect();
+        const gx = bkr ? (bkr.left + bkr.width / 2) - (er.left + er.width / 2) : 0;
+        const gy = bkr ? (bkr.top + bkr.height * 0.34) - (er.top + er.height / 2) : 40;
+        el.style.setProperty('--gx', gx.toFixed(1) + 'px');
+        el.style.setProperty('--gy', gy.toFixed(1) + 'px');
         el.style.animationDelay = ((i - want) * 0.07).toFixed(2) + 's';
         el.classList.add('gone');
         (function(e){ setTimeout(() => { if(e.parentNode) e.parentNode.removeChild(e); }, 1100); })(el);
@@ -6462,13 +6576,15 @@ PAWS.load();
   }
   /* さわると、その向きへ ころんと転がる。かごのページの «つつく» と同じ感じで、
      押した向きへ 転がったところで 止まる */
-  function pushSpill(el, dir, amt){
+  function pushSpill(el, dx, dy){
     const ox = parseFloat(el.dataset.ox) || 0;
+    const oy = parseFloat(el.dataset.oy) || 0;
     const w = parseFloat(el.style.width) || 12;
-    let nx = ox + dir * amt;
-    nx = Math.max(-30, Math.min(30, nx));
+    const nx = Math.max(-34, Math.min(34, ox + dx));
+    const ny = Math.max(-26, Math.min(14, oy + dy));
     el.dataset.ox = nx;
-    el.style.transform = 'translateX(' + nx.toFixed(1) + 'px)';
+    el.dataset.oy = ny;
+    el.style.transform = 'translate(' + nx.toFixed(1) + 'px,' + ny.toFixed(1) + 'px)';
     const r0 = parseFloat(el.dataset.rot0) || 0;
     const deg = r0 + nx * (360 / (3.1416 * w));
     const rr = el.querySelector('.sp-r');
@@ -6478,41 +6594,39 @@ PAWS.load();
     const box = $id('ssSpill');
     if(!box || box.__poke) return;
     box.__poke = true;
-    let lastX = null;
+    let lastX = null, lastY = null;
     const pick = ev => {
       const el = ev.target && ev.target.closest ? ev.target.closest('.ss-sp') : null;
       if(!el) return null;
       if(el.classList.contains('in') || el.classList.contains('gone')) return null;
       return el;
     };
+    const cap = (v, m) => Math.max(-m, Math.min(m, v));
     box.addEventListener('pointermove', ev => {
       const el = pick(ev);
       const dx = lastX === null ? 0 : ev.clientX - lastX;
-      lastX = ev.clientX;
-      if(!el || Math.abs(dx) < 0.6) return;
-      pushSpill(el, dx > 0 ? 1 : -1, Math.min(6, 1.4 + Math.abs(dx) * 0.55));
+      const dy = lastY === null ? 0 : ev.clientY - lastY;
+      lastX = ev.clientX; lastY = ev.clientY;
+      if(!el) return;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if(d < 0.6) return;
+      /* 動かした向きへ、そのぶんだけ */
+      pushSpill(el, cap(dx * 0.85, 7), cap(dy * 0.85, 6));
     });
-    box.addEventListener('pointerleave', () => { lastX = null; });
+    box.addEventListener('pointerleave', () => { lastX = null; lastY = null; });
     box.addEventListener('pointerdown', ev => {
       const el = pick(ev);
       if(!el) return;
       const r = el.getBoundingClientRect();
-      /* 押した側とは反対へ 逃げる */
-      pushSpill(el, ev.clientX < r.left + r.width / 2 ? 1 : -1, 6.5);
+      /* 押したところとは反対へ 逃げる */
+      const ux = (r.left + r.width / 2) - ev.clientX;
+      const uy = (r.top + r.height / 2) - ev.clientY;
+      const L = Math.sqrt(ux * ux + uy * uy) || 1;
+      pushSpill(el, (ux / L) * 7, (uy / L) * 5);
     });
   }
 
-  function ballRow(){
-    if(ballSeen === null) ballSeen = ballCounts();
-    return `<div class="ball-row"><span class="ball-lbl">Today's</span>`
-      + `<span class="ball-ic">${ballArt(bowIdxNow(), 0)}</span>`
-      + `<span class="ball-eq">=</span>`
-      + `<b>${todayBalls()}</b><span class="ball-nm">${PAWS.dogName()}</span></div>`;
-  }
-  function syncBallRow(){
-    const b = app.querySelector('.ball-row b');
-    if(b) b.textContent = todayBalls();
-  }
+  function syncBallRow(){}
   /* ピコーン。生まれた合図 */
   function playBallPop(){
     if(data.soundOn === false) return;
@@ -6532,8 +6646,40 @@ PAWS.load();
     for(let i = 0; i < now.length; i++) born += now[i] - ballSeen[i];
     if(born){ ballSeen = now; syncBallRow(); }
   }
-  /* 一秒ごとに、数とかごの中身と 外で待っている子を そろえる */
-  setInterval(function(){ ballWatch(); syncPeek(false); syncSpill(false); bindPoke(); }, 1000);
+  function syncPut(){
+    const n = queueList().length;
+    const b = $id('ssPutN');
+    if(b) b.textContent = n;
+    const btn = $id('ssPut');
+    if(btn) btn.disabled = n === 0;
+  }
+  /* 矢印の色は リボンと同じ七色から そのつど ひとつ */
+  let arTimer = 0, arLast = -1;
+  function bindPut(){
+    const btn = $id('ssPut');
+    if(!btn || btn.__on) return;
+    btn.__on = true;
+    btn.addEventListener('click', () => {
+      try{ if(window.__PILE && window.__PILE.hold) window.__PILE.hold(); }catch(e){}
+      setTimeout(() => { syncSpill(false); syncPeek(false); syncPut(); }, 120);
+    });
+    const ar = btn.querySelector('.ss-ar');
+    if(arTimer) clearInterval(arTimer);
+    if(ar){
+      const pick = () => {
+        let i = Math.floor(Math.random() * BOW.length);
+        if(i === arLast) i = (i + 1) - Math.floor((i + 1) / BOW.length) * BOW.length;
+        arLast = i;
+        ar.style.stroke = BOW[i];
+      };
+      pick();
+      arTimer = setInterval(pick, 1900);
+    }
+  }
+  /* 一秒ごとに、かごの中身と 外で待っている子を そろえる */
+  setInterval(function(){
+    ballWatch(); syncPeek(false); syncSpill(false); bindPoke(); bindPut(); syncPut();
+  }, 1000);
 
   function renderWeekPaws(){
     const days = weekPaws();
@@ -6672,10 +6818,17 @@ PAWS.load();
     return `<div class="summary ${hitGoal ? 'gold' : ''}">
       ${hitGoal ? '<div class="medal">🏅</div>' : ''}
       <div class="big">${hitGoal ? 'Session complete!' : 'Well done.'}</div>
-      <div class="small">${hitGoal ? 'You went the full distance.' : 'Every stretch counts.'}</div>
-      <div class="rows">
-        <div>work<b>${s ? fmtElapsed(s.work) : '—'}</b></div>
-        <div>break<b>${s ? fmtElapsed(s.rest) : '—'}</b></div>
+      <div class="ss-putrow">
+        <button class="ss-putbtn" id="ssPut">
+          <span class="ss-pi"><svg viewBox="0 0 64 70" aria-hidden="true"><defs><radialGradient id="tbg" cx="33%" cy="26%" r="76%"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset=".4" stop-color="#fff" stop-opacity=".10"/><stop offset=".76" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#8C7457" stop-opacity=".2"/></radialGradient></defs><path d="M15.4 6.4 25.6 13.6 18 22.6Z" fill="#C9A87C"/><path d="M48.6 6.4 38.4 13.6 46 22.6Z" fill="#C9A87C"/><path d="M17.4 10 23.2 14.1 19.2 19.2Z" fill="#E4D2B4"/><path d="M46.6 10 40.8 14.1 44.8 19.2Z" fill="#E4D2B4"/><ellipse cx="32" cy="36" rx="28.5" ry="27.5" fill="#EDE6D6"/><path d="M32 8.5c-15.7 0-28.5 12.3-28.5 27.5 0 1.6.1 3.2.4 4.7 6.4 2.6 12.6 3.4 18.5 2.5 4.2-.7 7.4-2.8 9.6-6.3 2.2 3.5 5.4 5.6 9.6 6.3 5.9.9 12.1.1 18.5-2.5.3-1.5.4-3.1.4-4.7C60.5 20.8 47.7 8.5 32 8.5z" fill="#C9A87C"/><ellipse cx="21.6" cy="21.6" rx="4.6" ry="2.9" fill="#EDE6D6"/><ellipse cx="42.4" cy="21.6" rx="4.6" ry="2.9" fill="#EDE6D6"/><ellipse cx="20.4" cy="33.4" rx="3.5" ry="4" fill="#372C22"/><ellipse cx="43.6" cy="33.4" rx="3.5" ry="4" fill="#372C22"/><ellipse cx="22" cy="31.6" rx="1.1" ry="1.3" fill="#fff" opacity=".85"/><ellipse cx="45.2" cy="31.6" rx="1.1" ry="1.3" fill="#fff" opacity=".85"/><ellipse cx="32" cy="39.4" rx="9.6" ry="8.6" fill="#F5F0E4"/><ellipse cx="32" cy="35" rx="4.2" ry="3.3" fill="#372C22"/><path d="M32 38.4v2.2" stroke="#372C22" stroke-width="1.2" stroke-linecap="round" fill="none"/><path d="M32 40.6c-1 2.4-4.6 2.4-5.6 0M32 40.6c1 2.4 4.6 2.4 5.6 0" stroke="#372C22" stroke-width="1.2" stroke-linecap="round" fill="none"/><ellipse cx="32" cy="36" rx="28.5" ry="27.5" fill="url(#tbg)"/><ellipse cx="9.6" cy="29.5" rx="2.4" ry="4.9" fill="#fff" opacity=".44" transform="rotate(20 9.6 29.5)"/></svg></span>Put in
+          <svg class="ss-ar" viewBox="0 0 12 16" aria-hidden="true">
+            <path d="M6 2.4v10M2.3 8.8 6 12.6 9.7 8.8"/></svg>
+          <span class="ss-putn" id="ssPutN">0</span>
+        </button>
+        <button class="ss-basket" id="ssBasket" aria-label="かごのページへ"><span
+          class="ss-peek" id="ssPeek"></span><span class="ss-bkart"><svg viewBox="0 0 40 34" aria-hidden="true"><ellipse cx="20" cy="11.4" rx="13.4" ry="4.1" fill="#A3865D"/><path d="M6.6 11.4A13.4 4.1 0 0 1 33.4 11.4" fill="none" stroke="#DFC9A8" stroke-width="2.2" stroke-linecap="round"/></svg></span><span
+          class="ss-bkfront"><svg viewBox="0 0 40 34" aria-hidden="true"><defs><linearGradient id="ssBkG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#E0CDAE"/><stop offset=".38" stop-color="#F3EADA"/><stop offset="1" stop-color="#D3BC98"/></linearGradient></defs><path d="M6.6 11.4c0 0-.3 9.3 1 14 .9 3.2 3.4 5 6.4 5h12c3 0 5.5-1.8 6.4-5 1.3-4.7 1-14 1-14A13.4 4.1 0 0 1 6.6 11.4Z" fill="url(#ssBkG)"/><g stroke="#CDB693" stroke-width=".75" fill="none" opacity=".5" stroke-linecap="round"><path d="M9.8 16.4c.2 5.1.6 9.6 1.4 13.1"/><path d="M13.2 16.4c.1 5.3.4 10 .9 13.7"/><path d="M16.6 16.4c0 5.4.1 10.2.3 13.9"/><path d="M20 16.4v13.9"/><path d="M23.4 16.4c0 5.4-.1 10.2-.3 13.9"/><path d="M26.8 16.4c-.1 5.3-.4 10-.9 13.7"/><path d="M30.2 16.4c-.2 5.1-.6 9.6-1.4 13.1"/></g><path d="M7.7 20.6c4.5 1.2 20.1 1.2 24.6 0M8.6 25.4c4 1.1 18.8 1.1 22.8 0" stroke="#C3AB86" stroke-width=".65" fill="none" opacity=".38" stroke-linecap="round"/><path d="M6.6 11.4A13.4 4.1 0 0 0 33.4 11.4" fill="none" stroke="#DFC9A8" stroke-width="2.2" stroke-linecap="round"/></svg></span><span
+          class="ss-tip">To the big basket <span class="ss-tipic"><svg viewBox="0 0 64 70" aria-hidden="true"><defs><radialGradient id="tbg" cx="33%" cy="26%" r="76%"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset=".4" stop-color="#fff" stop-opacity=".10"/><stop offset=".76" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#8C7457" stop-opacity=".2"/></radialGradient></defs><path d="M15.4 6.4 25.6 13.6 18 22.6Z" fill="#C9A87C"/><path d="M48.6 6.4 38.4 13.6 46 22.6Z" fill="#C9A87C"/><path d="M17.4 10 23.2 14.1 19.2 19.2Z" fill="#E4D2B4"/><path d="M46.6 10 40.8 14.1 44.8 19.2Z" fill="#E4D2B4"/><ellipse cx="32" cy="36" rx="28.5" ry="27.5" fill="#EDE6D6"/><path d="M32 8.5c-15.7 0-28.5 12.3-28.5 27.5 0 1.6.1 3.2.4 4.7 6.4 2.6 12.6 3.4 18.5 2.5 4.2-.7 7.4-2.8 9.6-6.3 2.2 3.5 5.4 5.6 9.6 6.3 5.9.9 12.1.1 18.5-2.5.3-1.5.4-3.1.4-4.7C60.5 20.8 47.7 8.5 32 8.5z" fill="#C9A87C"/><ellipse cx="21.6" cy="21.6" rx="4.6" ry="2.9" fill="#EDE6D6"/><ellipse cx="42.4" cy="21.6" rx="4.6" ry="2.9" fill="#EDE6D6"/><ellipse cx="20.4" cy="33.4" rx="3.5" ry="4" fill="#372C22"/><ellipse cx="43.6" cy="33.4" rx="3.5" ry="4" fill="#372C22"/><ellipse cx="22" cy="31.6" rx="1.1" ry="1.3" fill="#fff" opacity=".85"/><ellipse cx="45.2" cy="31.6" rx="1.1" ry="1.3" fill="#fff" opacity=".85"/><ellipse cx="32" cy="39.4" rx="9.6" ry="8.6" fill="#F5F0E4"/><ellipse cx="32" cy="35" rx="4.2" ry="3.3" fill="#372C22"/><path d="M32 38.4v2.2" stroke="#372C22" stroke-width="1.2" stroke-linecap="round" fill="none"/><path d="M32 40.6c-1 2.4-4.6 2.4-5.6 0M32 40.6c1 2.4 4.6 2.4 5.6 0" stroke="#372C22" stroke-width="1.2" stroke-linecap="round" fill="none"/><ellipse cx="32" cy="36" rx="28.5" ry="27.5" fill="url(#tbg)"/><ellipse cx="9.6" cy="29.5" rx="2.4" ry="4.9" fill="#fff" opacity=".44" transform="rotate(20 9.6 29.5)"/></svg></span></span></button>
       </div>
       <button class="msg-reset" id="doneReset">RESET</button>
     </div>`;
@@ -6729,10 +6882,6 @@ PAWS.load();
             ? `<div class="dog-bubble sess ${data.phase === 'break' ? '' : 'hide'}" id="cheer">${data.phase === 'break' ? (data.breakChimed ? 'そろそろ始める？' : 'ひとやすみ') : (cheerText || '')}<span class="bpaw"></span></div>`
             : ''}
         <span class="ss-spill" id="ssSpill"></span>
-        <button class="ss-basket" id="ssBasket" aria-label="ボール犬 を拾う"><span
-          class="ss-peek" id="ssPeek"></span><span class="ss-bkart"><svg viewBox="0 0 40 34" aria-hidden="true"><ellipse cx="20" cy="11.4" rx="13.4" ry="4.1" fill="#A3865D"/><path d="M6.6 11.4A13.4 4.1 0 0 1 33.4 11.4" fill="none" stroke="#DFC9A8" stroke-width="2.2" stroke-linecap="round"/></svg></span><span
-          class="ss-bkfront"><svg viewBox="0 0 40 34" aria-hidden="true"><defs><linearGradient id="ssBkG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#E0CDAE"/><stop offset=".38" stop-color="#F3EADA"/><stop offset="1" stop-color="#D3BC98"/></linearGradient></defs><path d="M6.6 11.4c0 0-.3 9.3 1 14 .9 3.2 3.4 5 6.4 5h12c3 0 5.5-1.8 6.4-5 1.3-4.7 1-14 1-14A13.4 4.1 0 0 1 6.6 11.4Z" fill="url(#ssBkG)"/><g stroke="#CDB693" stroke-width=".75" fill="none" opacity=".5" stroke-linecap="round"><path d="M9.8 16.4c.2 5.1.6 9.6 1.4 13.1"/><path d="M13.2 16.4c.1 5.3.4 10 .9 13.7"/><path d="M16.6 16.4c0 5.4.1 10.2.3 13.9"/><path d="M20 16.4v13.9"/><path d="M23.4 16.4c0 5.4-.1 10.2-.3 13.9"/><path d="M26.8 16.4c-.1 5.3-.4 10-.9 13.7"/><path d="M30.2 16.4c-.2 5.1-.6 9.6-1.4 13.1"/></g><path d="M7.7 20.6c4.5 1.2 20.1 1.2 24.6 0M8.6 25.4c4 1.1 18.8 1.1 22.8 0" stroke="#C3AB86" stroke-width=".65" fill="none" opacity=".38" stroke-linecap="round"/><path d="M6.6 11.4A13.4 4.1 0 0 0 33.4 11.4" fill="none" stroke="#DFC9A8" stroke-width="2.2" stroke-linecap="round"/></svg></span><span
-          class="ss-tip"><span class="ss-tipic"><svg viewBox="0 0 64 70" aria-hidden="true"><defs><radialGradient id="tbg" cx="33%" cy="26%" r="76%"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset=".4" stop-color="#fff" stop-opacity=".10"/><stop offset=".76" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#8C7457" stop-opacity=".2"/></radialGradient></defs><path d="M15.4 6.4 25.6 13.6 18 22.6Z" fill="#C9A87C"/><path d="M48.6 6.4 38.4 13.6 46 22.6Z" fill="#C9A87C"/><path d="M17.4 10 23.2 14.1 19.2 19.2Z" fill="#E4D2B4"/><path d="M46.6 10 40.8 14.1 44.8 19.2Z" fill="#E4D2B4"/><ellipse cx="32" cy="36" rx="28.5" ry="27.5" fill="#EDE6D6"/><path d="M32 8.5c-15.7 0-28.5 12.3-28.5 27.5 0 1.6.1 3.2.4 4.7 6.4 2.6 12.6 3.4 18.5 2.5 4.2-.7 7.4-2.8 9.6-6.3 2.2 3.5 5.4 5.6 9.6 6.3 5.9.9 12.1.1 18.5-2.5.3-1.5.4-3.1.4-4.7C60.5 20.8 47.7 8.5 32 8.5z" fill="#C9A87C"/><ellipse cx="21.6" cy="21.6" rx="4.6" ry="2.9" fill="#EDE6D6"/><ellipse cx="42.4" cy="21.6" rx="4.6" ry="2.9" fill="#EDE6D6"/><ellipse cx="20.4" cy="33.4" rx="3.5" ry="4" fill="#372C22"/><ellipse cx="43.6" cy="33.4" rx="3.5" ry="4" fill="#372C22"/><ellipse cx="22" cy="31.6" rx="1.1" ry="1.3" fill="#fff" opacity=".85"/><ellipse cx="45.2" cy="31.6" rx="1.1" ry="1.3" fill="#fff" opacity=".85"/><ellipse cx="32" cy="39.4" rx="9.6" ry="8.6" fill="#F5F0E4"/><ellipse cx="32" cy="35" rx="4.2" ry="3.3" fill="#372C22"/><path d="M32 38.4v2.2" stroke="#372C22" stroke-width="1.2" stroke-linecap="round" fill="none"/><path d="M32 40.6c-1 2.4-4.6 2.4-5.6 0M32 40.6c1 2.4 4.6 2.4 5.6 0" stroke="#372C22" stroke-width="1.2" stroke-linecap="round" fill="none"/><ellipse cx="32" cy="36" rx="28.5" ry="27.5" fill="url(#tbg)"/><ellipse cx="9.6" cy="29.5" rx="2.4" ry="4.9" fill="#fff" opacity=".44" transform="rotate(20 9.6 29.5)"/></svg></span>を拾う</span></button>
         ${renderPups(st.dogClass)}
         ${renderBreakButterflies()}
         ${CAN_MINI && (data.phase === 'working' || data.phase === 'break')
@@ -6740,8 +6889,6 @@ PAWS.load();
           : ''}
       </div>
 
-
-      ${ballRow()}
 
       <div class="btn-slot">${buttonMarkup()}</div>
 
@@ -6830,8 +6977,11 @@ PAWS.load();
 
     `;
 
-    bind('ssBasket', () => PAWS.setTab('pile'));
-    syncPeek(true); syncSpill(true); bindPoke();
+    bind('ssBasket', () => {
+      PAWS.setTab('pile');
+      setTimeout(() => { try{ if(window.__PILE && window.__PILE.dropHeld) window.__PILE.dropHeld(); }catch(e){} }, 380);
+    });
+    syncPeek(true); syncSpill(true); bindPoke(); bindPut(); syncPut();
     bind('startBtn', onStartWork);
     bind('miniBtn2', openMini);
     if(window.PAWBGM) PAWBGM.bind('ss');
@@ -7110,12 +7260,11 @@ PAWS.load();
       }
       pups = miniRoot.querySelectorAll('[data-pup]');
     }
-    const trail = PUP_TRAIL / 360;
+    const pf = (typeof pupFrac === 'function') ? pupFrac() : 0;
     pups.forEach(el => {
       const i = parseInt(el.dataset.pup, 10);
-      el.className = 'walker pup ' + (i >= 4 ? 'p3' : i >= 2 ? 'p2' : '') + ' '
-                   + coatFor(i) + ' ' + (st.dogClass || '');
-      place(el, st.dogPos - trail * (i + 1));
+      el.className = 'walker pup ' + coatFor(i);
+      place(el, st.dogPos + 0.055 + (pf - i));
     });
     const src = $id('cheer'), dst = q('#mCheer');
     if(dst){
@@ -7350,6 +7499,8 @@ PAWS.load();
         }
       }
       placeZzz(st.dogPos);
+      syncPups();                /* 一周ごとに 子犬がひとり増える */
+      positionPack(st.dogPos);   /* 休みのあいだ、子犬が まわっている */
       // the dog sits down and says so, for as long as the break lasts
       const bub = $id('cheer');
       if(bub){
@@ -14643,14 +14794,16 @@ window.PAWTASK = (function(){
   /* 三匹に一匹くらいは、みみの横でなく 顔の下にリボンを結んでいる */
   function bowPosNew(){ return Math.random() < .32 ? 1 : 0; }
 
-  /* 10分 S / 30分 M / 1時間 L / 2時間 XL / 3時間 XXL / 4時間 3XL */
+  /* 10分 S / 30分 M / 1〜6時間 L〜5XL。大きさの差は はっきりめに */
   const TIERS = [
-    { id:'S',   r:7,    every:600,   say:'10分ごと'      },
-    { id:'M',   r:9.5,  every:1800,  say:'30分ボーナス'   },
-    { id:'L',   r:12,   every:3600,  say:'1時間ボーナス'  },
-    { id:'XL',  r:15,   every:7200,  say:'2時間ボーナス'  },
-    { id:'XXL', r:18.5, every:10800, say:'3時間ボーナス'  },
-    { id:'3XL', r:22,   every:14400, say:'4時間ボーナス'  }
+    { id:'S',   r:7,    every:600,   say:'every 10 min' },
+    { id:'M',   r:9.6,  every:1800,  say:'30 min bonus'  },
+    { id:'L',   r:13,   every:3600,  say:'1 hour bonus'  },
+    { id:'XL',  r:17,   every:7200,  say:'2 hour bonus'  },
+    { id:'XXL', r:21.5, every:10800, say:'3 hour bonus'  },
+    { id:'3XL', r:26,   every:14400, say:'4 hour bonus'  },
+    { id:'4XL', r:31,   every:18000, say:'5 hour bonus'  },
+    { id:'5XL', r:36.5, every:21600, say:'6 hour bonus'  }
   ];
   const MAXR = TIERS[TIERS.length - 1].r;
 
@@ -14738,8 +14891,9 @@ window.PAWTASK = (function(){
     dogs: [],        // [tier, bow, coat, x, y, rot, spark, bowPos]
     queue: [],       // [tier, bow, spark, bowPos] … まだ落ちてきていない子
     flown: 0,
-    flownBy: [0, 0, 0, 0, 0, 0],
-    marks:  [0, 0, 0, 0, 0, 0],
+    flownBy: [0, 0, 0, 0, 0, 0, 0, 0],
+    marks:  [0, 0, 0, 0, 0, 0, 0, 0],
+    held:   [],      // Session の小さなかごに 入れてある子
     markKey: '',
     at: 0,
     metaAt: 0,
@@ -14749,10 +14903,14 @@ window.PAWTASK = (function(){
   function fix(){
     if(!Array.isArray(data.dogs)) data.dogs = [];
     if(!Array.isArray(data.queue)) data.queue = [];
+    if(!Array.isArray(data.held)) data.held = [];
+    /* 節目が増えても、これまでの数は そのまま残す */
+    const pad = a => TIERS.map((t, i) =>
+      (Array.isArray(a) && typeof a[i] === 'number') ? a[i] : 0);
     if(!Array.isArray(data.marks) || data.marks.length !== TIERS.length)
-      data.marks = TIERS.map(() => 0);
+      data.marks = pad(data.marks);
     if(!Array.isArray(data.flownBy) || data.flownBy.length !== TIERS.length)
-      data.flownBy = TIERS.map(() => 0);
+      data.flownBy = pad(data.flownBy);
     if(typeof data.flown !== 'number') data.flown = 0;
     if(typeof data.markKey !== 'string') data.markKey = '';
     if(typeof data.at !== 'number') data.at = 0;
@@ -15104,8 +15262,7 @@ window.PAWTASK = (function(){
   }
 
   /* ---------------- えがく ---------------- */
-  let cv = null, ctx = null, stage = null, inRow = null, inNEl = null;
-  let arEl = null, arTimer = 0, arLast = -1;
+  let cv = null, ctx = null, stage = null;
   let VW = 0, VH = 0, dpr = 1, scale = 1;
   const PAD = 12;
   const viewWorldH = () => (VH - PAD * 2) / scale;
@@ -15244,22 +15401,7 @@ window.PAWTASK = (function(){
   const fmt = sec => Math.floor(sec / 3600) + ':' + pad2(Math.floor(sec % 3600 / 60));
 
   function shell(){
-    const bi = bowIdxNow();
     return ''
-    + '<div class="pl-top">'
-    +   '<div><span class="pl-big" id="plTot">0:00</span>'
-    +   '<span class="pl-unit">きょうの合計</span>'
-    +   '<div class="pl-next" id="plNext"></div></div>'
-    +   '<div class="pl-now">いま計測中<br>'
-    +     '<span class="pl-chip" id="plDay" style="background:' + BOW_SOFT[bi] + '">'
-    +     DAY_JP[bi] + '曜日</span></div>'
-    + '</div>'
-    + '<div class="pl-inrow" id="plInrow"><button class="pl-inbtn" id="plIntake">'
-    +   '<span class="pl-fi">' + dogBallIcon(17) + '</span>Put in'
-    +   '<svg class="pl-ar" viewBox="0 0 12 16" aria-hidden="true">'
-    +     '<path d="M6 2.4v10M2.3 8.8 6 12.6 9.7 8.8"/></svg>'
-    +   '<span class="pl-inn" id="plInN">0</span>'
-    +   '</button></div>'
     + '<div class="pl-stage" id="plStage"><canvas id="plCv"></canvas>'
     +   '<div class="pl-tag" id="plTag">かごの底</div>'
     +   '<div class="pl-fullbox" id="plFull"><div class="pl-bubble">かごがいっぱいです</div></div>'
@@ -15269,11 +15411,11 @@ window.PAWTASK = (function(){
     +   '<span class="pl-fi">' + dogBalloonIcon(18) + '</span></button>'
     + '</div></div>'
     + '<div class="pl-foot">'
-    +   '<div class="pl-line"><span class="pl-en">In the basket</span><span class="pl-ic">' + dogBallIcon(19) + '</span>'
-    +     '<b id="plIn">0</b><span class="pl-nm">' + esc(PAWS.dogName()) + '</span>'
+    +   '<div class="pl-line"><span class="pl-en">In the Basket</span><span class="pl-ic">' + dogBallIcon(19) + '</span>'
+    +     '<span class="pl-eq">=</span><b id="plIn">0</b><span class="pl-nm">' + esc(PAWS.dogName()) + '</span>'
     +     '<span class="pl-bd" id="plInBd"></span></div>'
     +   '<div class="pl-line pl-sub"><span class="pl-en">Flew away</span><span class="pl-ic">' + dogBalloonIcon(16) + '</span>'
-    +     '<b id="plOut">0</b><span class="pl-nm">' + esc(PAWS.dogName()) + '</span>'
+    +     '<span class="pl-eq">=</span><b id="plOut">0</b><span class="pl-nm">' + esc(PAWS.dogName()) + '</span>'
     +     '<span class="pl-bd" id="plOutBd"></span></div>'
     + '</div>'
     + '<div class="pl-legend" id="plLegend"></div>';
@@ -15290,20 +15432,20 @@ window.PAWTASK = (function(){
     if(!legendEl || legendDone) return;
     legendDone = true;
     legendEl.innerHTML =
-      '<p class="pl-lead">タイムトラッキングで<span class="pl-ic">'
-      + dogBallIcon(19) + '</span>がたまるよ。</p>'
+      '<p class="pl-lead">Track your time and <span class="pl-ic">'
+      + dogBallIcon(19) + '</span> pile up.</p>'
       + '<div class="pl-tiers">'
       + TIERS.map((t, i) => {
           const w = Math.round(t.r * 2);
           const coat = COATS[i % COATS.length];
           return row(dogSVG(coat, BOW[i % BOW.length]).replace('width="64" height="70"',
                        'width="' + w + '" height="' + Math.round(w * SVG_H / SVG_W) + '"'),
-                     t.id + 'サイズ', t.say, '');
+                     'Size ' + t.id, t.say, '');
         }).join('')
       /* いちばん下は、目標をこえた子のしるし */
       + row(dogSVG(COATS[0], '#C98A12').replace('width="64" height="70"',
               'width="26" height="28"'),
-            'キラキラ', '目標時間達成', ' pl-spark')
+            'Glowing', 'goal reached', ' pl-spark')
       + '</div>';
   }
   function row(art, size, say, extra){
@@ -15316,8 +15458,7 @@ window.PAWTASK = (function(){
   }
 
   let relBtn = null, fullBox = null, flyRow = null, tagEl = null;
-  let totEl = null, nextEl = null, inEl = null, outEl = null,
-      inBd = null, outBd = null, dayChip = null;
+  let inEl = null, outEl = null, inBd = null, outBd = null;
 
   function mount(){
     app.innerHTML = shell();
@@ -15325,35 +15466,16 @@ window.PAWTASK = (function(){
     cv      = app.querySelector('#plCv');
     ctx     = cv.getContext('2d');
     relBtn  = app.querySelector('#plRelease');
-    inRow   = app.querySelector('#plInrow');
-    inNEl   = app.querySelector('#plInN');
-    /* 矢印の色は、リボンと同じ七色から そのつど ひとつ */
-    arEl    = app.querySelector('.pl-ar');
-    if(arTimer) clearInterval(arTimer);
-    if(arEl){
-      const pick = () => {
-        let i = Math.floor(Math.random() * BOW.length);
-        if(i === arLast) i = (i + 1 + Math.floor(Math.random() * (BOW.length - 1))) % BOW.length;
-        arLast = i;
-        arEl.style.stroke = BOW[i];
-      };
-      pick();
-      arTimer = setInterval(pick, 1900);
-    }
     fullBox = app.querySelector('#plFull');
     flyRow  = app.querySelector('#plFlyrow');
     tagEl   = app.querySelector('#plTag');
-    totEl   = app.querySelector('#plTot');
-    nextEl  = app.querySelector('#plNext');
     inEl    = app.querySelector('#plIn');
     outEl   = app.querySelector('#plOut');
     inBd    = app.querySelector('#plInBd');
     outBd   = app.querySelector('#plOutBd');
-    dayChip = app.querySelector('#plDay');
     legendEl = app.querySelector('#plLegend');
     legendDone = false; paintLegend();
     relBtn.addEventListener('click', releaseAll);
-    app.querySelector('#plIntake').addEventListener('click', letIn);
     cv.addEventListener('wheel', e => {
       panY = Math.max(0, panY + e.deltaY * 0.9 / scale); panIdle = 0; e.preventDefault();
     }, { passive:false });
@@ -15438,15 +15560,6 @@ window.PAWTASK = (function(){
   }
 
   function hud(){
-    const sec = dayTotalWork();
-    totEl.textContent = fmt(sec);
-    const stepSec = TIERS[0].every;
-    nextEl.innerHTML = 'つぎの子まで <b>'
-      + Math.ceil((stepSec - (sec % stepSec)) / 60) + '</b> 分';
-    const bi = bowIdxNow();
-    dayChip.textContent = DAY_JP[bi] + '曜日';
-    dayChip.style.background = BOW_SOFT[bi];
-
     const inBox = TIERS.map(() => 0);
     let nIn = 0, below = 0;
     for(let i = 0; i < bodies.length; i++){
@@ -15465,10 +15578,6 @@ window.PAWTASK = (function(){
 
     tagEl.textContent = below ? '↓ 下に あと ' + below : '';
     tagEl.style.display = below ? '' : 'none';
-
-    const waiting = queue.length;
-    inNEl.textContent = waiting;
-    inRow.classList.toggle('on', waiting > 0 && !dropping);
 
     const full = isFull() && bodies.some(b => !b.fly);
     fullBox.classList.toggle('on', full);
@@ -15541,7 +15650,7 @@ window.PAWTASK = (function(){
      ちがうのは並びかただけなので、片方の並びをそのまま持ってくればいい */
   function payload(){
     snapshot();
-    return { at: data.at || 0, dogs: data.dogs, queue: data.queue,
+    return { at: data.at || 0, dogs: data.dogs, queue: data.queue, held: data.held,
              marks: data.marks, markKey: data.markKey,
              flown: data.flown, flownBy: data.flownBy };
   }
@@ -15550,7 +15659,8 @@ window.PAWTASK = (function(){
      犬は増えるか巣立つかのどちらかで、巣立っても合計は減らない。
      だから この数は決して小さくならず、進んでいるほうを見分けられる */
   function seen(o){
-    return (+o.flown || 0) + (Array.isArray(o.dogs) ? o.dogs.length : 0);
+    return (+o.flown || 0) + (Array.isArray(o.dogs) ? o.dogs.length : 0)
+      + (Array.isArray(o.held) ? o.held.length : 0);
   }
   function mergeRemote(r){
     if(!r || r.app !== 'pile') return false;
@@ -15563,6 +15673,7 @@ window.PAWTASK = (function(){
     data.at      = Math.max(r.at || 0, data.at || 0);
     data.dogs    = Array.isArray(r.dogs) ? r.dogs : [];
     data.queue   = Array.isArray(r.queue) ? r.queue : [];
+    data.held    = Array.isArray(r.held) ? r.held : [];
     data.marks   = Array.isArray(r.marks) ? r.marks : null;
     data.flownBy = Array.isArray(r.flownBy) ? r.flownBy : null;
     data.markKey = typeof r.markKey === 'string' ? r.markKey : '';
@@ -15614,19 +15725,29 @@ window.PAWTASK = (function(){
       queue.push([i, Math.floor(Math.random() * BOW.length), spark ? 1 : 0, bowPosNew()]);
       touch(); flush();
     },
-    /* «Put in» と同じ。かごを開いていないときは そのまま積む */
-    putIn: function(){
-      if(!queue.length) return;
-      if(visible()){ letIn(); return; }
-      stackIn(queue.splice(0, queue.length));
-      dropping = false;
+    /* Session の «Put in» — 外で転がっていた子を 小さなかごへ */
+    hold: function(){
+      if(!queue.length) return 0;
+      data.held = (data.held || []).concat(queue.splice(0, queue.length));
       touch(); flush();
+      return data.held.length;
+    },
+    held: function(){ return (data.held || []).length; },
+    /* 小さなかごを押したとき — ためていた子が 大きなかごへ 落ちてくる */
+    dropHeld: function(){
+      const h = data.held || [];
+      if(!h.length) return;
+      queue = queue.concat(h);
+      data.held = [];
+      touch(); flush();
+      if(visible()) letIn();
+      else { stackIn(queue.splice(0, queue.length)); dropping = false; touch(); flush(); }
     },
     waiting: function(){ return queue.length; },
     /* «かごがいっぱいです» と巣立ちボタンを、溜まっていなくても出す */
     showFly: function(on){ showFly = !!on; },
     clear: function(){
-      bodies = []; queue = []; dropping = false;
+      bodies = []; queue = []; dropping = false; data.held = [];
       camBottom = FLOOR; pileTop = FLOOR; panY = 0;
       data.flown = 0; data.flownBy = TIERS.map(() => 0);
       touch(); flush();
