@@ -2619,37 +2619,80 @@
     100%{ transform:scale(1); opacity:0; } }
   /* 晴れた日のうさぎ。かえると同じ進みかたで、跳ぶ高さはうさぎのぶんだけ高く */
   .hm-rabbit{ position:absolute; bottom:1px; z-index:3; pointer-events:none;
-    transition:left .46s ease-out, opacity .8s ease; }
-  .hm-rabbit .rb-in{ display:block; }
+    transition:left .44s linear, opacity .8s ease;
+    transition-delay:.12s, 0s; }
+  .hm-rabbit .rb-in{ display:block; transform-origin:50% 92%; }
   /* 縮めるのは足もとを軸に。そうしないと地面から浮いてしまう */
   .hm-rabbit .rb-in > span{ transform-origin:50% 100%; }
   .hm-rabbit svg, .hm-rabbit span{ display:block; }
+  /* しゃがむ → 蹴り出す → のぼりは減速 → てっぺん → 落ちるときは加速
+     → 着地でつぶれる → もどる。のぼりと落ちは、放物線と同じ曲がりかた */
   @keyframes rabBigHop{
-    0%{ transform:translateY(0) scaleY(.84) scaleX(1.1); }
-    26%{ transform:translateY(-27px) scaleY(1.12) scaleX(.92); }
-    58%{ transform:translateY(-13px) scaleY(1.03) scaleX(1); }
-    100%{ transform:translateY(0) scaleY(1) scaleX(1); }
+    0%{ transform:translateY(0) rotate(0deg) scaleY(1) scaleX(1);
+        animation-timing-function:cubic-bezier(.25,.5,.4,1); }
+    11%{ transform:translateY(0) rotate(2deg) scaleY(.83) scaleX(1.11);
+        animation-timing-function:cubic-bezier(.5,0,.9,.5); }
+    19%{ transform:translateY(-7px) rotate(-9deg) scaleY(1.17) scaleX(.89);
+        animation-timing-function:cubic-bezier(.333,.667,.667,1); }
+    52%{ transform:translateY(-31px) rotate(0deg) scaleY(1) scaleX(1);
+        animation-timing-function:cubic-bezier(.333,0,.667,.333); }
+    84%{ transform:translateY(0) rotate(7deg) scaleY(1.1) scaleX(.93);
+        animation-timing-function:cubic-bezier(.2,0,.3,1); }
+    90%{ transform:translateY(0) rotate(1deg) scaleY(.85) scaleX(1.1);
+        animation-timing-function:cubic-bezier(.25,1.3,.5,1); }
+    100%{ transform:translateY(0) rotate(0deg) scaleY(1) scaleX(1); }
   }
   @keyframes rabSmallHop{
-    0%{ transform:translateY(0) scaleY(.9) scaleX(1.06); }
-    32%{ transform:translateY(-12px) scaleY(1.07) scaleX(.97); }
-    100%{ transform:translateY(0) scaleY(1) scaleX(1); }
+    0%{ transform:translateY(0) rotate(0deg) scaleY(1) scaleX(1);
+        animation-timing-function:cubic-bezier(.25,.5,.4,1); }
+    12%{ transform:translateY(0) rotate(1deg) scaleY(.88) scaleX(1.08);
+        animation-timing-function:cubic-bezier(.5,0,.9,.5); }
+    21%{ transform:translateY(-4px) rotate(-6deg) scaleY(1.11) scaleX(.93);
+        animation-timing-function:cubic-bezier(.333,.667,.667,1); }
+    52%{ transform:translateY(-13px) rotate(0deg) scaleY(1) scaleX(1);
+        animation-timing-function:cubic-bezier(.333,0,.667,.333); }
+    83%{ transform:translateY(0) rotate(4deg) scaleY(1.07) scaleX(.95);
+        animation-timing-function:cubic-bezier(.2,0,.3,1); }
+    90%{ transform:translateY(0) rotate(1deg) scaleY(.89) scaleX(1.07);
+        animation-timing-function:cubic-bezier(.25,1.3,.5,1); }
+    100%{ transform:translateY(0) rotate(0deg) scaleY(1) scaleX(1); }
   }
   /* 雨の日のかえる。ひと跳びずつ進む */
   .hm-frog{ position:absolute; bottom:7px; z-index:3; pointer-events:none;
-    transition:left .42s ease-out, opacity .8s ease; }
-  .hm-frog .fr-in{ display:block; }
+    transition:left .42s linear, opacity .8s ease;
+    transition-delay:.13s, 0s; }
+  .hm-frog .fr-in{ display:block; transform-origin:50% 92%; }
   .hm-frog svg, .hm-frog span{ display:block; }
+  /* かえるは、うさぎより深く沈んで、着地は ぺたん とつぶれる */
   @keyframes frogUp{
-    0%{ transform:translateY(0) scaleY(.86) scaleX(1.08); }
-    28%{ transform:translateY(-13px) scaleY(1.08) scaleX(.95); }
-    62%{ transform:translateY(-7px) scaleY(1.02) scaleX(1); }
-    100%{ transform:translateY(0) scaleY(1) scaleX(1); }
+    0%{ transform:translateY(0) rotate(0deg) scaleY(1) scaleX(1);
+        animation-timing-function:cubic-bezier(.25,.5,.4,1); }
+    13%{ transform:translateY(0) rotate(3deg) scaleY(.79) scaleX(1.14);
+        animation-timing-function:cubic-bezier(.5,0,.9,.5); }
+    22%{ transform:translateY(-6px) rotate(-11deg) scaleY(1.2) scaleX(.86);
+        animation-timing-function:cubic-bezier(.333,.667,.667,1); }
+    53%{ transform:translateY(-23px) rotate(0deg) scaleY(1) scaleX(1);
+        animation-timing-function:cubic-bezier(.333,0,.667,.333); }
+    84%{ transform:translateY(0) rotate(8deg) scaleY(1.11) scaleX(.92);
+        animation-timing-function:cubic-bezier(.2,0,.3,1); }
+    91%{ transform:translateY(0) rotate(1deg) scaleY(.82) scaleX(1.13);
+        animation-timing-function:cubic-bezier(.25,1.3,.5,1); }
+    100%{ transform:translateY(0) rotate(0deg) scaleY(1) scaleX(1); }
   }
   @keyframes frogUpS{
-    0%{ transform:translateY(0) scaleY(.92) scaleX(1.04); }
-    34%{ transform:translateY(-5px) scaleY(1.04) scaleX(.98); }
-    100%{ transform:translateY(0) scaleY(1) scaleX(1); }
+    0%{ transform:translateY(0) rotate(0deg) scaleY(1) scaleX(1);
+        animation-timing-function:cubic-bezier(.25,.5,.4,1); }
+    13%{ transform:translateY(0) rotate(2deg) scaleY(.87) scaleX(1.08);
+        animation-timing-function:cubic-bezier(.5,0,.9,.5); }
+    22%{ transform:translateY(-3px) rotate(-7deg) scaleY(1.11) scaleX(.93);
+        animation-timing-function:cubic-bezier(.333,.667,.667,1); }
+    53%{ transform:translateY(-8px) rotate(0deg) scaleY(1) scaleX(1);
+        animation-timing-function:cubic-bezier(.333,0,.667,.333); }
+    84%{ transform:translateY(0) rotate(5deg) scaleY(1.07) scaleX(.95);
+        animation-timing-function:cubic-bezier(.2,0,.3,1); }
+    91%{ transform:translateY(0) rotate(1deg) scaleY(.88) scaleX(1.08);
+        animation-timing-function:cubic-bezier(.25,1.3,.5,1); }
+    100%{ transform:translateY(0) rotate(0deg) scaleY(1) scaleX(1); }
   }
   .fr-body{ fill:url(#gFrB) #8FB47A; }
   .fr-leg{ fill:url(#gFrD) #7CA268; }
@@ -2804,9 +2847,10 @@
     font-size:10px; letter-spacing:.08em; color:var(--text-faint);
     background:rgba(255,255,255,.72); border-radius:99px; padding:3px 8px;
   }
+  /* «かごがいっぱいです» は Fly away ボタンの すぐ上に */
   #panePile .pl-fullbox{
-    position:absolute; left:0; right:0; top:14px; display:flex; justify-content:center;
-    opacity:0; transform:translateY(-8px); pointer-events:none;
+    display:flex; justify-content:center;
+    opacity:0; transform:translateY(6px); pointer-events:none;
     transition:opacity .45s ease, transform .45s cubic-bezier(.2,1.6,.4,1);
   }
   #panePile .pl-fullbox.on{ opacity:1; transform:translateY(0); }
@@ -2823,7 +2867,8 @@
     transform:rotate(45deg);
   }
 
-  #panePile .pl-flyrow{ display:none; justify-content:center; }
+  #panePile .pl-flyrow{ display:none; flex-direction:column;
+    align-items:center; gap:8px; }
   #panePile .pl-flyrow.on{ display:flex; margin-top:13px; }
   #panePile .pl-flywrap{ position:relative; display:inline-flex; }
   #panePile .pl-flybtn{
@@ -2960,6 +3005,21 @@
     color:#fff; background:var(--beige-deep); border-radius:99px;
     padding:2px 7px; text-shadow:none; }
 
+  /* ---------- HOME — いま空を飛んでいる子 ---------- */
+  .hm-flyn{ position:absolute; right:7px; top:6px; z-index:7;
+    display:flex; align-items:center; gap:3px; pointer-events:none;
+    background:rgba(255,255,255,.55); border-radius:99px; padding:1px 6px 1px 3px; }
+  .hm-flyn .hm-flyic{ display:block; line-height:0; width:11px; }
+  .hm-flyn svg{ width:100%; height:auto; display:block; }
+  .hm-flyn b{ font-family:'Space Mono',monospace; font-size:9px;
+    color:#8A7560; line-height:1; }
+
+  .ss-bkwrap{ position:relative; display:inline-block; line-height:0; }
+  .ss-bkn{ position:absolute; left:100%; top:50%; transform:translateY(-50%);
+    margin-left:9px; font-family:'Space Mono',monospace; font-size:15px;
+    font-weight:700; color:var(--text); line-height:1; white-space:nowrap; }
+  .ss-bkn i{ font-family:'Zen Kaku Gothic New',sans-serif; font-style:normal;
+    font-weight:400; font-size:11.5px; color:var(--text-faint); margin-left:4px; }
   /* かご。押すと 風船アクションのページへ */
   .ss-basket{ position:relative; width:52px; z-index:5;
     border:none; padding:0; background:none; cursor:pointer; line-height:0;
@@ -2997,6 +3057,9 @@
   /* ---------- 生まれた子が かごの外に ころがり落ちる ---------- */
   .ss-spill{ position:absolute; left:0; top:0; right:0; bottom:0;
     pointer-events:none; z-index:4; }
+  /* 指で さわっても 画面が動かない。まわりの余白で スクロールしてもらう */
+  #paneSs .dial-wrap{ touch-action:none; -webkit-user-select:none;
+    user-select:none; -webkit-touch-callout:none; }
   .ss-sp{ position:absolute; line-height:0; pointer-events:auto; cursor:default;
     touch-action:none; -webkit-user-select:none; user-select:none;
     -webkit-touch-callout:none;
@@ -3048,6 +3111,19 @@
   .ss-sp{ transition:transform .55s cubic-bezier(.18,.9,.28,1); }
   .ss-sp .sp-r{ transition:transform .55s cubic-bezier(.18,.9,.28,1); }
   .ss-sp.in, .ss-sp.gone, .ss-sp.in .sp-r{ transition:none; }
+  /* さわられて ぴょんと跳ねて、地面に落ちつく */
+  .ss-sp .sp-y.hop{ animation:spHop .5s linear; }
+  @keyframes spHop{
+    0%  { transform:translateY(0);
+          animation-timing-function:cubic-bezier(.2,.7,.4,1); }
+    38% { transform:translateY(var(--hop, -5px));
+          animation-timing-function:cubic-bezier(.5,0,.9,.55); }
+    70% { transform:translateY(0);
+          animation-timing-function:cubic-bezier(.3,0,.6,1); }
+    84% { transform:translateY(calc(var(--hop, -5px) * .32));
+          animation-timing-function:cubic-bezier(.5,0,.9,.6); }
+    100%{ transform:translateY(0); }
+  }
   .ss-sp .sp-y, .ss-sp .sp-r{ display:block; }
   .ss-sp svg{ width:100%; height:auto; display:block; }
   /* 横の動きは 一定の速さで、縦は «上がって落ちる» を別に持たせると
@@ -6324,6 +6400,7 @@ PAWS.load();
   const PEEK_R1 = [{ c:13 * U, w:8.1 * U }, { c:20 * U, w:9.2 * U }, { c:27 * U, w:8.1 * U }];
   const PEEK_R2 = [{ c:16.2 * U, w:8.1 * U }, { c:23.8 * U, w:8.1 * U }];
   const PEEK_R3 = [{ c:20 * U, w:7.7 * U }];
+  const PEEK_R4 = [{ c:17 * U, w:7.2 * U }, { c:23 * U, w:7.2 * U }];
   const PEEK_ROT = [-10, 5, 12, 7, -8, -3];
   /* 飛び出した子は みんな かごの外へ。かごの中身は
      風船アクションページの かごを そのまま写したもの（数はざっくり） */
@@ -6352,41 +6429,47 @@ PAWS.load();
   }
   function spillWaiting(){ return queueList(); }
 
+  /* 5匹までは 見たままの数。そこから先は «たくさん» の見え方 */
   function peekTier(n){
     if(n <= 0) return 0;
-    if(n === 1) return 1;
-    if(n <= 2) return 2;
-    if(n <= 5) return 3;
-    if(n <= 12) return 4;
-    if(n <= 25) return 5;
-    return 6;
+    if(n <= 5) return n;
+    if(n <= 14) return 6;
+    return 7;
   }
   function peekList(tier){
     if(!tier) return [];
     const out = [];
-    const ears = tier <= 3;
+    const few = tier <= 3;
     const row1 = tier === 1 ? [PEEK_R1[1]]
                : tier === 2 ? [PEEK_R1[0], PEEK_R1[2]]
                : PEEK_R1;
     let topOfPile = 99;
     row1.forEach((q, i) => {
       const h = q.w * 70 / 64;
-      const vis = ears ? h * (tier === 3 ? 0.76 : 0.7) : h * 0.84;
+      const vis = few ? h * (tier === 3 ? 0.76 : 0.7) : h * 0.84;
       const t = mouthY(q.c) - vis;
       if(t < topOfPile) topOfPile = t;
       out.push({ l:q.c - q.w / 2, t:t, w:q.w, r:PEEK_ROT[i] });
     });
-    if(tier >= 5) PEEK_R2.forEach((q, i) => {
+    const row2 = tier === 4 ? [PEEK_R2[0]] : (tier >= 5 ? PEEK_R2 : []);
+    let top2 = topOfPile;
+    row2.forEach((q, i) => {
       const h = q.w * 70 / 64;
-      out.push({ l:q.c - q.w / 2, t: topOfPile - h * 0.62, w:q.w, r:PEEK_ROT[i + 3] });
+      const t = topOfPile - h * 0.62;
+      if(t < top2) top2 = t;
+      out.push({ l:q.c - q.w / 2, t:t, w:q.w, r:PEEK_ROT[i + 3] });
     });
-    if(tier >= 6){
-      const h2 = PEEK_R2[0].w * 70 / 64;
-      PEEK_R3.forEach(q => {
-        const h = q.w * 70 / 64;
-        out.push({ l:q.c - q.w / 2, t: topOfPile - h2 * 0.62 - h * 0.64, w:q.w, r:-5 });
-      });
-    }
+    let top3 = top2;
+    if(tier >= 6) PEEK_R3.forEach(q => {
+      const h = q.w * 70 / 64;
+      const t = top2 - h * 0.64;
+      if(t < top3) top3 = t;
+      out.push({ l:q.c - q.w / 2, t:t, w:q.w, r:-5 });
+    });
+    if(tier >= 7) PEEK_R4.forEach((q, i) => {
+      const h = q.w * 70 / 64;
+      out.push({ l:q.c - q.w / 2, t: top3 - h * 0.6, w:q.w, r:PEEK_ROT[i + 1] });
+    });
     return out;
   }
   let peekWas = -1;
@@ -6410,18 +6493,21 @@ PAWS.load();
 
   /* ---- かごのまわりに ころんと落ちている子 ---- */
   /* リングの下、はしからはしまで。落ちる順は ばらばらに見えるように */
+  /* タイムバーの下、左右に。まんなかは 親犬が歩くので あけておく。
+     きれいに並ばず、かたまったり 離れたりするように 置き場所を散らしてある */
   const SPILL = [
-    { l:148, t:243, w:13, r:-12 },
-    { l:300, t:243, w:13, r:9   },
-    { l:52,  t:246, w:11, r:-6  },
-    { l:212, t:243, w:14, r:13  },
-    { l:326, t:245, w:12, r:-9  },
-    { l:116, t:245, w:12, r:6   },
-    { l:244, t:246, w:11, r:-14 },
-    { l:20,  t:244, w:13, r:11  },
-    { l:180, t:245, w:12, r:-8  },
-    { l:84,  t:243, w:14, r:7   }
+    { l:238, t:243, w:14, r:-12 },
+    { l:34,  t:244, w:13, r:9   },
+    { l:253, t:247, w:11, r:-6  },
+    { l:-42, t:243, w:14, r:14  },
+    { l:300, t:242, w:12, r:-9  },
+    { l:17,  t:247, w:11, r:6   },
+    { l:-25, t:246, w:12, r:-15 },
+    { l:267, t:240, w:12, r:11  },
+    { l:314, t:246, w:13, r:-8  },
+    { l:-57, t:247, w:11, r:7   }
   ];
+
 
   function makeSpill(i, e, animate){
     const s = SPILL[i];
@@ -6495,19 +6581,25 @@ PAWS.load();
   }
   /* さわると、その向きへ ころんと転がる。かごのページの «つつく» と同じ感じで、
      押した向きへ 転がったところで 止まる */
+  /* 落ちているところが 地面。横へは転がって止まり、上へは 跳ねて すぐ戻る */
   function pushSpill(el, dx, dy){
     const ox = parseFloat(el.dataset.ox) || 0;
-    const oy = parseFloat(el.dataset.oy) || 0;
     const w = parseFloat(el.style.width) || 12;
     const nx = Math.max(-34, Math.min(34, ox + dx));
-    const ny = Math.max(-26, Math.min(14, oy + dy));
     el.dataset.ox = nx;
-    el.dataset.oy = ny;
-    el.style.transform = 'translate(' + nx.toFixed(1) + 'px,' + ny.toFixed(1) + 'px)';
+    el.style.transform = 'translateX(' + nx.toFixed(1) + 'px)';
     const r0 = parseFloat(el.dataset.rot0) || 0;
     const deg = r0 + nx * (360 / (3.1416 * w));
     const rr = el.querySelector('.sp-r');
     if(rr) rr.style.transform = 'rotate(' + deg.toFixed(1) + 'deg)';
+    const yy = el.querySelector('.sp-y');
+    if(yy){
+      const up = Math.min(10, 2 + Math.abs(dx) * 0.55 + Math.max(0, -dy) * 0.7);
+      yy.style.setProperty('--hop', '-' + up.toFixed(1) + 'px');
+      yy.classList.remove('hop');
+      void yy.offsetWidth;
+      yy.classList.add('hop');
+    }
   }
   function bindPoke(){
     const box = $id('ssSpill');
@@ -6566,6 +6658,9 @@ PAWS.load();
     if(born){ ballSeen = now; syncBallRow(); }
   }
   function syncPut(){
+    const h = $id('ssBkN');
+    if(h) h.innerHTML = heldList().length
+      + '<i>' + String(PAWS.dogName() || '').replace(/[&<>]/g, '') + '</i>';
     const n = queueList().length;
     const b = $id('ssPutN');
     if(b) b.textContent = n;
@@ -6744,10 +6839,12 @@ PAWS.load();
             <path d="M6 2.4v10M2.3 8.8 6 12.6 9.7 8.8"/></svg>
           <span class="ss-putn" id="ssPutN">0</span>
         </button>
-        <button class="ss-basket" id="ssBasket" aria-label="かごのページへ"><span
+        <span class="ss-bkwrap"><button class="ss-basket" id="ssBasket"
+          aria-label="かごのページへ"><span
           class="ss-peek" id="ssPeek"></span><span class="ss-bkart"><svg viewBox="0 0 40 34" aria-hidden="true"><ellipse cx="20" cy="11.4" rx="13.4" ry="4.1" fill="#A3865D"/><path d="M6.6 11.4A13.4 4.1 0 0 1 33.4 11.4" fill="none" stroke="#DFC9A8" stroke-width="2.2" stroke-linecap="round"/></svg></span><span
           class="ss-bkfront"><svg viewBox="0 0 40 34" aria-hidden="true"><defs><linearGradient id="ssBkG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#E0CDAE"/><stop offset=".38" stop-color="#F3EADA"/><stop offset="1" stop-color="#D3BC98"/></linearGradient></defs><path d="M6.6 11.4c0 0-.3 9.3 1 14 .9 3.2 3.4 5 6.4 5h12c3 0 5.5-1.8 6.4-5 1.3-4.7 1-14 1-14A13.4 4.1 0 0 1 6.6 11.4Z" fill="url(#ssBkG)"/><g stroke="#CDB693" stroke-width=".75" fill="none" opacity=".5" stroke-linecap="round"><path d="M9.8 16.4c.2 5.1.6 9.6 1.4 13.1"/><path d="M13.2 16.4c.1 5.3.4 10 .9 13.7"/><path d="M16.6 16.4c0 5.4.1 10.2.3 13.9"/><path d="M20 16.4v13.9"/><path d="M23.4 16.4c0 5.4-.1 10.2-.3 13.9"/><path d="M26.8 16.4c-.1 5.3-.4 10-.9 13.7"/><path d="M30.2 16.4c-.2 5.1-.6 9.6-1.4 13.1"/></g><path d="M7.7 20.6c4.5 1.2 20.1 1.2 24.6 0M8.6 25.4c4 1.1 18.8 1.1 22.8 0" stroke="#C3AB86" stroke-width=".65" fill="none" opacity=".38" stroke-linecap="round"/><path d="M6.6 11.4A13.4 4.1 0 0 0 33.4 11.4" fill="none" stroke="#DFC9A8" stroke-width="2.2" stroke-linecap="round"/></svg></span><span
-          class="ss-tip">To the big basket <span class="ss-tipic"><svg viewBox="0 0 64 70" aria-hidden="true"><defs><radialGradient id="tbg" cx="33%" cy="26%" r="76%"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset=".4" stop-color="#fff" stop-opacity=".10"/><stop offset=".76" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#8C7457" stop-opacity=".2"/></radialGradient></defs><path d="M15.4 6.4 25.6 13.6 18 22.6Z" fill="#C9A87C"/><path d="M48.6 6.4 38.4 13.6 46 22.6Z" fill="#C9A87C"/><path d="M17.4 10 23.2 14.1 19.2 19.2Z" fill="#E4D2B4"/><path d="M46.6 10 40.8 14.1 44.8 19.2Z" fill="#E4D2B4"/><ellipse cx="32" cy="36" rx="28.5" ry="27.5" fill="#EDE6D6"/><path d="M32 8.5c-15.7 0-28.5 12.3-28.5 27.5 0 1.6.1 3.2.4 4.7 6.4 2.6 12.6 3.4 18.5 2.5 4.2-.7 7.4-2.8 9.6-6.3 2.2 3.5 5.4 5.6 9.6 6.3 5.9.9 12.1.1 18.5-2.5.3-1.5.4-3.1.4-4.7C60.5 20.8 47.7 8.5 32 8.5z" fill="#C9A87C"/><ellipse cx="21.6" cy="21.6" rx="4.6" ry="2.9" fill="#EDE6D6"/><ellipse cx="42.4" cy="21.6" rx="4.6" ry="2.9" fill="#EDE6D6"/><ellipse cx="20.4" cy="33.4" rx="3.5" ry="4" fill="#372C22"/><ellipse cx="43.6" cy="33.4" rx="3.5" ry="4" fill="#372C22"/><ellipse cx="22" cy="31.6" rx="1.1" ry="1.3" fill="#fff" opacity=".85"/><ellipse cx="45.2" cy="31.6" rx="1.1" ry="1.3" fill="#fff" opacity=".85"/><ellipse cx="32" cy="39.4" rx="9.6" ry="8.6" fill="#F5F0E4"/><ellipse cx="32" cy="35" rx="4.2" ry="3.3" fill="#372C22"/><path d="M32 38.4v2.2" stroke="#372C22" stroke-width="1.2" stroke-linecap="round" fill="none"/><path d="M32 40.6c-1 2.4-4.6 2.4-5.6 0M32 40.6c1 2.4 4.6 2.4 5.6 0" stroke="#372C22" stroke-width="1.2" stroke-linecap="round" fill="none"/><ellipse cx="32" cy="36" rx="28.5" ry="27.5" fill="url(#tbg)"/><ellipse cx="9.6" cy="29.5" rx="2.4" ry="4.9" fill="#fff" opacity=".44" transform="rotate(20 9.6 29.5)"/></svg></span></span></button>
+          class="ss-tip">To the big basket <span class="ss-tipic"><svg viewBox="0 0 64 70" aria-hidden="true"><defs><radialGradient id="tbg" cx="33%" cy="26%" r="76%"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset=".4" stop-color="#fff" stop-opacity=".10"/><stop offset=".76" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#8C7457" stop-opacity=".2"/></radialGradient></defs><path d="M15.4 6.4 25.6 13.6 18 22.6Z" fill="#C9A87C"/><path d="M48.6 6.4 38.4 13.6 46 22.6Z" fill="#C9A87C"/><path d="M17.4 10 23.2 14.1 19.2 19.2Z" fill="#E4D2B4"/><path d="M46.6 10 40.8 14.1 44.8 19.2Z" fill="#E4D2B4"/><ellipse cx="32" cy="36" rx="28.5" ry="27.5" fill="#EDE6D6"/><path d="M32 8.5c-15.7 0-28.5 12.3-28.5 27.5 0 1.6.1 3.2.4 4.7 6.4 2.6 12.6 3.4 18.5 2.5 4.2-.7 7.4-2.8 9.6-6.3 2.2 3.5 5.4 5.6 9.6 6.3 5.9.9 12.1.1 18.5-2.5.3-1.5.4-3.1.4-4.7C60.5 20.8 47.7 8.5 32 8.5z" fill="#C9A87C"/><ellipse cx="21.6" cy="21.6" rx="4.6" ry="2.9" fill="#EDE6D6"/><ellipse cx="42.4" cy="21.6" rx="4.6" ry="2.9" fill="#EDE6D6"/><ellipse cx="20.4" cy="33.4" rx="3.5" ry="4" fill="#372C22"/><ellipse cx="43.6" cy="33.4" rx="3.5" ry="4" fill="#372C22"/><ellipse cx="22" cy="31.6" rx="1.1" ry="1.3" fill="#fff" opacity=".85"/><ellipse cx="45.2" cy="31.6" rx="1.1" ry="1.3" fill="#fff" opacity=".85"/><ellipse cx="32" cy="39.4" rx="9.6" ry="8.6" fill="#F5F0E4"/><ellipse cx="32" cy="35" rx="4.2" ry="3.3" fill="#372C22"/><path d="M32 38.4v2.2" stroke="#372C22" stroke-width="1.2" stroke-linecap="round" fill="none"/><path d="M32 40.6c-1 2.4-4.6 2.4-5.6 0M32 40.6c1 2.4 4.6 2.4 5.6 0" stroke="#372C22" stroke-width="1.2" stroke-linecap="round" fill="none"/><ellipse cx="32" cy="36" rx="28.5" ry="27.5" fill="url(#tbg)"/><ellipse cx="9.6" cy="29.5" rx="2.4" ry="4.9" fill="#fff" opacity=".44" transform="rotate(20 9.6 29.5)"/></svg></span></span></button><span
+          class="ss-bkn" id="ssBkN">0</span></span>
       </div>
       <button class="msg-reset" id="doneReset">RESET</button>
     </div>`;
@@ -12151,6 +12248,8 @@ window.PAWTASK = (function(){
       <div class="home-stage ${skyNow().cls}" id="hmStage">
         ${skyHtml()}
         ${wxHtml()}
+        <div class="hm-flyn" id="hmFlyN" title="空を飛んでいる子"><span
+          class="hm-flyic"><svg viewBox="0 0 64 84" aria-hidden="true"><defs><radialGradient id="tbg" cx="33%" cy="26%" r="76%"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset=".4" stop-color="#fff" stop-opacity=".10"/><stop offset=".76" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#8C7457" stop-opacity=".2"/></radialGradient></defs><path d="M15.4 6.4 25.6 13.6 18 22.6Z" fill="#C9A87C"/><path d="M48.6 6.4 38.4 13.6 46 22.6Z" fill="#C9A87C"/><path d="M17.4 10 23.2 14.1 19.2 19.2Z" fill="#E4D2B4"/><path d="M46.6 10 40.8 14.1 44.8 19.2Z" fill="#E4D2B4"/><ellipse cx="32" cy="36" rx="28.5" ry="27.5" fill="#EDE6D6"/><path d="M32 8.5c-15.7 0-28.5 12.3-28.5 27.5 0 1.6.1 3.2.4 4.7 6.4 2.6 12.6 3.4 18.5 2.5 4.2-.7 7.4-2.8 9.6-6.3 2.2 3.5 5.4 5.6 9.6 6.3 5.9.9 12.1.1 18.5-2.5.3-1.5.4-3.1.4-4.7C60.5 20.8 47.7 8.5 32 8.5z" fill="#C9A87C"/><ellipse cx="21.6" cy="21.6" rx="4.6" ry="2.9" fill="#EDE6D6"/><ellipse cx="42.4" cy="21.6" rx="4.6" ry="2.9" fill="#EDE6D6"/><ellipse cx="20.4" cy="33.4" rx="3.5" ry="4" fill="#372C22"/><ellipse cx="43.6" cy="33.4" rx="3.5" ry="4" fill="#372C22"/><ellipse cx="22" cy="31.6" rx="1.1" ry="1.3" fill="#fff" opacity=".85"/><ellipse cx="45.2" cy="31.6" rx="1.1" ry="1.3" fill="#fff" opacity=".85"/><ellipse cx="32" cy="39.4" rx="9.6" ry="8.6" fill="#F5F0E4"/><ellipse cx="32" cy="35" rx="4.2" ry="3.3" fill="#372C22"/><path d="M32 38.4v2.2" stroke="#372C22" stroke-width="1.2" stroke-linecap="round" fill="none"/><path d="M32 40.6c-1 2.4-4.6 2.4-5.6 0M32 40.6c1 2.4 4.6 2.4 5.6 0" stroke="#372C22" stroke-width="1.2" stroke-linecap="round" fill="none"/><ellipse cx="32" cy="36" rx="28.5" ry="27.5" fill="url(#tbg)"/><ellipse cx="9.6" cy="29.5" rx="2.4" ry="4.9" fill="#fff" opacity=".44" transform="rotate(20 9.6 29.5)"/><path d="M32 63.4c1.4 5-1.4 9 0 13.8" stroke="#B8AC9A" stroke-width="2" stroke-linecap="round" fill="none"/></svg></span><b>0</b></div>
         <div class="home-date">
           <span class="hd-md">${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}</span>
           <span class="hd-wd">${WD_EN[idxOf(now)]}</span>
@@ -13168,9 +13267,8 @@ window.PAWTASK = (function(){
     el.className = 'hm-frog';
     el.style.opacity = '0';
     el.style.left = (toRight ? -26 : W + 4) + 'px';
-    const art = toRight ? FROG_SVG
-      : '<span style="display:block;transform:scaleX(-1)">' + FROG_SVG + '</span>';
-    el.innerHTML = '<span class="fr-in">' + art + '</span>';
+    el.innerHTML = '<span class="fr-in">' + FROG_SVG + '</span>';
+    if(!toRight) el.style.transform = 'scaleX(-1)';
     st.appendChild(el);
     frog = { el: el, x: toRight ? -26 : W + 4, dir: toRight ? 1 : -1,
              next: Date.now() + 300, rec: null };
@@ -13187,8 +13285,9 @@ window.PAWTASK = (function(){
     el.className = 'hm-rabbit';
     el.style.opacity = '0';
     el.style.left = (toRight ? -30 : W + 8) + 'px';
-    el.innerHTML = '<span class="rb-in"><span style="display:block;transform:scale(.92)'
-      + (toRight ? '' : ' scaleX(-1)') + '">' + RAB_SVG + '</span></span>';
+    el.innerHTML = '<span class="rb-in"><span style="display:block;transform:scale(.92)">'
+      + RAB_SVG + '</span></span>';
+    if(!toRight) el.style.transform = 'scaleX(-1)';
     st.appendChild(el);
     rabbit = { el: el, x: toRight ? -30 : W + 8, dir: toRight ? 1 : -1,
                next: Date.now() + 300, rec: null };
@@ -13202,13 +13301,14 @@ window.PAWTASK = (function(){
     /* 大きく跳んだり、ちょこんと跳ねたり。どちらも かえるより高く、遠くへ */
     const bigHop = Math.random() < .5;
     rabbit.x += rabbit.dir * (bigHop ? 34 + Math.random() * 18 : 12 + Math.random() * 9);
-    rabbit.el.style.transitionDuration = bigHop ? '.52s' : '.32s';
+    rabbit.el.style.transitionDuration = (bigHop ? '.40s' : '.26s') + ', .8s';
+    rabbit.el.style.transitionDelay = (bigHop ? '.12s' : '.09s') + ', 0s';
     rabbit.el.style.left = rabbit.x.toFixed(0) + 'px';
     const inner = rabbit.el.querySelector('.rb-in');
     if(inner){
       inner.style.animation = 'none';
       void inner.offsetWidth;
-      inner.style.animation = (bigHop ? 'rabBigHop .56s' : 'rabSmallHop .36s') + ' ease-out';
+      inner.style.animation = (bigHop ? 'rabBigHop .62s' : 'rabSmallHop .42s') + ' linear';
     }
     /* ときどき、耳を立てて ひと休み */
     rabbit.next = now + (Math.random() < .3 ? 2600 + Math.random() * 3800
@@ -13227,13 +13327,14 @@ window.PAWTASK = (function(){
     /* 大きく跳んだり、ちょこんと跳ねたり */
     const bigHop = Math.random() < .42;
     frog.x += frog.dir * (bigHop ? 22 + Math.random() * 13 : 7 + Math.random() * 7);
-    frog.el.style.transitionDuration = bigHop ? '.48s' : '.3s';
+    frog.el.style.transitionDuration = (bigHop ? '.35s' : '.25s') + ', .8s';
+    frog.el.style.transitionDelay = (bigHop ? '.12s' : '.09s') + ', 0s';
     frog.el.style.left = frog.x.toFixed(0) + 'px';
     const inner = frog.el.querySelector('.fr-in');
     if(inner){
       inner.style.animation = 'none';
       void inner.offsetWidth;
-      inner.style.animation = (bigHop ? 'frogUp .5s' : 'frogUpS .34s') + ' ease-out';
+      inner.style.animation = (bigHop ? 'frogUp .56s' : 'frogUpS .4s') + ' linear';
     }
     /* ときどき、ひと休み */
     frog.next = now + (Math.random() < .28 ? 3200 + Math.random() * 4200
@@ -14601,6 +14702,23 @@ window.PAWTASK = (function(){
     dogTimer = setInterval(dogTick, 250);
   }
 
+  /* いま空を飛んでいる子の数（かごのページの Flew away） */
+  function flownNow(){
+    try{
+      const r = PAWS.root ? PAWS.root() : null;
+      const q = r && r.pile;
+      return (q && typeof q.flown === 'number') ? q.flown : 0;
+    }catch(e){ return 0; }
+  }
+  function paintFlyN(){
+    const el = $id('hmFlyN');
+    if(!el) return;
+    const b = el.querySelector('b');
+    if(b) b.textContent = flownNow();
+    el.style.display = flownNow() > 0 ? '' : 'none';
+  }
+  setInterval(paintFlyN, 2000);
+
   PAWS.register('home', {
     gistFile: null,          // nothing here is worth carrying between devices
     appId: 'home',
@@ -15302,14 +15420,17 @@ window.PAWTASK = (function(){
     return ''
     + '<div class="pl-stage" id="plStage"><canvas id="plCv"></canvas>'
     +   '<div class="pl-tag" id="plTag">かごの底</div>'
-    +   '<div class="pl-fullbox" id="plFull"><div class="pl-bubble">かごがいっぱいです</div></div>'
     + '</div>'
-    + '<div class="pl-flyrow" id="plFlyrow"><div class="pl-flywrap">'
-    +   '<button class="pl-flybtn" id="plRelease">Fly the nest'
-    +   '<span class="pl-fi">' + dogBalloonIcon(18) + '</span></button>'
-    + '</div></div>'
+    + '<div class="pl-flyrow" id="plFlyrow">'
+    +   '<div class="pl-fullbox" id="plFull">'
+    +     '<div class="pl-bubble">かごがいっぱいです</div></div>'
+    +   '<div class="pl-flywrap">'
+    +     '<button class="pl-flybtn" id="plRelease">Fly away'
+    +     '<span class="pl-fi">' + dogBalloonIcon(18) + '</span></button>'
+    +   '</div>'
+    + '</div>'
     + '<div class="pl-foot">'
-    +   '<div class="pl-line"><span class="pl-en">In the Basket</span><span class="pl-ic">' + dogBallIcon(19) + '</span>'
+    +   '<div class="pl-line"><span class="pl-en">In the Big Basket</span><span class="pl-ic">' + dogBallIcon(19) + '</span>'
     +     '<span class="pl-eq">=</span><b id="plIn">0</b><span class="pl-nm">' + esc(PAWS.dogName()) + '</span>'
     +     '<span class="pl-bd" id="plInBd"></span></div>'
     +   '<div class="pl-line pl-sub"><span class="pl-en">Flew away</span><span class="pl-ic">' + dogBalloonIcon(16) + '</span>'
@@ -15642,6 +15763,13 @@ window.PAWTASK = (function(){
       else { stackIn(queue.splice(0, queue.length)); dropping = false; touch(); flush(); }
     },
     waiting: function(){ return queue.length; },
+    /* デモ用。待っている子を まとめて かごに積む */
+    putAll: function(){
+      if(!queue.length) return;
+      stackIn(queue.splice(0, queue.length));
+      dropping = false;
+      touch(); flush();
+    },
     /* «かごがいっぱいです» と巣立ちボタンを、溜まっていなくても出す */
     showFly: function(on){ showFly = !!on; },
     clear: function(){
