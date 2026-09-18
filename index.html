@@ -424,7 +424,7 @@
     transform-box:fill-box; transform-origin:50% 0; }
   .walker .leg-a{ animation: legA 0.52s ease-in-out infinite; }
   .walker .leg-b{ animation: legB 0.52s ease-in-out infinite; }
-  .walker .tail{ animation: tailWag 0.42s ease-in-out infinite; transform-origin: 6px 15px; }
+  .walker .tail{ animation: tailWag 0.42s ease-in-out infinite; transform-origin: 8.6px 13.9px; }
   .walker .ear{ transform-origin: 24.6px 8.8px; }
 
   /* standing still */
@@ -467,64 +467,67 @@
   .walker.gt-run .tail{ animation-duration:.25s; }
   /* ③ 駆ける — «タタッ» のリズム。前足ふたつ・後ろ足ふたつが そろって出る */
   .walker.gt-gallop .gp-h1{ animation:gaitHind .42s linear infinite; }
-  .walker.gt-gallop .gp-h2{ animation:gaitHind .42s linear infinite; animation-delay:-.035s; }
+  .walker.gt-gallop .gp-h2{ animation:gaitHind .42s linear infinite; animation-delay:-.055s; }
   .walker.gt-gallop .gp-f1{ animation:gaitFore .42s linear infinite; }
-  .walker.gt-gallop .gp-f2{ animation:gaitFore .42s linear infinite; animation-delay:-.035s; }
+  .walker.gt-gallop .gp-f2{ animation:gaitFore .42s linear infinite; animation-delay:-.055s; }
   @keyframes gaitHind{
-    0%  { transform:rotate(-27deg); animation-timing-function:cubic-bezier(.25,0,.45,1); }
-    8%  { transform:rotate(23deg);  animation-timing-function:cubic-bezier(.4,.1,.6,1); }
-    24% { transform:rotate(35deg);  animation-timing-function:cubic-bezier(.3,0,.5,1); }
-    46% { transform:rotate(2deg);   animation-timing-function:cubic-bezier(.35,0,.6,1); }
-    72% { transform:rotate(-32deg); animation-timing-function:cubic-bezier(.4,0,.6,1); }
-    100%{ transform:rotate(-27deg); }
+    /* 地面を うしろへ 押しきってから、さっと たたんで 前へ持ってくる */
+    0%  { transform:rotate(-34deg); animation-timing-function:cubic-bezier(.2,0,.35,1); }
+    16% { transform:rotate(26deg);  animation-timing-function:cubic-bezier(.4,.05,.65,1); }
+    30% { transform:rotate(33deg);  animation-timing-function:cubic-bezier(.5,0,.7,.55); }
+    52% { transform:rotate(6deg);   animation-timing-function:cubic-bezier(.35,0,.75,.5); }
+    78% { transform:rotate(-30deg); animation-timing-function:cubic-bezier(.4,0,.6,1); }
+    100%{ transform:rotate(-34deg); }
   }
   @keyframes gaitFore{
-    0%  { transform:rotate(31deg);  animation-timing-function:cubic-bezier(.3,0,.5,1); }
-    13% { transform:rotate(6deg);   animation-timing-function:cubic-bezier(.25,0,.45,1); }
-    26% { transform:rotate(-26deg); animation-timing-function:cubic-bezier(.4,.1,.6,1); }
-    38% { transform:rotate(-34deg); animation-timing-function:cubic-bezier(.3,0,.5,1); }
-    68% { transform:rotate(9deg);   animation-timing-function:cubic-bezier(.35,0,.6,1); }
-    100%{ transform:rotate(31deg); }
+    /* 前へ ぐんと 伸ばして 引きよせる。後ろ足より 半歩 おくれる */
+    0%  { transform:rotate(33deg);  animation-timing-function:cubic-bezier(.45,0,.7,.5); }
+    20% { transform:rotate(2deg);   animation-timing-function:cubic-bezier(.4,0,.7,.5); }
+    36% { transform:rotate(-28deg); animation-timing-function:cubic-bezier(.35,0,.6,1); }
+    52% { transform:rotate(-31deg); animation-timing-function:cubic-bezier(.2,0,.4,1); }
+    76% { transform:rotate(16deg);  animation-timing-function:cubic-bezier(.4,0,.65,1); }
+    100%{ transform:rotate(33deg); }
   }
   /* «タ・タ» を 立てつづけに打って、«ッ» のあとは たっぷり 宙に浮く */
   .walker.gt-gallop .bob{ animation:gaitBob .42s linear infinite; }
   @keyframes gaitBob{
-    0%  { transform:translateY(-5.4px) scaleY(1.05) scaleX(.96);
-          animation-timing-function:cubic-bezier(.45,0,.8,.42); }
-    10% { transform:translateY(0) scaleY(.9) scaleX(1.08);
+    0%  { transform:translateY(-2.5px) scaleY(1.03) scaleX(.98);
+          animation-timing-function:cubic-bezier(.45,0,.8,.45); }
+    10% { transform:translateY(0) scaleY(.94) scaleX(1.05);
           animation-timing-function:cubic-bezier(.25,.8,.45,1); }
-    18% { transform:translateY(-1.7px) scaleY(1.02) scaleX(.99);
+    18% { transform:translateY(-1px) scaleY(1.01) scaleX(.99);
           animation-timing-function:cubic-bezier(.5,0,.85,.45); }
-    26% { transform:translateY(0) scaleY(.92) scaleX(1.06);
+    26% { transform:translateY(.1px) scaleY(.95) scaleX(1.04);
           animation-timing-function:cubic-bezier(.25,.8,.45,1); }
-    34% { transform:translateY(-1px) scaleY(1) scaleX(1);
+    34% { transform:translateY(-.6px) scaleY(1) scaleX(1);
           animation-timing-function:cubic-bezier(.5,0,.85,.5); }
-    41% { transform:translateY(.9px) scaleY(.88) scaleX(1.1);
+    41% { transform:translateY(.4px) scaleY(.93) scaleX(1.06);
           animation-timing-function:cubic-bezier(.16,.78,.36,1); }
-    100%{ transform:translateY(-5.4px) scaleY(1.05) scaleX(.96); }
+    100%{ transform:translateY(-2.5px) scaleY(1.03) scaleX(.98); }
   }
   .walker.gt-gallop .pose{ animation:gaitLean .42s ease-in-out infinite;
     transform-origin:14px 22px; transition:none; }
   @keyframes gaitLean{
-    0%,100%{ transform:rotate(-8deg); }
-    24%    { transform:rotate(-2.5deg); }
-    60%    { transform:rotate(-9.5deg); }
+    /* ずっと 前のめり。のけぞらずに 前へ 押し出す */
+    0%,100%{ transform:rotate(3.5deg); }
+    30%    { transform:rotate(-1.5deg); }
+    64%    { transform:rotate(4.5deg); }
   }
   .walker.gt-gallop .tail{ animation:gaitTail .42s ease-in-out infinite; }
   @keyframes gaitTail{
-    0%,100%{ transform:rotate(-30deg); }
-    22%    { transform:rotate(-10deg); }
-    52%    { transform:rotate(-26deg); }
+    0%,100%{ transform:rotate(-11deg); }
+    22%    { transform:rotate(5deg); }
+    52%    { transform:rotate(-8deg); }
   }
   .walker.gt-gallop .ear{ animation:gaitEar .42s ease-in-out infinite; }
   @keyframes gaitEar{
-    0%,100%{ transform:rotate(-16deg); }
-    14%    { transform:rotate(9deg); }
-    40%    { transform:rotate(-5deg); }
+    0%,100%{ transform:rotate(-24deg); }
+    30%    { transform:rotate(-13deg); }
+    64%    { transform:rotate(-21deg); }
   }
   @keyframes tailWag{
-    0%,100%{ transform: rotate(-14deg); }
-    50%{ transform: rotate(16deg); }
+    0%,100%{ transform: rotate(-11deg); }
+    50%{ transform: rotate(13deg); }
   }
 
   @media (prefers-reduced-motion: reduce){
@@ -1664,7 +1667,7 @@
   .set-dog .lg-h1, .set-dog .lg-h2{ transform-box:fill-box; transform-origin:50% 0;
     transform:translateY(2px) rotate(-72deg); }
   .set-dog .lg-h2{ fill:#A6845C; }
-  .set-dog .tail{ transform-box:view-box; transform-origin:6px 15px;
+  .set-dog .tail{ transform-box:view-box; transform-origin:8.6px 13.9px;
     animation:tailWag .75s ease-in-out infinite; }
   /* リボンの色を選ぶところの上の 犬ボール */
   .set-ball{ display:block; width:30px; height:33px; line-height:0; margin:10px 0 -2px; }
@@ -1688,6 +1691,8 @@
   .walker.sleep .tail{ animation:none; }
   /* 体は まっすぐのまま。あたまだけ 地面まで おろして、
      ほおを ぺたりとつける。ねむりかたの ちがいは 顔に出る */
+  /* 首輪の 輪だけ さげる。切りぬきは そのままなので、首の 位置から ずれない */
+  .walker.sleep .dog-collar circle{ transform-box:view-box; transform:translate(0, 3.4px); }
   .walker.sleep .ear, .walker.sleep .bob > .dog-shut,
   .walker.sleep circle.dog-body,
   .walker.sleep .bob > g[clip-path="url(#dgHead)"],
@@ -1707,13 +1712,16 @@
   .walker.sleep.zz3 .dog-front{ display:block; }
   /* こてん、と 顔をかしげている。耳は ふつうのまま */
   .walker.sleep.zz3 .dogf-face{ transform-box:view-box;
-    transform:rotate(12deg); transform-origin:26.2px 15.6px; }
+    transform:rotate(21deg); transform-origin:26px 12.5px; }
   .walker.sleep.zz3 .bob > .dog-shut,
   .walker.sleep.zz3 path.dog-light,
   .walker.sleep.zz3 ellipse.dog-light[cx="27.2"],
   .walker.sleep.zz3 ellipse.dog-light[cx="29.75"],
   .walker.sleep.zz3 ellipse.dog-nose[cx="31.25"]{ display:none; }
-  .walker.sleep.zz3 .ear{ transform:translate(0, 3.4px); }
+  .walker.sleep.zz3 .ear{
+    transform:translate(-1.25px, 3.4px) rotate(21deg); transform-origin:26px 7px; }
+  .walker.sleep.zz3 .dogf-ear{ transform-box:view-box;
+    transform:translate(1.25px, 0) rotate(21deg); transform-origin:26px 7px; }
   /* ねむると、目はにこっとした U 字に */
   .dog-shut{ display:none; fill:none; stroke:#5C4632; stroke-width:.85; stroke-linecap:round; }
   .walker.sleep .dog-eye, .walker.sleep .dog-glint{ display:none; }
@@ -4050,20 +4058,6 @@ window.PAWS = (function(){
         </div>`}
       </div>
 
-      <div class="help ${helpOpen ? 'open' : ''}">
-        <button id="shHelp"><span class="caret">▸</span>使い方とセットアップ</button>
-        ${helpOpen ? `<div class="help-body">
-          <h4>Ready タブ</h4>
-          <p>タスクに開始時間を決めておくと、その時刻を起点に「実際に動き出すまでの時間」を測ります。iPhone のショートカットで各タスクの URL を開くと、自動で待機に入ります（タスク一覧の 🔗 ボタンで URL がコピーできます）。</p>
-          <h4>Session タブ</h4>
-          <p>READY… を押してから GO! までが初動、そこから FINISH までが作業時間です。休憩をはさんでも合計は正しく積み上がります。</p>
-          <h4>2つのタブのつながり</h4>
-          <p>タスクの編集画面で「計測」を ON にしておくと、Ready タブで GO! を押したあと自動で Session タブへ切り替わり、そのタスクの種類で作業計測が始まります。切りたいタスクは OFF にしてください。</p>
-          <h4>同期</h4>
-          <p>GitHub の Fine-grained token（Account permissions → Gists を Read and write）を発行して貼り付け、「Gist を作成」を押します。もう一方の端末に同じトークンと Gist ID を入れれば、両方の記録が自動でひとつになります。</p>
-        </div>` : ''}
-      </div>
-
       <div>
         <div class="section-title"><span class="set-dog"
           aria-label="Dog">${window.__DOG_SVG || ''}</span></div>
@@ -4154,6 +4148,20 @@ window.PAWS = (function(){
         </span>
         <input type="file" id="shImportFile" accept="application/json,.json" style="display:none">
       </div>
+      <div class="help ${helpOpen ? 'open' : ''}">
+        <button id="shHelp"><span class="caret">▸</span>使い方とセットアップ</button>
+        ${helpOpen ? `<div class="help-body">
+          <h4>Ready タブ</h4>
+          <p>タスクに開始時間を決めておくと、その時刻を起点に「実際に動き出すまでの時間」を測ります。iPhone のショートカットで各タスクの URL を開くと、自動で待機に入ります（タスク一覧の 🔗 ボタンで URL がコピーできます）。</p>
+          <h4>Session タブ</h4>
+          <p>READY… を押してから GO! までが初動、そこから FINISH までが作業時間です。休憩をはさんでも合計は正しく積み上がります。</p>
+          <h4>2つのタブのつながり</h4>
+          <p>タスクの編集画面で「計測」を ON にしておくと、Ready タブで GO! を押したあと自動で Session タブへ切り替わり、そのタスクの種類で作業計測が始まります。切りたいタスクは OFF にしてください。</p>
+          <h4>同期</h4>
+          <p>GitHub の Fine-grained token（Account permissions → Gists を Read and write）を発行して貼り付け、「Gist を作成」を押します。もう一方の端末に同じトークンと Gist ID を入れれば、両方の記録が自動でひとつになります。</p>
+        </div>` : ''}
+      </div>
+
     `;
 
     const on = (id, fn) => { const el = sharedEl.querySelector('#' + id); if(el) el.addEventListener('click', fn); };
@@ -5646,7 +5654,7 @@ PAWS.load();
   const DOG_SVG = window.__DOG_SVG = PAWS.dogArt(`
   <svg viewBox="0 0 34 34" width="34" height="34" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <g class="pose"><g class="bob">
-      <path class="tail dog-body" d="M7 15 C3 13, 2 9, 4.5 7.5 C5.5 9.5, 6.5 12, 8.5 13.5 Z" />
+      <path class="tail dog-body" d="M7.5 14.6C4.45 12.75, 3.15 9.2, 6.0 7.1C8.3 5.5, 11.2 6.7, 10.95 9.1C10.9 9.75, 10.0 9.8, 10.0 9.05C10.05 8.1, 8.45 7.95, 7.5 8.95C6.7 9.9, 7.55 12.1, 10.0 13.1 Z"/>
       <g class="leg-b gp-h1"><path class="dog-dark lg-h1" d="M8.5 20.4A1.4 1.4 0 0 1 9.9 19L10.1 19A1.4 1.4 0 0 1 11.5 20.4L11.5 23.4C12.35 23.8 12.35 25.35 11.55 25.8C10.85 26.2 9.35 26.15 8.82 25.45C8.54 25.1 8.5 24.55 8.5 23.95Z"/></g>
       <g class="leg-a gp-f1"><path class="dog-dark" d="M18.2 20.4A1.4 1.4 0 0 1 19.6 19L19.8 19A1.4 1.4 0 0 1 21.2 20.4L21.2 23.4C22.05 23.8 22.05 25.35 21.25 25.8C20.55 26.2 19.05 26.15 18.52 25.45C18.24 25.1 18.2 24.55 18.2 23.95Z"/></g>
       <rect class="dog-body" x="6.5" y="12" width="18" height="9" rx="4.5"/>
@@ -5662,7 +5670,7 @@ PAWS.load();
       <ellipse class="dog-nose" cx="31.25" cy="13.1" rx=".92" ry=".76"/>
       <g class="dog-collar" clip-path="url(#dgNeck)"><circle cx="26" cy="12.5" r="5.85"
         fill="none" stroke="var(--collar,#9E3742)" stroke-width="1.35"/></g>
-      <path class="dog-shut" d="M25.8 11.25 A1.2 1.2 0 0 0 28.2 11.25"/><g class="dog-front"><path class="dog-dark dogf-ear" d="M28.6 8.4 C28.8 6.4, 28.05 4.9, 26.6 5.2 C25.8 6.2, 26 7.6, 26.6 9 Z"/><g class="dogf-face"><g clip-path="url(#dgHead)"><ellipse class="dog-light" cx="26.2" cy="16.5" rx="4.5" ry="4"/></g><ellipse class="dog-light" cx="23.95" cy="9.7" rx="1" ry=".55"/><ellipse class="dog-light" cx="28.2" cy="9.75" rx=".92" ry=".5"/><path class="dog-nose" d="M24.85 13.35C24.85 12.5 27.65 12.5 27.65 13.35C27.65 14.4 26.95 15.25 26.25 15.25C25.55 15.25 24.85 14.4 24.85 13.35Z"/><path class="dog-shut" d="M22.85 11.2 A1.18 1.18 0 0 0 25.21 11.2"/><path class="dog-shut" d="M27.03 11.25 A1.1 1.1 0 0 0 29.23 11.25"/></g></g>
+      <path class="dog-shut" d="M25.8 11.25 A1.2 1.2 0 0 0 28.2 11.25"/><g class="dog-front"><path class="dog-dark dogf-ear" d="M28.6 8.4 C28.8 6.4, 28.05 4.9, 26.6 5.2 C25.8 6.2, 26 7.6, 26.6 9 Z"/><g class="dogf-face"><g clip-path="url(#dgHead)"><ellipse class="dog-light" cx="26.2" cy="16.5" rx="4.5" ry="4"/></g><ellipse class="dog-light" cx="23.95" cy="9.7" rx="1" ry=".55"/><ellipse class="dog-light" cx="28.2" cy="9.75" rx=".92" ry=".5"/><path class="dog-nose" d="M24.85 13.35C24.85 12.5 27.65 12.5 27.65 13.35C27.65 14.4 26.95 15.25 26.25 15.25C25.55 15.25 24.85 14.4 24.85 13.35Z"/><path class="dog-shut" d="M22.85 11.2 A2.05 2.05 0 0 0 25.21 11.2"/><path class="dog-shut" d="M27.03 11.25 A1.95 1.95 0 0 0 29.23 11.25"/></g></g>
     </g></g>
   </svg>`);
 
@@ -7040,7 +7048,7 @@ PAWS.load();
         progress: Math.min(p, 1),
         raw: p,
         color: ringColor(p),
-        sub: null, lap: 0, dogClass: 'still', dogPos: 0, live: true
+        sub: null, lap: 0, dogClass: 'sit', dogPos: 0, live: true
       };
     }
     if(phase === 'working' || phase === 'break'){
@@ -7084,7 +7092,7 @@ PAWS.load();
              raw: idleP,
              color: idleDone > 0 ? typeColor(idleT) : ringColor(0),
              sub: idleDone > 0 ? 'today' : null,
-             lap: 0, dogClass: 'still', dogPos: 0, live: false };
+             lap: 0, dogClass: 'sit', dogPos: 0, live: false };
   }
 
   function buttonMarkup(){
@@ -8452,7 +8460,7 @@ PAWS.load();
   const DOG_SVG = PAWS.dogArt(`
   <svg viewBox="0 0 34 34" width="34" height="34" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <g class="pose"><g class="bob">
-      <path class="tail dog-body" d="M7 15 C3 13, 2 9, 4.5 7.5 C5.5 9.5, 6.5 12, 8.5 13.5 Z" />
+      <path class="tail dog-body" d="M7.5 14.6C4.45 12.75, 3.15 9.2, 6.0 7.1C8.3 5.5, 11.2 6.7, 10.95 9.1C10.9 9.75, 10.0 9.8, 10.0 9.05C10.05 8.1, 8.45 7.95, 7.5 8.95C6.7 9.9, 7.55 12.1, 10.0 13.1 Z"/>
       <g class="leg-b gp-h1"><path class="dog-dark lg-h1" d="M8.5 20.4A1.4 1.4 0 0 1 9.9 19L10.1 19A1.4 1.4 0 0 1 11.5 20.4L11.5 23.4C12.35 23.8 12.35 25.35 11.55 25.8C10.85 26.2 9.35 26.15 8.82 25.45C8.54 25.1 8.5 24.55 8.5 23.95Z"/></g>
       <g class="leg-a gp-f1"><path class="dog-dark" d="M18.2 20.4A1.4 1.4 0 0 1 19.6 19L19.8 19A1.4 1.4 0 0 1 21.2 20.4L21.2 23.4C22.05 23.8 22.05 25.35 21.25 25.8C20.55 26.2 19.05 26.15 18.52 25.45C18.24 25.1 18.2 24.55 18.2 23.95Z"/></g>
       <rect class="dog-body" x="6.5" y="12" width="18" height="9" rx="4.5"/>
@@ -8468,7 +8476,7 @@ PAWS.load();
       <ellipse class="dog-nose" cx="31.25" cy="13.1" rx=".92" ry=".76"/>
       <g class="dog-collar" clip-path="url(#dgNeck)"><circle cx="26" cy="12.5" r="5.85"
         fill="none" stroke="var(--collar,#9E3742)" stroke-width="1.35"/></g>
-      <path class="dog-shut" d="M25.8 11.25 A1.2 1.2 0 0 0 28.2 11.25"/><g class="dog-front"><path class="dog-dark dogf-ear" d="M28.6 8.4 C28.8 6.4, 28.05 4.9, 26.6 5.2 C25.8 6.2, 26 7.6, 26.6 9 Z"/><g class="dogf-face"><g clip-path="url(#dgHead)"><ellipse class="dog-light" cx="26.2" cy="16.5" rx="4.5" ry="4"/></g><ellipse class="dog-light" cx="23.95" cy="9.7" rx="1" ry=".55"/><ellipse class="dog-light" cx="28.2" cy="9.75" rx=".92" ry=".5"/><path class="dog-nose" d="M24.85 13.35C24.85 12.5 27.65 12.5 27.65 13.35C27.65 14.4 26.95 15.25 26.25 15.25C25.55 15.25 24.85 14.4 24.85 13.35Z"/><path class="dog-shut" d="M22.85 11.2 A1.18 1.18 0 0 0 25.21 11.2"/><path class="dog-shut" d="M27.03 11.25 A1.1 1.1 0 0 0 29.23 11.25"/></g></g>
+      <path class="dog-shut" d="M25.8 11.25 A1.2 1.2 0 0 0 28.2 11.25"/><g class="dog-front"><path class="dog-dark dogf-ear" d="M28.6 8.4 C28.8 6.4, 28.05 4.9, 26.6 5.2 C25.8 6.2, 26 7.6, 26.6 9 Z"/><g class="dogf-face"><g clip-path="url(#dgHead)"><ellipse class="dog-light" cx="26.2" cy="16.5" rx="4.5" ry="4"/></g><ellipse class="dog-light" cx="23.95" cy="9.7" rx="1" ry=".55"/><ellipse class="dog-light" cx="28.2" cy="9.75" rx=".92" ry=".5"/><path class="dog-nose" d="M24.85 13.35C24.85 12.5 27.65 12.5 27.65 13.35C27.65 14.4 26.95 15.25 26.25 15.25C25.55 15.25 24.85 14.4 24.85 13.35Z"/><path class="dog-shut" d="M22.85 11.2 A2.05 2.05 0 0 0 25.21 11.2"/><path class="dog-shut" d="M27.03 11.25 A1.95 1.95 0 0 0 29.23 11.25"/></g></g>
     </g></g>
   </svg>`);
 
@@ -12889,9 +12897,9 @@ window.PAWTASK = (function(){
   let sleepVar = '';
   function pickSleep(){
     const r = Math.random();
-    sleepVar = r < .42 ? '' : r < .74 ? ' zz2' : ' zz3';
+    sleepVar = r < .55 ? '' : ' zz2';
   }
-  const GAIT_STEP = { walk:0.014, run:0.040, gallop:0.062 };
+  const GAIT_STEP = { walk:0.014, run:0.040, gallop:0.074 };
   function pickGait(now){
     const r = Math.random();
     gait = r < .40 ? 'walk' : r < .73 ? 'run' : 'gallop';
@@ -13931,7 +13939,6 @@ window.PAWTASK = (function(){
       if(done){
         tower.phase = 'hold';
         tower.until = now + 34000 + Math.random() * 26000;
-        spotOn(st);
         glitOn(st);
       }
       return;
