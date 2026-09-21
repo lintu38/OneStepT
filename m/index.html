@@ -13800,9 +13800,9 @@ window.PAWTASK = (function(){
     /* 乗る高さは、下の子の背中の線から割り出してある（浮かないように） */
     const kinds = [{ k:'cat', art:CAT_SVG, top:15.2 },
                    { k:'rab', art:RAB_SVG, top:26.3 },
-                   { k:'pup', art:(window.__DOG_SVG || ''), top:34.3,
+                   { k:'pup', art:(window.__DOG_SVG || ''), top:39.6,
                      cls:'walker pup ' + COATS[Math.floor(Math.random() * COATS.length)] },
-                   { k:'bird', art:BIRD_SVG, top:43.3 }];
+                   { k:'bird', art:BIRD_SVG, top:45.1 }];
     const t0 = Date.now();
     const members = kinds.map((it, i) => {
       const fly = it.k === 'bird';           /* ことりは空から来る */
