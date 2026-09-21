@@ -2036,6 +2036,16 @@
   .cal-cell .more{ font-family:'Space Mono',monospace; font-size:8.5px; color:var(--text-faint);
     padding-left:3px; }
 
+  /* 日本の祝日。赤に近い ワイン色 */
+  .cal-cell .dnum.hol, .cal-day-head .dd.hol, .tt-top .dd.hol{ color:#A02C3C; }
+  .cal-cell .dnum.today.hol{ background:#A02C3C; color:#FFFCF6; }
+  .cal-cell.other .dnum.hol{ color:#D9B3B8; }
+  .cal-cell .hname{ font-family:'Zen Kaku Gothic New',sans-serif;
+    font-size:8.5px; line-height:1.25; color:#A02C3C; padding:0 2px; margin:-1px 0 1px;
+    /* せまい画面では 二行まで 折りかえす */
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .cal-cell.other .hname{ color:#D9B3B8; }
+  .cal-hname{ font-family:'Zen Kaku Gothic New',sans-serif; font-size:11px; color:#A02C3C; }
   .cal-week{ display:flex; flex-direction:column; gap:8px; }
   .cal-day{ background:var(--bg-card); border:1px solid var(--line); border-radius:14px;
     padding:10px 12px; }
@@ -10923,6 +10933,64 @@ window.PAWTASK = (function(){
   const mondayOf = d => addDays(d, -idxOf(d));
   const WD = ['月','火','水','木','金','土','日'];
 
+  /* ---- 日本の祝日 ----
+     決まった日・ハッピーマンデー・春分秋分（計算）・振替休日・国民の休日。
+     年ごとに いちど作って 覚えておく */
+  const JP_HOL = {};
+  function jpHolidays(y){
+    if(JP_HOL[y]) return JP_HOL[y];
+    const h = {};
+    const put = (m, d, n) => { h[m + '-' + d] = n; };
+    const hk = d => (d.getMonth() + 1) + '-' + d.getDate();
+    /* その月の n 番目の月曜 */
+    const nthMon = (m, n) => 1 + ((8 - new Date(y, m - 1, 1).getDay()) % 7) + (n - 1) * 7;
+    const eq = base => Math.floor(base + 0.242194 * (y - 1980) - Math.floor((y - 1980) / 4));
+    put(1, 1, '元日');
+    put(1, nthMon(1, 2), '成人の日');
+    put(2, 11, '建国記念の日');
+    if(y >= 2020) put(2, 23, '天皇誕生日');
+    put(3, eq(20.8431), '春分の日');
+    put(4, 29, '昭和の日');
+    put(5, 3, '憲法記念日');
+    put(5, 4, 'みどりの日');
+    put(5, 5, 'こどもの日');
+    if(y === 2020){
+      put(7, 23, '海の日'); put(7, 24, 'スポーツの日');
+      put(8, 10, '山の日');
+    } else if(y === 2021){
+      put(7, 22, '海の日'); put(7, 23, 'スポーツの日');
+      put(8, 8, '山の日');
+    } else {
+      put(7, nthMon(7, 3), '海の日');
+      if(y >= 2016) put(8, 11, '山の日');
+      put(10, nthMon(10, 2), y >= 2020 ? 'スポーツの日' : '体育の日');
+    }
+    put(9, nthMon(9, 3), '敬老の日');
+    put(9, eq(23.2488), '秋分の日');
+    put(11, 3, '文化の日');
+    put(11, 23, '勤労感謝の日');
+    if(y <= 2018) put(12, 23, '天皇誕生日');
+    const base = Object.assign({}, h);
+    /* 祝日に はさまれた日は «国民の休日» */
+    for(let d = new Date(y, 0, 2); d.getFullYear() === y; d.setDate(d.getDate() + 1)){
+      if(base[hk(d)] || d.getDay() === 0) continue;
+      const a = new Date(d); a.setDate(a.getDate() - 1);
+      const b = new Date(d); b.setDate(b.getDate() + 1);
+      if(base[hk(a)] && base[hk(b)]) h[hk(d)] = '国民の休日';
+    }
+    /* 日曜の祝日は、つぎの 休みでない日が «振替休日» */
+    Object.keys(base).forEach(k => {
+      const p = k.split('-').map(Number);
+      const d = new Date(y, p[0] - 1, p[1]);
+      if(d.getDay() !== 0) return;
+      const n = new Date(d);
+      do { n.setDate(n.getDate() + 1); } while(h[hk(n)] && n.getFullYear() === y);
+      if(n.getFullYear() === y) h[hk(n)] = '振替休日';
+    });
+    return (JP_HOL[y] = h);
+  }
+  const jpHol = d => jpHolidays(d.getFullYear())[(d.getMonth() + 1) + '-' + d.getDate()] || '';
+
   let cursor = todayKey();     // the day in focus
   let editId = null;           // event being edited, or 'new'
   let editDay = null;          // その予定の、どの日を開いたか
@@ -11243,7 +11311,8 @@ window.PAWTASK = (function(){
         chips += e ? chipHtml(e, d, k) : CHIP_GAP;
       }
       return `<button class="cal-cell ${other ? 'other' : ''} ${k === cursor ? 'sel' : ''}" data-day="${k}">
-        <span class="dnum ${k === tk ? 'today' : ''} ${idxOf(d) === 5 ? 'sat' : ''} ${idxOf(d) === 6 ? 'sun' : ''}">${d.getDate()}</span>
+        <span class="dnum ${k === tk ? 'today' : ''} ${idxOf(d) === 5 ? 'sat' : ''} ${idxOf(d) === 6 ? 'sun' : ''} ${jpHol(d) ? 'hol' : ''}">${d.getDate()}</span>
+        ${jpHol(d) ? `<span class="hname">${jpHol(d)}</span>` : ''}
         <span class="chips">${chips}</span>
       </button>`;
     }).join('');
@@ -11276,8 +11345,9 @@ window.PAWTASK = (function(){
     const tk = todayKey();
     return `<div class="cal-day ${k === tk ? 'is-today' : ''} ${big ? 'big' : ''}">
       <div class="cal-day-head" data-day="${k}">
-        <span class="dd ${idxOf(d)===5?'sat':''} ${idxOf(d)===6?'sun':''}">${d.getMonth()+1}/${d.getDate()}</span>
+        <span class="dd ${idxOf(d)===5?'sat':''} ${idxOf(d)===6?'sun':''} ${jpHol(d) ? 'hol' : ''}">${d.getMonth()+1}/${d.getDate()}</span>
         <span class="dw">${WD[idxOf(d)]}</span>
+        ${jpHol(d) ? `<span class="cal-hname">${jpHol(d)}</span>` : ''}
         ${k === tk ? '<span class="tnow">today</span>' : ''}
       </div>
       ${list.length ? `<div class="cal-day-list">${list.map(e => eventRow(e, k)).join('')}</div>`
@@ -11410,8 +11480,9 @@ window.PAWTASK = (function(){
 
     return `<div class="tt">
       <div class="tt-top">
-        <span class="dd ${idxOf(d)===5?'sat':''} ${idxOf(d)===6?'sun':''}">${d.getMonth()+1}/${d.getDate()}</span>
+        <span class="dd ${idxOf(d)===5?'sat':''} ${idxOf(d)===6?'sun':''} ${jpHol(d) ? 'hol' : ''}">${d.getMonth()+1}/${d.getDate()}</span>
         <span class="dw">${WD[idxOf(d)]}</span>
+        ${jpHol(d) ? `<span class="cal-hname">${jpHol(d)}</span>` : ''}
         ${k === todayKey() ? '<span class="tnow">today</span>' : ''}
       </div>
       ${allDay.length || loose.length ? `<div class="tt-allday">
@@ -12799,7 +12870,7 @@ window.PAWTASK = (function(){
                : kind === 'bird' ? TAP_BIRD : TAP_RAB;
     bubbleText = pool[Math.floor(Math.random() * pool.length)];
     bubbleFrom = kind === 'owl' ? 'owl' : 'guest';
-    bub.innerHTML = bubbleText + PAW_TAG;
+    bub.innerHTML = bubbleText;             /* 犬ではないので 肉球は なし */
     bub.classList.remove('hide');
     bubbleUntil = Date.now() + 4500;
     if(kind !== 'owl' && visitor && visitor.phase === 'stay'){
@@ -12926,6 +12997,8 @@ window.PAWTASK = (function(){
   let bubbleUntil = 0, nextBubble = 0, greeted = false, bubbleText = '';
   /* 立ち上げたときの、あいさつ → 今日の予定 の読み上げ */
   let sayQueue = [], introDone = false, nextSay = 0;
+  /* 予定を 伝えているあいだ（telling）は、お座りして 話す */
+  let telling = false, sitTell = false;
   function buildIntro(){
     introDone = true;
     const q = [GREET()];
@@ -12941,7 +13014,10 @@ window.PAWTASK = (function(){
     const mn = moonLine();                 /* 夜なら、今夜の月のこともひとこと */
     if(mn) q.push(mn);
     sayQueue = q;
+    telling = true;                        /* 座ってから 話しはじめる */
     nextSay = Date.now() + 1500;
+    /* あいさつは 読み上げの はじめで する。べつの ひと言を かぶせない */
+    nextBubble = Date.now() + 180000 + Math.random() * 180000;
   }
   let nextBf = 0, nextSeason = 0, nextStar = 0;
   let pups = [];                 // { el, gap }
@@ -14796,15 +14872,28 @@ window.PAWTASK = (function(){
       nextPose = now + 2000;
     }
 
+    /* 今日の予定を 話しているあいだは、お座りして 話す */
+    sitTell = telling && !wet && !denning && !towering && !awayUntil;
+    if(sitTell){
+      chase = null;
+      if(pose === 'walk' && easeToWalk(now)){
+        /* 走っていたら、まず 歩きに もどってから 座る */
+      } else if(pose !== 'sit'){
+        pose = 'sit';
+      }
+      poseUntil = now + 2200;              /* 話しおわっても、すこし 座っている */
+      nextPose = poseUntil;
+    }
+
     /* お客さんが庭にいると、ときどき気になって近づいていく */
-    if(!wet && !tower && !denning && visitor && now > curiousAt && now > curiousUntil
+    if(!wet && !tower && !denning && !telling && visitor && now > curiousAt && now > curiousUntil
        && (visitor.phase === 'stay' || visitor.phase === 'in' || visitor.phase === 'move')
        && Math.random() < 0.02){
       curiousUntil = now + 13000 + Math.random() * 12000;
       curiousAt = now + 70000 + Math.random() * 110000;
       sniffSaid = false;
     }
-    const curious = !wet && !tower && !denning && visitor && now < curiousUntil;
+    const curious = !wet && !tower && !denning && !sitTell && visitor && now < curiousUntil;
     if(curious){
       const gap = 0.075;
       const target = visitor.p + (dogX < visitor.p ? -gap : gap);
@@ -14831,7 +14920,7 @@ window.PAWTASK = (function(){
     }
 
     /* ちょうちょや 鳥を 追いかけている あいだ */
-    if(chase && (wet || denning || towering || curious || now > chase.until)) chase = null;
+    if(chase && (wet || denning || towering || curious || sitTell || now > chase.until)) chase = null;
     const chasing = !!chase;
     if(chasing){
       const d = chase.p - dogX;
@@ -15203,9 +15292,11 @@ window.PAWTASK = (function(){
       if(bubbleUntil && now > bubbleUntil){
         bub.classList.add('hide');
         bubbleUntil = 0;
+        if(!sayQueue.length) telling = false;
         nextSay = now + 900;                                  // 次のひと言まで、ひと呼吸
         nextBubble = now + 180000 + Math.random() * 180000;   // three to six minutes
-      } else if(!bubbleUntil && sayQueue.length && now > nextSay && !inDen()){
+      } else if(!bubbleUntil && sayQueue.length && now > nextSay && !inDen()
+                && !awayUntil && (!sitTell || pose === 'sit')){
         greeted = true;
         bubbleFrom = 'dog';
         bubbleText = sayQueue.shift();
@@ -15217,17 +15308,24 @@ window.PAWTASK = (function(){
         bubbleFrom = 'dog';
         // a plan to pass on, a word about the weather, or simply hello
         const tell = toTell();
-        let text = null;
-        if(tell.length && Math.random() < 0.35){
-          text = planLine(tell[Math.floor(Math.random() * tell.length)]);
+        const pl = (tell.length && Math.random() < 0.35)
+          ? planLine(tell[Math.floor(Math.random() * tell.length)]) : null;
+        if(pl){
+          /* 予定を 伝えるときは、座ってから 話す */
+          sayQueue.push(pl);
+          telling = true;
+          nextSay = now + 1300;
+          nextBubble = now + 180000 + Math.random() * 180000;
+        } else {
+          let text = null;
+          if(Math.random() < 0.4) text = todoLine();
+          if(!text && Math.random() < 0.5) text = moonLine();
+          if(!text && Math.random() < 0.4) text = wxLine();
+          bubbleText = text || GREET();
+          bub.innerHTML = bubbleText + PAW_TAG;
+          bub.classList.remove('hide');
+          bubbleUntil = now + 6500;
         }
-        if(!text && Math.random() < 0.4) text = todoLine();
-        if(!text && Math.random() < 0.5) text = moonLine();
-        if(!text && Math.random() < 0.4) text = wxLine();
-        bubbleText = text || GREET();
-        bub.innerHTML = bubbleText + PAW_TAG;
-        bub.classList.remove('hide');
-        bubbleUntil = now + 6500;
       }
 
       // a day marked for celebration gets its own greeting, once
@@ -15340,7 +15438,8 @@ window.PAWTASK = (function(){
       movers.forEach(el => { el.style.transition = ''; });
       const bub = $id('hmBubble');
       if(bub && bubbleUntil > Date.now() && bubbleText){
-        bub.innerHTML = bubbleText + PAW_TAG;
+        bub.innerHTML = bubbleText
+          + ((bubbleFrom === 'guest' || bubbleFrom === 'owl') ? '' : PAW_TAG);
         bub.style.transition = 'none';
         bub.classList.remove('hide');
         void bub.offsetWidth;
