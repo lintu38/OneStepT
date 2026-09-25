@@ -2228,6 +2228,10 @@
     font-weight:700; color:#7C6247; letter-spacing:.01em; }
   .home-date .hd-wd{ font-family:'Comfortaa','Zen Kaku Gothic New',cursive; font-size:11.5px;
     font-weight:600; color:var(--text-faint); }
+  /* 空が くらいときは、日づけも 明るい色に */
+  .home-stage.night .home-date .hd-md{ color:#EFE7D6; }
+  .home-stage.night .home-date .hd-wd{ color:rgba(239,231,214,.72); }
+  .home-stage.dusk .home-date .hd-md{ color:#6B4A33; }
   /* the dog's own patch of ground: no frame, just room to walk */
   .home-stage{ position:relative; height:150px; margin:-4px 0 -2px; overflow:hidden;
     border-radius:14px; }
@@ -2270,9 +2274,13 @@
   /* the sky, and whatever is up in it */
   /* the faintest wash of the hour: it fades out at the top and at both ends,
      so the panel itself never shows an edge */
-  .home-stage .sky{ position:absolute; inset:0; z-index:0; pointer-events:none;
-    -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 18%, #000 82%, transparent 100%);
-    mask-image:linear-gradient(90deg, transparent 0, #000 18%, #000 82%, transparent 100%); }
+  .home-stage .sky{ position:absolute; inset:0; z-index:0; pointer-events:none; }
+  /* 中秋の名月の おだんごと うさぎ（TARO GAME と おなじ 絵） */
+  .tsukimi{ position:absolute; left:11%; bottom:6px; width:104px; z-index:1;
+    pointer-events:none; }
+  .tsukimi-rab{ position:absolute; left:34%; bottom:6px; width:42px; z-index:1;
+    pointer-events:none; transition:opacity .8s ease; }
+  .tsukimi svg, .tsukimi-rab svg{ width:100%; height:auto; display:block; }
   /* 濃いところは、上から下まで ゆったり幅をとる */
   .home-stage.day .sky{ background:linear-gradient(180deg,
     rgba(150,199,224,0) 0%, rgba(150,199,224,.13) 11%, rgba(150,199,224,.16) 34%,
@@ -2284,9 +2292,7 @@
     rgba(64,84,126,0) 0%, rgba(64,84,126,.21) 11%, rgba(64,84,126,.26) 34%,
     rgba(64,84,126,.21) 56%, rgba(64,84,126,.10) 80%, rgba(64,84,126,0) 100%); }
   /* 夜空の星。晴れた夜だけ、そっと出る */
-  .stars{ position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden;
-    -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 16%, #000 84%, transparent 100%);
-    mask-image:linear-gradient(90deg, transparent 0, #000 16%, #000 84%, transparent 100%); }
+  .stars{ position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
   .stars i{ position:absolute; display:block; border-radius:999px;
     background:#FBF2CD;
     box-shadow:0 0 3px 1px rgba(251,242,205,.96), 0 0 9px 2px rgba(250,239,193,.6),
@@ -14415,25 +14421,146 @@ window.PAWTASK = (function(){
     }).join('');
   }
 
-  // The sky over the yard: pale blue by day, warm at dusk, deep at night.
-  function skyNow(){
+  /* TARO GAME の START 画面と おなじ 空の色。
+     時計（何時か）を 0〜1 に うつして、そこから 色を まぜる */
+  const TG_CLOCK = [[0, 1], [4.5, 1], [6, 0.62], [7.5, 0.05], [15, 0.18],
+                    [16.5, 0.42], [18, 0.68], [19, 0.88], [20.5, 1], [24, 1]];
+  const TG_SKY = [
+    { at:0,    top:'#CDE3F2', bot:'#F2F4EC' },
+    { at:0.30, top:'#C6DFF2', bot:'#F3F2E8' },
+    { at:0.44, top:'#EED9BE', bot:'#FBEEDC' },
+    { at:0.57, top:'#F0B98A', bot:'#FBDDBE' },
+    { at:0.72, top:'#E08A66', bot:'#F5C3A2' },
+    { at:0.86, top:'#7E6F9C', bot:'#D59A8E' },
+    { at:0.94, top:'#33405F', bot:'#5A6684' },
+    { at:1,    top:'#232C46', bot:'#434F72' }
+  ];
+  function tgHex(c){
+    return [parseInt(c.substr(1, 2), 16), parseInt(c.substr(3, 2), 16),
+            parseInt(c.substr(5, 2), 16)];
+  }
+  function tgMix(a, b, k){
+    const x = tgHex(a), y = tgHex(b);
+    return 'rgb(' + Math.round(x[0] + (y[0] - x[0]) * k) + ','
+                  + Math.round(x[1] + (y[1] - x[1]) * k) + ','
+                  + Math.round(x[2] + (y[2] - x[2]) * k) + ')';
+  }
+  function tgClockF(){
     const d = new Date();
-    const t = d.getHours() + d.getMinutes() / 60;
-    /* 東（右）から昇って、正午に真上、西（左）へしずむ */
-    if(t >= 6 && t < 17){
-      const k = (t - 6) / 11;                       // 6:00 → 17:00、まんなかが昼すぎ
-      return { cls:'day', orb:'sun', x: 92 - k * 84, y: 56 - Math.sin(Math.PI * k) * 24 };
+    let h = d.getHours() + d.getMinutes() / 60;
+    if(typeof window.__demoHour === 'number') h = window.__demoHour;
+    h = Math.max(0, Math.min(24, h));
+    for(let i = 0; i < TG_CLOCK.length - 1; i++){
+      if(h <= TG_CLOCK[i + 1][0]){
+        const a = TG_CLOCK[i], b = TG_CLOCK[i + 1];
+        const q = (h - a[0]) / (b[0] - a[0]);
+        return a[1] + (b[1] - a[1]) * q;
+      }
     }
-    if(t >= 5 && t < 6){                            // 夜明け、東のひくいところ
-      const k = t - 5;
-      return { cls:'dusk', orb:'sun', x: 96 - k * 4, y: 74 - k * 18 };
+    return 1;
+  }
+  function tgRgb(a, b, k){
+    const x = tgHex(a), y = tgHex(b);
+    return [Math.round(x[0] + (y[0] - x[0]) * k), Math.round(x[1] + (y[1] - x[1]) * k),
+            Math.round(x[2] + (y[2] - x[2]) * k)];
+  }
+  function tgSkyCss(){
+    const f = tgClockF();
+    for(let i = 0; i < TG_SKY.length - 1; i++){
+      const a = TG_SKY[i], b = TG_SKY[i + 1];
+      if(f <= b.at || i === TG_SKY.length - 2){
+        const k = Math.max(0, Math.min(1, (f - a.at) / (b.at - a.at)));
+        const t = tgRgb(a.top, b.top, k), o = tgRgb(a.bot, b.bot, k);
+        /* 朝と昼は ひかえめに、夕方と夜は 下を もっと うすく */
+        const q = Math.max(0, Math.min(1, (f - 0.35) / 0.5));
+        const amt = 0.09 + 0.42 * q, mid = 80 - 24 * q;
+        const l = [Math.round(o[0] + (255 - o[0]) * amt),
+                   Math.round(o[1] + (255 - o[1]) * amt),
+                   Math.round(o[2] + (255 - o[2]) * amt)];
+        return 'linear-gradient(180deg,rgb(' + t.join(',') + ') 0%,'
+             + 'rgb(' + o.join(',') + ') ' + mid.toFixed(0) + '%,'
+             + 'rgb(' + l.join(',') + ') 100%)';
+      }
     }
-    if(t >= 17 && t < 19){                          // 西の空にしずんでいく
-      const k = (t - 17) / 2;                       /* 17時から夕方、19時にはもう夜 */
-      return { cls:'dusk', orb:'sun', x: 8 - k * 4, y: 56 + k * 20 };
+    return '';
+  }
+  /* ===== TARO GAME と おなじ 空（お日さま・お月さま・星・お月見かざり） ===== */
+  const TG_NIGHT = [[0,0],[0.30,0],[0.44,0],[0.57,0.06],[0.72,0.22],
+                    [0.86,0.55],[0.94,0.95],[1,1]];
+  function tgNightAt(f){
+    for(let i = 0; i < TG_NIGHT.length - 1; i++){
+      const a = TG_NIGHT[i], b = TG_NIGHT[i + 1];
+      if(f <= b[0] || i === TG_NIGHT.length - 2){
+        const k = Math.max(0, Math.min(1, (f - a[0]) / (b[0] - a[0])));
+        return a[1] + (b[1] - a[1]) * k;
+      }
     }
-    const k = ((t + 5) % 24) / 24;
-    return { cls:'night', orb:'moon', x: 81, y: 44 };
+    return 1;
+  }
+  const TG_SCALE = 1.18;          /* ゲームの 空（102）を この板の たかさに */
+  /* 中秋の名月（旧暦8月15日）。新月の ときこく＋14日 */
+  function tgNewMoonMs(k){
+    const RAD = Math.PI / 180;
+    const T = k / 1236.85, T2 = T * T, T3 = T2 * T;
+    let jde = 2451550.09766 + 29.530588861 * k + 0.00015437 * T2 - 0.000000150 * T3;
+    const E  = 1 - 0.002516 * T - 0.0000074 * T2;
+    const M  = (2.5534 + 29.10535670 * k - 0.0000014 * T2) * RAD;
+    const M1 = (201.5643 + 385.81693528 * k + 0.0107582 * T2) * RAD;
+    const F  = (160.7108 + 390.67050284 * k - 0.0016118 * T2) * RAD;
+    const O  = (124.7746 - 1.56375588 * k + 0.0020672 * T2) * RAD;
+    jde += -0.40720 * Math.sin(M1) + 0.17241 * E * Math.sin(M) + 0.01608 * Math.sin(2 * M1)
+         + 0.01039 * Math.sin(2 * F) + 0.00739 * E * Math.sin(M1 - M)
+         - 0.00514 * E * Math.sin(M1 + M) + 0.00208 * E * E * Math.sin(2 * M)
+         - 0.00111 * Math.sin(M1 - 2 * F) - 0.00057 * Math.sin(M1 + 2 * F)
+         + 0.00056 * E * Math.sin(2 * M1 + M) - 0.00042 * Math.sin(3 * M1)
+         + 0.00042 * E * Math.sin(M + 2 * F) + 0.00038 * E * Math.sin(M - 2 * F)
+         - 0.00024 * E * Math.sin(2 * M1 - M) - 0.00017 * Math.sin(O)
+         - 0.00007 * Math.sin(M1 + 2 * M);
+    return (jde - 2440587.5) * 86400000;
+  }
+  const tgHarv = {};
+  function tgHarvestMD(year){
+    if(tgHarv[year]) return tgHarv[year];
+    let out = null;
+    const k0 = Math.round((year - 2000) * 12.3685) + 6;
+    for(let k = k0; k < k0 + 6 && !out; k++){
+      const nm = new Date(tgNewMoonMs(k) + 9 * 3600000);
+      const day1 = Date.UTC(nm.getUTCFullYear(), nm.getUTCMonth(), nm.getUTCDate());
+      const d15 = new Date(day1 + 14 * 86400000);
+      const m = d15.getUTCMonth() + 1, dd = d15.getUTCDate();
+      if(d15.getUTCFullYear() === year && ((m === 9 && dd >= 8) || (m === 10 && dd <= 7))){
+        out = [m, dd];
+      }
+    }
+    tgHarv[year] = out || [0, 0];
+    return tgHarv[year];
+  }
+  function tgTsukimi(){
+    const d = new Date();
+    const h = tgHarvestMD(d.getFullYear());
+    return h[0] === d.getMonth() + 1 && h[1] === d.getDate();
+  }
+  const TG_SET_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 56"><defs><g id="tgMochi"><defs><radialGradient id="mg" cx="33%" cy="26%" r="76%"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset=".4" stop-color="#fff" stop-opacity=".10"/><stop offset=".76" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#8C7457" stop-opacity=".2"/></radialGradient></defs><path d="M15.4 6.4 25.6 13.6 18 22.6Z" fill="#E0CCAB"/><path d="M48.6 6.4 38.4 13.6 46 22.6Z" fill="#E0CCAB"/><path d="M17.4 10 23.2 14.1 19.2 19.2Z" fill="#F0E6D4"/><path d="M46.6 10 40.8 14.1 44.8 19.2Z" fill="#F0E6D4"/><ellipse cx="32" cy="36" rx="28.5" ry="27.5" fill="#EDE6D6"/><path d="M32 8.5c-15.7 0-28.5 12.3-28.5 27.5 0 1.6.1 3.2.4 4.7 6.4 2.6 12.6 3.4 18.5 2.5 4.2-.7 7.4-2.8 9.6-6.3 2.2 3.5 5.4 5.6 9.6 6.3 5.9.9 12.1.1 18.5-2.5.3-1.5.4-3.1.4-4.7C60.5 20.8 47.7 8.5 32 8.5z" fill="#E0CCAB"/><ellipse cx="21.6" cy="21.6" rx="4.6" ry="2.9" fill="#EDE6D6"/><ellipse cx="42.4" cy="21.6" rx="4.6" ry="2.9" fill="#EDE6D6"/><ellipse cx="20.4" cy="33.4" rx="3.5" ry="4" fill="#372C22"/><ellipse cx="43.6" cy="33.4" rx="3.5" ry="4" fill="#372C22"/><ellipse cx="22" cy="31.6" rx="1.1" ry="1.3" fill="#fff" opacity=".85"/><ellipse cx="45.2" cy="31.6" rx="1.1" ry="1.3" fill="#fff" opacity=".85"/><ellipse cx="32" cy="39.4" rx="9.6" ry="8.6" fill="#F5F0E4"/><ellipse cx="32" cy="35" rx="4.2" ry="3.3" fill="#372C22"/><path d="M32 38.4v2.2" stroke="#372C22" stroke-width="1.2" stroke-linecap="round" fill="none"/><path d="M32 40.6c-1 2.4-4.6 2.4-5.6 0M32 40.6c1 2.4 4.6 2.4 5.6 0" stroke="#372C22" stroke-width="1.2" stroke-linecap="round" fill="none"/><ellipse cx="32" cy="36" rx="28.5" ry="27.5" fill="url(#mg)"/><g transform="translate(13,-34.6) rotate(24 32 47.6)"><g transform="translate(32,48) scale(1.28) translate(-32,-48)"><path d="M32 47.6c-3.6-3.4-8-2.7-8 .7 0 3.1 4.7 3.8 8 .9 3.3 2.9 8 2.2 8-.9 0-3.4-4.4-4.1-8-.7Z" fill="#799837"/><circle cx="32" cy="48.5" r="1.9" fill="#799837" stroke="rgba(255,255,255,.5)" stroke-width=".7"/></g></g></g></defs><g stroke-linecap="round" fill="none"><path stroke="#C2A97C" stroke-width="1.1" d="M20.0 56.0 Q16.4 35.6 11.0 22.0"/><g transform="translate(11.00 22.00) rotate(-15)" stroke="#EADCBD" stroke-width="0.55"><path d="M0 2.00 Q-2.30 0.53 -4.60 1.31"/><path d="M0 2.00 Q2.30 0.53 4.60 1.31"/><path d="M0 0.92 Q-2.19 -0.49 -4.39 0.26"/><path d="M0 0.92 Q2.19 -0.49 4.39 0.26"/><path d="M0 -0.17 Q-2.09 -1.50 -4.18 -0.79"/><path d="M0 -0.17 Q2.09 -1.50 4.18 -0.79"/><path d="M0 -1.25 Q-1.98 -2.52 -3.97 -1.85"/><path d="M0 -1.25 Q1.98 -2.52 3.97 -1.85"/><path d="M0 -2.33 Q-1.88 -3.54 -3.76 -2.90"/><path d="M0 -2.33 Q1.88 -3.54 3.76 -2.90"/><path d="M0 -3.42 Q-1.77 -4.55 -3.55 -3.95"/><path d="M0 -3.42 Q1.77 -4.55 3.55 -3.95"/><path d="M0 -4.50 Q-1.67 -5.57 -3.33 -5.00"/><path d="M0 -4.50 Q1.67 -5.57 3.33 -5.00"/><path d="M0 -5.58 Q-1.56 -6.58 -3.12 -6.05"/><path d="M0 -5.58 Q1.56 -6.58 3.12 -6.05"/><path d="M0 -6.67 Q-1.46 -7.60 -2.91 -7.10"/><path d="M0 -6.67 Q1.46 -7.60 2.91 -7.10"/><path d="M0 -7.75 Q-1.35 -8.61 -2.70 -8.16"/><path d="M0 -7.75 Q1.35 -8.61 2.70 -8.16"/><path d="M0 -8.83 Q-1.25 -9.63 -2.49 -9.21"/><path d="M0 -8.83 Q1.25 -9.63 2.49 -9.21"/><path d="M0 -9.92 Q-1.14 -10.65 -2.28 -10.26"/><path d="M0 -9.92 Q1.14 -10.65 2.28 -10.26"/><path d="M0 -11.00 Q-1.03 -11.66 -2.07 -11.31"/><path d="M0 -11.00 Q1.03 -11.66 2.07 -11.31"/><path stroke="#DCCBA4" stroke-width="0.7" d="M0 2 L0 -11.00"/></g><path stroke="#C2A97C" stroke-width="1.1" d="M20.0 56.0 Q18.8 31.4 17.0 15.0"/><g transform="translate(17.00 15.00) rotate(-7)" stroke="#EADCBD" stroke-width="0.55"><path d="M0 2.00 Q-2.30 0.53 -4.60 1.31"/><path d="M0 2.00 Q2.30 0.53 4.60 1.31"/><path d="M0 0.92 Q-2.19 -0.49 -4.39 0.26"/><path d="M0 0.92 Q2.19 -0.49 4.39 0.26"/><path d="M0 -0.17 Q-2.09 -1.50 -4.18 -0.79"/><path d="M0 -0.17 Q2.09 -1.50 4.18 -0.79"/><path d="M0 -1.25 Q-1.98 -2.52 -3.97 -1.85"/><path d="M0 -1.25 Q1.98 -2.52 3.97 -1.85"/><path d="M0 -2.33 Q-1.88 -3.54 -3.76 -2.90"/><path d="M0 -2.33 Q1.88 -3.54 3.76 -2.90"/><path d="M0 -3.42 Q-1.77 -4.55 -3.55 -3.95"/><path d="M0 -3.42 Q1.77 -4.55 3.55 -3.95"/><path d="M0 -4.50 Q-1.67 -5.57 -3.33 -5.00"/><path d="M0 -4.50 Q1.67 -5.57 3.33 -5.00"/><path d="M0 -5.58 Q-1.56 -6.58 -3.12 -6.05"/><path d="M0 -5.58 Q1.56 -6.58 3.12 -6.05"/><path d="M0 -6.67 Q-1.46 -7.60 -2.91 -7.10"/><path d="M0 -6.67 Q1.46 -7.60 2.91 -7.10"/><path d="M0 -7.75 Q-1.35 -8.61 -2.70 -8.16"/><path d="M0 -7.75 Q1.35 -8.61 2.70 -8.16"/><path d="M0 -8.83 Q-1.25 -9.63 -2.49 -9.21"/><path d="M0 -8.83 Q1.25 -9.63 2.49 -9.21"/><path d="M0 -9.92 Q-1.14 -10.65 -2.28 -10.26"/><path d="M0 -9.92 Q1.14 -10.65 2.28 -10.26"/><path d="M0 -11.00 Q-1.03 -11.66 -2.07 -11.31"/><path d="M0 -11.00 Q1.03 -11.66 2.07 -11.31"/><path stroke="#DCCBA4" stroke-width="0.7" d="M0 2 L0 -11.00"/></g><path stroke="#C2A97C" stroke-width="1.1" d="M20.0 56.0 Q21.2 33.8 23.0 19.0"/><g transform="translate(23.00 19.00) rotate(6)" stroke="#EADCBD" stroke-width="0.55"><path d="M0 2.00 Q-2.30 0.53 -4.60 1.31"/><path d="M0 2.00 Q2.30 0.53 4.60 1.31"/><path d="M0 0.92 Q-2.19 -0.49 -4.39 0.26"/><path d="M0 0.92 Q2.19 -0.49 4.39 0.26"/><path d="M0 -0.17 Q-2.09 -1.50 -4.18 -0.79"/><path d="M0 -0.17 Q2.09 -1.50 4.18 -0.79"/><path d="M0 -1.25 Q-1.98 -2.52 -3.97 -1.85"/><path d="M0 -1.25 Q1.98 -2.52 3.97 -1.85"/><path d="M0 -2.33 Q-1.88 -3.54 -3.76 -2.90"/><path d="M0 -2.33 Q1.88 -3.54 3.76 -2.90"/><path d="M0 -3.42 Q-1.77 -4.55 -3.55 -3.95"/><path d="M0 -3.42 Q1.77 -4.55 3.55 -3.95"/><path d="M0 -4.50 Q-1.67 -5.57 -3.33 -5.00"/><path d="M0 -4.50 Q1.67 -5.57 3.33 -5.00"/><path d="M0 -5.58 Q-1.56 -6.58 -3.12 -6.05"/><path d="M0 -5.58 Q1.56 -6.58 3.12 -6.05"/><path d="M0 -6.67 Q-1.46 -7.60 -2.91 -7.10"/><path d="M0 -6.67 Q1.46 -7.60 2.91 -7.10"/><path d="M0 -7.75 Q-1.35 -8.61 -2.70 -8.16"/><path d="M0 -7.75 Q1.35 -8.61 2.70 -8.16"/><path d="M0 -8.83 Q-1.25 -9.63 -2.49 -9.21"/><path d="M0 -8.83 Q1.25 -9.63 2.49 -9.21"/><path d="M0 -9.92 Q-1.14 -10.65 -2.28 -10.26"/><path d="M0 -9.92 Q1.14 -10.65 2.28 -10.26"/><path d="M0 -11.00 Q-1.03 -11.66 -2.07 -11.31"/><path d="M0 -11.00 Q1.03 -11.66 2.07 -11.31"/><path stroke="#DCCBA4" stroke-width="0.7" d="M0 2 L0 -11.00"/></g><path stroke="#C2A97C" stroke-width="1.1" d="M20.0 56.0 Q23.2 38.0 28.0 26.0"/><g transform="translate(28.00 26.00) rotate(13)" stroke="#EADCBD" stroke-width="0.55"><path d="M0 2.00 Q-2.30 0.53 -4.60 1.31"/><path d="M0 2.00 Q2.30 0.53 4.60 1.31"/><path d="M0 0.92 Q-2.19 -0.49 -4.39 0.26"/><path d="M0 0.92 Q2.19 -0.49 4.39 0.26"/><path d="M0 -0.17 Q-2.09 -1.50 -4.18 -0.79"/><path d="M0 -0.17 Q2.09 -1.50 4.18 -0.79"/><path d="M0 -1.25 Q-1.98 -2.52 -3.97 -1.85"/><path d="M0 -1.25 Q1.98 -2.52 3.97 -1.85"/><path d="M0 -2.33 Q-1.88 -3.54 -3.76 -2.90"/><path d="M0 -2.33 Q1.88 -3.54 3.76 -2.90"/><path d="M0 -3.42 Q-1.77 -4.55 -3.55 -3.95"/><path d="M0 -3.42 Q1.77 -4.55 3.55 -3.95"/><path d="M0 -4.50 Q-1.67 -5.57 -3.33 -5.00"/><path d="M0 -4.50 Q1.67 -5.57 3.33 -5.00"/><path d="M0 -5.58 Q-1.56 -6.58 -3.12 -6.05"/><path d="M0 -5.58 Q1.56 -6.58 3.12 -6.05"/><path d="M0 -6.67 Q-1.46 -7.60 -2.91 -7.10"/><path d="M0 -6.67 Q1.46 -7.60 2.91 -7.10"/><path d="M0 -7.75 Q-1.35 -8.61 -2.70 -8.16"/><path d="M0 -7.75 Q1.35 -8.61 2.70 -8.16"/><path d="M0 -8.83 Q-1.25 -9.63 -2.49 -9.21"/><path d="M0 -8.83 Q1.25 -9.63 2.49 -9.21"/><path d="M0 -9.92 Q-1.14 -10.65 -2.28 -10.26"/><path d="M0 -9.92 Q1.14 -10.65 2.28 -10.26"/><path d="M0 -11.00 Q-1.03 -11.66 -2.07 -11.31"/><path d="M0 -11.00 Q1.03 -11.66 2.07 -11.31"/><path stroke="#DCCBA4" stroke-width="0.7" d="M0 2 L0 -11.00"/></g></g><g stroke="#C4A578" stroke-width="1"><rect fill="#EBDCBE" x="30.0" y="52.6" width="32" height="3.4"/><rect fill="#EBDCBE" x="35.0" y="46.0" width="22" height="6.8"/><rect fill="#F3E7CE" x="25.0" y="41.8" width="42" height="4.4"/></g><circle fill="#D6BE96" cx="46.0" cy="49.4" r="2.4"/><use href="#tgMochi" transform="translate(28.83 29.46) scale(0.1929)"/><use href="#tgMochi" transform="translate(39.83 29.46) scale(0.1929)"/><use href="#tgMochi" transform="translate(50.83 29.46) scale(0.1929)"/><use href="#tgMochi" transform="translate(34.33 19.86) scale(0.1929)"/><use href="#tgMochi" transform="translate(45.33 19.86) scale(0.1929)"/><use href="#tgMochi" transform="translate(39.83 10.46) scale(0.1929)"/></svg>`;
+  const TG_RAB_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 17"><defs><g id="tgRab"><defs><radialGradient id="krb" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#FDFBF8"/><stop offset=".52" stop-color="#FDFBF7"/><stop offset="1" stop-color="#E4E2DE"/></radialGradient><radialGradient id="krd" cx="33%" cy="24%" r="88%"><stop offset="0" stop-color="#EBE5DD"/><stop offset=".52" stop-color="#E6DFD4"/><stop offset="1" stop-color="#C8C2B8"/></radialGradient></defs><circle fill="url(#krd)" cx="8.4" cy="24.4" r="2.7"/><ellipse fill="url(#krb)" cx="14.2" cy="19.6" rx="6.4" ry="7.4"/><ellipse fill="url(#krd)" cx="14.8" cy="25.7" rx="5.4" ry="1.8"/><ellipse fill="url(#krb)" cx="18.6" cy="21.6" rx="1.7" ry="3.1"/><g transform="rotate(-16 17.5 17)"><ellipse fill="url(#krb)" cx="18.4" cy="6.4" rx="2" ry="5" transform="rotate(-12 18.4 6.4)"/><ellipse fill="url(#krb)" cx="22.2" cy="6.8" rx="2" ry="5" transform="rotate(8 22.2 6.8)"/><ellipse fill="#E4B2B8" cx="18.4" cy="6.8" rx="0.85" ry="3.1" transform="rotate(-12 18.4 6.8)"/><ellipse fill="#E4B2B8" cx="22.2" cy="7.2" rx="0.85" ry="3.1" transform="rotate(8 22.2 7.2)"/><circle fill="url(#krb)" cx="20.4" cy="13.8" r="4.6"/><circle fill="#6B5F55" cx="22.4" cy="12.9" r="0.88"/><circle fill="#E4B2B8" cx="24.5" cy="14.6" r="0.88"/></g></g></defs><use href="#tgRab" transform="translate(2.00 1.00) scale(0.5714)"/><use href="#tgRab" transform="translate(21.00 4.00) scale(0.4643)"/></svg>`;
+  // The sky over the yard: TARO GAME の START 画面と おなじ 動き。
+  // 上を 北に して、東（右）から 南（下）を まわって 西（左）へ。
+  function skyNow(){
+    const f = tgClockF();
+    const night = tgNightAt(f);
+    const fs = Math.max(0, Math.min(1, f / 0.88));
+    const warm = fs < 0.42 ? 0 : Math.min(1, (fs - 0.42) / 0.48);
+    const sunX = (0.86 - 0.72 * fs) * 100;
+    const sunY = (26 + 48 * Math.sin(Math.PI * fs)) * TG_SCALE;
+    const moonX = 75, moonY = 40 * TG_SCALE;
+    const sunA = Math.max(0, Math.min(1, 1 - (night - 0.02) * 2.6));
+    const moonA = Math.max(0, Math.min(1, (night - 0.10) * 2.0));
+    const cls = f < 0.30 ? 'day' : f < 0.84 ? 'dusk' : 'night';
+    const useMoon = moonA > sunA;
+    return { cls:cls, night:night, warm:warm,
+             sunX:sunX, sunY:sunY, sunA:sunA,
+             moonX:moonX, moonY:moonY, moonA:moonA,
+             orb: useMoon ? 'moon' : 'sun',
+             x: useMoon ? moonX : sunX, y: useMoon ? moonY : sunY };
   }
 
   // Where the moon is in its month: 0 new, .5 full.
@@ -14476,8 +14603,8 @@ window.PAWTASK = (function(){
     return `<svg viewBox="0 0 26 26" aria-hidden="true">
       <defs><clipPath id="mnLit"><path d="${d}"/></clipPath></defs>
       <circle cx="13" cy="13" r="11" fill="#E8DEB0" opacity=".22"/>
-      <path d="${d}" fill="#F6DB63"/>
-      <g clip-path="url(#mnLit)" fill="#E7C63F" opacity=".38">
+      <path d="${d}" fill="#FBEBA4"/>
+      <g clip-path="url(#mnLit)" fill="#EBD887" opacity=".34">
         <circle cx="10.3" cy="9.4" r="1.7"/>
         <circle cx="15.2" cy="15.8" r="2.1"/>
         <circle cx="9.4" cy="16.2" r="1.05"/>
@@ -14560,11 +14687,12 @@ window.PAWTASK = (function(){
     return out;
   })();
   function starsHtml(s, kind){
-    if(s.cls !== 'night') return '';
+    if(s.night < 0.04) return '';        /* ゲームと おなじで、夕ぐれから そっと */
     /* 曇りや雨の夜も、雲の切れ間から少しだけ見える */
     const thick = kind === 'rain' || kind === 'storm' || kind === 'fog' || kind === 'snow';
     const every = !kind ? 1 : (thick ? 4 : 3);
-    return '<div class="stars' + (kind ? (thick ? ' few dim' : ' few') : '') + '">'
+    return '<div class="stars' + (kind ? (thick ? ' few dim' : ' few') : '')
+      + '" style="opacity:' + s.night.toFixed(2) + '">'
       + STARS.map((t, i) => {
       if(i % every) return '';
       /* 月のそばは光にまぎれるので、置かない */
@@ -14582,8 +14710,26 @@ window.PAWTASK = (function(){
       ? ' dim' : '';
     const art = s.orb === 'moon' ? moonSvg() : '';
     const title = s.orb === 'moon' ? ' title="' + moonName(moonPhase()) + '"' : '';
-    return `<div class="sky"></div>${starsHtml(s, kind)}
-      <span class="orb ${s.orb}${dim}"${title} style="left:${s.x.toFixed(1)}%; top:${s.y.toFixed(0)}px">${art}</span>`;
+    /* お日さまの 色も ゲームと おなじく、夕方に むけて あかく */
+    const c0 = tgMix('#FFFBEC', '#EC8B6D', s.warm), c1 = tgMix('#FDEBB4', '#E4805F', s.warm);
+    const c2 = tgMix('#F6CE72', '#E1785C', s.warm), c3 = tgMix('#EFB94C', '#DA7055', s.warm);
+    let h = `<div class="sky" style="background:${tgSkyCss()}"></div>${starsHtml(s, kind)}`;
+    if(s.sunA > 0.012){
+      h += `<span class="orb sun${dim}" style="left:${s.sunX.toFixed(1)}%; top:${s.sunY.toFixed(0)}px;`
+         + ` opacity:${s.sunA.toFixed(2)};`
+         + ` background:radial-gradient(circle at 50% 44%, ${c0} 0%, ${c1} 34%, ${c2} 66%, ${c3} 100%)"></span>`;
+    }
+    if(s.moonA > 0.012){
+      h += `<span class="orb moon${dim}" title="${moonName(moonPhase())}"`
+         + ` style="left:${s.moonX.toFixed(1)}%; top:${s.moonY.toFixed(0)}px;`
+         + ` opacity:${s.moonA.toFixed(2)}">${moonSvg()}</span>`;
+    }
+    if(tgTsukimi()){            /* 中秋の名月。TARO GAME と おなじ おだんごと うさぎ */
+      h += '<div class="tsukimi">' + TG_SET_SVG + '</div>'
+         + '<div class="tsukimi-rab" style="opacity:' + s.moonA.toFixed(2) + '">'
+         + TG_RAB_SVG + '</div>';
+    }
+    return h;
   }
 
   // The kennel's spot, as a place the dog can walk to.
