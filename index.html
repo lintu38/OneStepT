@@ -14917,6 +14917,7 @@ window.PAWTASK = (function(){
   }
 
   let dayMark = keyOf(new Date());
+  let curiousSide = 0;
   function dogTick(){
     const st = stage();
     if(!st || app.hidden || (app.offsetParent === null)) return;
@@ -14939,7 +14940,7 @@ window.PAWTASK = (function(){
         dogDir = d < 0 ? -1 : 1;
         gait = 'run';                    /* ぬれる前に いそいで */
         gaitUntil = now + 4000;
-        dogX += Math.sign(d) * GAIT_STEP.run;
+        dogX += Math.sign(d) * Math.min(Math.abs(d), GAIT_STEP.run);   /* 行きすぎて くるくる回らないように */
         pose = 'walk';
         poseUntil = 0;
       } else {
@@ -14994,7 +14995,7 @@ window.PAWTASK = (function(){
         gait = 'walk'; gaitUntil = now + 8000;   /* 小屋へは トコトコ 歩いて */
         if(Math.abs(d) > 0.015){
           dogDir = d < 0 ? -1 : 1;
-          dogX += Math.sign(d) * 0.019;
+          dogX += Math.sign(d) * Math.min(Math.abs(d), 0.019);
           pose = 'walk';
         } else {
           dogX = target;
@@ -15025,7 +15026,7 @@ window.PAWTASK = (function(){
       gait = 'walk'; gaitUntil = now + 8000;   /* ブレーメンへは 歩いて向かう */
       if(Math.abs(d) > 0.017){
         dogDir = d < 0 ? -1 : 1;
-        dogX += Math.sign(d) * 0.018;
+        dogX += Math.sign(d) * Math.min(Math.abs(d), 0.018);
         pose = 'walk';
       } else {
         dogX = tower.at;
@@ -15055,11 +15056,14 @@ window.PAWTASK = (function(){
       curiousUntil = now + 13000 + Math.random() * 12000;
       curiousAt = now + 70000 + Math.random() * 110000;
       sniffSaid = false;
+      curiousSide = 0;
     }
     const curious = !wet && !tower && !denning && !sitTell && visitor && now < curiousUntil;
     if(curious){
       const gap = 0.075;
-      const target = visitor.p + (dogX < visitor.p ? -gap : gap);
+      /* 近づく側は はじめに決めたまま。相手が動いても、ぐるっと回りこまない */
+      if(!curiousSide) curiousSide = dogX < visitor.p ? -1 : 1;
+      const target = Math.max(0, Math.min(1, visitor.p + curiousSide * gap));
       const d = target - dogX;
       if(Math.abs(d) > 0.016){
         dogDir = d < 0 ? -1 : 1;
@@ -15067,7 +15071,7 @@ window.PAWTASK = (function(){
         if(Math.abs(d) < 0.14) gait = 'walk';
         else if(gait === 'walk'){ gait = Math.random() < .5 ? 'run' : 'gallop'; }
         gaitUntil = now + 4000;
-        dogX += Math.sign(d) * gaitStep() * 0.78;   /* そっと近づく ぶん ひかえめ */
+        dogX += Math.sign(d) * Math.min(Math.abs(d), gaitStep() * 0.78);   /* そっと近づく ぶん ひかえめ */
         pose = 'walk';
       } else {
         dogDir = visitor.p > dogX ? 1 : -1;
@@ -15092,7 +15096,7 @@ window.PAWTASK = (function(){
       gaitUntil = chase.until;
       if(Math.abs(d) > 0.02){
         dogDir = d < 0 ? -1 : 1;
-        dogX = Math.max(0, Math.min(1, dogX + Math.sign(d) * gaitStep()));
+        dogX = Math.max(0, Math.min(1, dogX + Math.sign(d) * Math.min(Math.abs(d), gaitStep())));
       }else{
         chase = null;
         pose = 'still'; poseUntil = now + 1400; nextPose = now + 1400;
