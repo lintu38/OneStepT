@@ -11180,6 +11180,8 @@ window.PAWTASK = (function(){
           skipOn: e.skipOn || '',
           doneDays: Array.isArray(e.doneDays) ? e.doneDays.slice() : [],
           skipDays: Array.isArray(e.skipDays) ? e.skipDays.slice() : [],
+          skips: Array.isArray(e.skips) ? e.skips.slice() : [],
+          until: e.until || '',
           note: e.note || '',
           type: typeOf(e.type).label,
           color: typeOf(e.type).color,
